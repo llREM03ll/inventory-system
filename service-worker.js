@@ -3,8 +3,9 @@ const urlsToCache = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./style.css",
-  "./script.js"
+  "./Image1.jpg",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
 // Install & cache files
