@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ important -->
   <title>Inventory System</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -20,18 +21,18 @@
 
     .container {
       background: #fff;
-      padding: 30px;
+      padding: 20px;
       border-radius: 20px;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-      width: 720px;
-      max-width: 95%;
+      width: 100%;
+      max-width: 720px; /* ✅ caps max width */
+      margin: 10px;
       transition: transform 0.2s ease-in-out;
     }
     .container:hover {
       transform: translateY(-2px);
     }
 
-    /* Company name */
     .brand {
       font-size: 1.6rem;
       font-weight: 700;
@@ -64,8 +65,8 @@
 
     .row {
       display: grid;
-      grid-template-columns: 120px repeat(3, 1fr);
-      gap: 12px;
+      grid-template-columns: 100px repeat(3, 1fr);
+      gap: 10px;
       align-items: center;
       margin-bottom: 12px;
     }
@@ -81,7 +82,8 @@
       border: 1px solid #d1d5db;
       border-radius: 8px;
       font-size: 0.95rem;
-      transition: all 0.2s ease-in-out;
+      width: 100%; /* ✅ makes inputs expand properly */
+      box-sizing: border-box;
     }
     input:focus {
       outline: none;
@@ -94,9 +96,9 @@
       color: #9ca3af;
     }
 
-    /* Buttons */
     .button-group {
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
       gap: 12px;
       margin: 20px 0;
@@ -104,8 +106,8 @@
 
     .button-group button {
       flex: 1;
-      max-width: 160px;
-      padding: 12px 28px;
+      min-width: 120px;
+      padding: 12px 20px;
       border: none;
       border-radius: 10px;
       font-weight: 600;
@@ -127,7 +129,6 @@
     .button-group button.secondary {
       background: #e5e7eb;
       color: #374151;
-      box-shadow: none;
     }
     .button-group button.secondary:hover {
       background: #d1d5db;
@@ -141,12 +142,12 @@
       border-radius: 10px;
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      font-size: 0.9rem;
     }
     th, td {
-      padding: 10px 14px;
+      padding: 10px;
       text-align: right;
       border-bottom: 1px solid #e5e7eb;
-      font-size: 0.95rem;
     }
     th:first-child, td:first-child {
       text-align: left;
@@ -171,7 +172,6 @@
     .summary td {
       border: none;
       padding: 6px 12px;
-      font-size: 0.95rem;
     }
     .summary td:first-child {
       text-align: left;
@@ -180,6 +180,25 @@
     .summary strong {
       font-size: 1.05rem;
       color: #111827;
+    }
+
+    /* ✅ RESPONSIVE FIXES */
+    @media (max-width: 600px) {
+      .row {
+        grid-template-columns: 1fr; /* stack inputs vertically */
+      }
+      .row label {
+        margin-bottom: 4px;
+      }
+      .button-group {
+        flex-direction: column;
+      }
+      .button-group button {
+        max-width: 100%;
+      }
+      table, th, td {
+        font-size: 0.85rem; /* shrink text slightly */
+      }
     }
   </style>
 </head>
@@ -362,3 +381,4 @@
 
 </body>
 </html>
+
