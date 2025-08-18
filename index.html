@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ important -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inventory System</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -11,7 +11,8 @@
       font-family: "Inter", "Segoe UI", Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background: linear-gradient(135deg, #f9fafb, #eef2f7);
+      background: url('Image1.jpg') no-repeat center center fixed;
+      background-size: cover;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -19,24 +20,34 @@
       color: #333;
     }
 
+    /* Add overlay for readability */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(245, 238, 230, 0.7); /* Light Cream overlay */
+      z-index: -1;
+    }
+
     .container {
-      background: #fff;
+      background: #fffaf5; /* Very soft cream */
       padding: 20px;
       border-radius: 20px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 8px 25px rgba(122, 92, 62, 0.15);
       width: 100%;
-      max-width: 720px; /* ✅ caps max width */
+      max-width: 720px;
       margin: 10px;
       transition: transform 0.2s ease-in-out;
+      border: 1px solid #e8d5c4;
     }
-    .container:hover {
-      transform: translateY(-2px);
-    }
+
+    .container:hover { transform: translateY(-2px); }
 
     .brand {
       font-size: 1.6rem;
       font-weight: 700;
-      color: #111827;
+      color: #7a5c3e;
       margin-bottom: 10px;
       text-align: left;
       letter-spacing: 1px;
@@ -47,19 +58,17 @@
       margin: 0 0 25px;
       font-size: 1.8rem;
       font-weight: 600;
-      color: #1e3a8a;
+      color: #7a5c3e;
     }
 
-    .section {
-      margin-bottom: 25px;
-    }
+    .section { margin-bottom: 25px; }
 
     h3 {
       margin: 0 0 14px;
       font-size: 1.2rem;
       font-weight: 600;
-      color: #374151;
-      border-bottom: 2px solid #e5e7eb;
+      color: #5c4631;
+      border-bottom: 2px solid #e8d5c4;
       padding-bottom: 6px;
     }
 
@@ -73,25 +82,28 @@
 
     .row label {
       font-size: 0.95rem;
-      color: #374151;
+      color: #5c4631;
       font-weight: 500;
     }
 
     input {
       padding: 8px 10px;
-      border: 1px solid #d1d5db;
+      border: 1px solid #d4b89e;
       border-radius: 8px;
       font-size: 0.95rem;
-      width: 100%; /* ✅ makes inputs expand properly */
+      width: 100%;
       box-sizing: border-box;
+      background: #f5eee6;
     }
+
     input:focus {
       outline: none;
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+      border-color: #c7a27c;
+      box-shadow: 0 0 0 3px rgba(199, 162, 124, 0.3);
     }
+
     .placeholder {
-      background: #f9fafb;
+      background: #f9f5f0;
       border: none;
       color: #9ca3af;
     }
@@ -117,21 +129,23 @@
     }
 
     .button-group button:not(.secondary) {
-      background: linear-gradient(135deg, #2563eb, #1e40af);
+      background: linear-gradient(135deg, #c7a27c, #7a5c3e);
       color: white;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      box-shadow: 0 4px 12px rgba(122, 92, 62, 0.25);
     }
+
     .button-group button:not(.secondary):hover {
-      background: linear-gradient(135deg, #1e40af, #1e3a8a);
+      background: linear-gradient(135deg, #7a5c3e, #5c4631);
       transform: translateY(-1px);
     }
 
     .button-group button.secondary {
-      background: #e5e7eb;
-      color: #374151;
+      background: #e8d5c4;
+      color: #5c4631;
     }
+
     .button-group button.secondary:hover {
-      background: #d1d5db;
+      background: #d4b89e;
       transform: translateY(-1px);
     }
 
@@ -144,68 +158,50 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
       font-size: 0.9rem;
     }
+
     th, td {
       padding: 10px;
       text-align: right;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e8d5c4;
     }
-    th:first-child, td:first-child {
-      text-align: left;
-    }
+
+    th:first-child, td:first-child { text-align: left; }
+
     th {
-      background: #f3f4f6;
+      background: #f5eee6;
       font-weight: 600;
-      color: #374151;
+      color: #5c4631;
     }
-    tr:hover td {
-      background: #f9fafb;
-    }
+
+    tr:hover td { background: #f9f5f0; }
+
     .totals td {
       font-weight: 700;
-      border-top: 2px solid #2563eb;
-      color: #1e3a8a;
+      border-top: 2px solid #7a5c3e;
+      color: #7a5c3e;
     }
 
-    .summary {
-      margin-top: 18px;
-    }
-    .summary td {
-      border: none;
-      padding: 6px 12px;
-    }
-    .summary td:first-child {
-      text-align: left;
-      color: #374151;
-    }
-    .summary strong {
-      font-size: 1.05rem;
-      color: #111827;
-    }
+    .summary { margin-top: 18px; }
 
-    /* ✅ RESPONSIVE FIXES */
+    .summary td { border: none; padding: 6px 12px; }
+
+    .summary td:first-child { text-align: left; color: #5c4631; }
+
+    .summary strong { font-size: 1.05rem; color: #111827; }
+
     @media (max-width: 600px) {
-      .row {
-        grid-template-columns: 1fr; /* stack inputs vertically */
-      }
-      .row label {
-        margin-bottom: 4px;
-      }
-      .button-group {
-        flex-direction: column;
-      }
-      .button-group button {
-        max-width: 100%;
-      }
-      table, th, td {
-        font-size: 0.85rem; /* shrink text slightly */
-      }
+      .row { grid-template-columns: 1fr; }
+      .row label { margin-bottom: 4px; }
+      .button-group { flex-direction: column; }
+      .button-group button { max-width: 100%; }
+      table, th, td { font-size: 0.85rem; }
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <div class="brand">BREWS.CO</div>
+    <div class="brand">BREWS CO.</div>
     <h2>Inventory System</h2>
 
     <div class="section">
@@ -240,7 +236,7 @@
       <h3>Expenses & Addons</h3>
       <div class="row">
         <label>Expenses</label>
-        <input type="number" id="expenses" placeholder="₱0">
+        <input type="text" id="expenses" placeholder="₱0 or 200+300+50">
         <input class="placeholder" disabled>
         <input class="placeholder" disabled>
       </div>
@@ -252,7 +248,6 @@
       </div>
     </div>
 
-    <!-- Buttons -->
     <div class="button-group">
       <button onclick="calculate()">Compute</button>
       <button onclick="clearAll()" class="secondary">Clear All</button>
@@ -265,6 +260,14 @@
   </div>
 
   <script>
+    // ✅ Formatter for Peso with thousands separators
+    function formatMoney(value) {
+      return "₱" + value.toLocaleString("en-PH", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
     class Item {
       constructor(name, price) {
         this.name = name;
@@ -291,7 +294,18 @@
       setCupsHC(begin, end) { this.HC.usedCups = (begin - end); }
       setMC(tally) { this.MC.usedCups = tally; }
       setLC(tally) { this.LC.usedCups = tally; }
-      setExpenses(exp) { this.expenses = exp; }
+
+      // ✅ Allow multiple expenses separated by '+'
+      setExpenses(exp) {
+        if (typeof exp === "string") {
+          this.expenses = exp.split("+")
+            .map(v => parseFloat(v.trim()) || 0)
+            .reduce((a, b) => a + b, 0);
+        } else {
+          this.expenses = exp;
+        }
+      }
+
       setAddons(ad) { this.addons = ad; }
 
       computeTotalCupSale() {
@@ -327,7 +341,7 @@
       system.setMC(+document.getElementById('tallyMC').value || 0);
       system.setLC(+document.getElementById('tallyLC').value || 0);
 
-      system.setExpenses(+document.getElementById('expenses').value || 0);
+      system.setExpenses(document.getElementById('expenses').value || "0"); // ✅ string input supported
       system.setAddons(+document.getElementById('addons').value || 0);
 
       const items = [system.M, system.L, system.S, system.MC, system.LC, system.HC];
@@ -344,23 +358,23 @@
           html += `<tr>
             <td>${i.name}</td>
             <td>${i.usedCups}</td>
-            <td>P${i.price.toFixed(2)}</td>
-            <td>P${i.total.toFixed(2)}</td>
+            <td>${formatMoney(i.price)}</td>
+            <td>${formatMoney(i.total)}</td>
           </tr>`;
         }
       });
 
       html += `<tr class="totals">
         <td colspan="3">Total Cup Sales</td>
-        <td>P${totalSales.toFixed(2)}</td>
+        <td>${formatMoney(totalSales)}</td>
       </tr></table>`;
 
       html += `<table class="summary">
-        <tr><td>Salary + Bonus:</td><td>P${salaryBonus.toFixed(2)}</td></tr>
-        <tr><td>Expenses:</td><td>-P${system.expenses.toFixed(2)}</td></tr>
-        <tr><td>Gross Income:</td><td>P${grossIncome.toFixed(2)}</td></tr>
-        <tr><td>Add-ons:</td><td>P${system.addons.toFixed(2)}</td></tr>
-        <tr><td><strong>Final Total:</strong></td><td><strong>P${finalTotal.toFixed(2)}</strong></td></tr>
+        <tr><td>Salary + Bonus:</td><td>${formatMoney(salaryBonus)}</td></tr>
+        <tr><td>Expenses:</td><td>- ${formatMoney(system.expenses)}</td></tr>
+        <tr><td>Gross Income:</td><td>${formatMoney(grossIncome)}</td></tr>
+        <tr><td>Add-ons:</td><td>${formatMoney(system.addons)}</td></tr>
+        <tr><td><strong>Final Total:</strong></td><td><strong>${formatMoney(finalTotal)}</strong></td></tr>
       </table>`;
 
       document.getElementById("results").innerHTML = html;
@@ -368,17 +382,801 @@
     }
 
     function clearAll() {
-      // reset inputs
       document.querySelectorAll("input").forEach(input => {
         if (!input.disabled) input.value = "";
       });
-      // clear results
       document.getElementById("results").innerHTML = "";
-      // scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   </script>
 
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory System</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
+    body {
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: url('Image1.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #333;
+    }
+
+    /* Add overlay for readability */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(245, 238, 230, 0.7); /* Light Cream overlay */
+      z-index: -1;
+    }
+
+    .container {
+      background: #fffaf5; /* Very soft cream */
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(122, 92, 62, 0.15);
+      width: 100%;
+      max-width: 720px;
+      margin: 10px;
+      transition: transform 0.2s ease-in-out;
+      border: 1px solid #e8d5c4;
+    }
+
+    .container:hover { transform: translateY(-2px); }
+
+    .brand {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #7a5c3e;
+      margin-bottom: 10px;
+      text-align: left;
+      letter-spacing: 1px;
+    }
+
+    h2 {
+      text-align: center;
+      margin: 0 0 25px;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #7a5c3e;
+    }
+
+    .section { margin-bottom: 25px; }
+
+    h3 {
+      margin: 0 0 14px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #5c4631;
+      border-bottom: 2px solid #e8d5c4;
+      padding-bottom: 6px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 100px repeat(3, 1fr);
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .row label {
+      font-size: 0.95rem;
+      color: #5c4631;
+      font-weight: 500;
+    }
+
+    input {
+      padding: 8px 10px;
+      border: 1px solid #d4b89e;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      width: 100%;
+      box-sizing: border-box;
+      background: #f5eee6;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #c7a27c;
+      box-shadow: 0 0 0 3px rgba(199, 162, 124, 0.3);
+    }
+
+    .placeholder {
+      background: #f9f5f0;
+      border: none;
+      color: #9ca3af;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .button-group button {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.25s ease-in-out;
+    }
+
+    .button-group button:not(.secondary) {
+      background: linear-gradient(135deg, #c7a27c, #7a5c3e);
+      color: white;
+      box-shadow: 0 4px 12px rgba(122, 92, 62, 0.25);
+    }
+
+    .button-group button:not(.secondary):hover {
+      background: linear-gradient(135deg, #7a5c3e, #5c4631);
+      transform: translateY(-1px);
+    }
+
+    .button-group button.secondary {
+      background: #e8d5c4;
+      color: #5c4631;
+    }
+
+    .button-group button.secondary:hover {
+      background: #d4b89e;
+      transform: translateY(-1px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: right;
+      border-bottom: 1px solid #e8d5c4;
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+
+    th {
+      background: #f5eee6;
+      font-weight: 600;
+      color: #5c4631;
+    }
+
+    tr:hover td { background: #f9f5f0; }
+
+    .totals td {
+      font-weight: 700;
+      border-top: 2px solid #7a5c3e;
+      color: #7a5c3e;
+    }
+
+    .summary { margin-top: 18px; }
+
+    .summary td { border: none; padding: 6px 12px; }
+
+    .summary td:first-child { text-align: left; color: #5c4631; }
+
+    .summary strong { font-size: 1.05rem; color: #111827; }
+
+    @media (max-width: 600px) {
+      .row { grid-template-columns: 1fr; }
+      .row label { margin-bottom: 4px; }
+      .button-group { flex-direction: column; }
+      .button-group button { max-width: 100%; }
+      table, th, td { font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="brand">BREWS CO.</div>
+    <h2>Inventory System</h2>
+
+    <div class="section">
+      <h3>Input Cups</h3>
+      <div class="row">
+        <label>Medium</label>
+        <input type="number" id="beginM" placeholder="Begin">
+        <input type="number" id="endM" placeholder="End">
+        <input type="number" id="tallyMC" placeholder="MC Tally">
+      </div>
+      <div class="row">
+        <label>Large</label>
+        <input type="number" id="beginL" placeholder="Begin">
+        <input type="number" id="endL" placeholder="End">
+        <input type="number" id="tallyLC" placeholder="LC Tally">
+      </div>
+      <div class="row">
+        <label>Small</label>
+        <input type="number" id="beginS" placeholder="Begin">
+        <input type="number" id="endS" placeholder="End">
+        <input class="placeholder" disabled>
+      </div>
+      <div class="row">
+        <label>Hot Coffee</label>
+        <input type="number" id="beginHC" placeholder="Begin">
+        <input type="number" id="endHC" placeholder="End">
+        <input class="placeholder" disabled>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Expenses & Addons</h3>
+      <div class="row">
+        <label>Expenses</label>
+        <input type="text" id="expenses" placeholder="₱0 or 200+300+50">
+        <input class="placeholder" disabled>
+        <input class="placeholder" disabled>
+      </div>
+      <div class="row">
+        <label>Addons</label>
+        <input type="number" id="addons" placeholder="₱0">
+        <input class="placeholder" disabled>
+        <input class="placeholder" disabled>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button onclick="calculate()">Compute</button>
+      <button onclick="clearAll()" class="secondary">Clear All</button>
+    </div>
+
+    <div class="section">
+      <h3>Results</h3>
+      <div id="results"></div>
+    </div>
+  </div>
+
+  <script>
+    // ✅ Formatter for Peso with thousands separators
+    function formatMoney(value) {
+      return "₱" + value.toLocaleString("en-PH", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    class Item {
+      constructor(name, price) {
+        this.name = name;
+        this.price = price;
+        this.usedCups = 0;
+      }
+      get total() { return this.usedCups * this.price; }
+    }
+
+    class InventorySystem {
+      constructor() {
+        this.M = new Item("Medium", 29);
+        this.L = new Item("Large", 39);
+        this.S = new Item("Small", 25);
+        this.MC = new Item("Iced Coffee M", 35);
+        this.LC = new Item("Iced Coffee L", 45);
+        this.HC = new Item("Hot Coffee", 45);
+        this.expenses = 0;
+        this.addons = 0;
+      }
+      setCupsM(begin, end, tallyMC) { this.M.usedCups = (begin - end) - tallyMC; }
+      setCupsL(begin, end, tallyLC) { this.L.usedCups = (begin - end) - tallyLC; }
+      setCupsS(begin, end) { this.S.usedCups = (begin - end); }
+      setCupsHC(begin, end) { this.HC.usedCups = (begin - end); }
+      setMC(tally) { this.MC.usedCups = tally; }
+      setLC(tally) { this.LC.usedCups = tally; }
+
+      // ✅ Allow multiple expenses separated by '+'
+      setExpenses(exp) {
+        if (typeof exp === "string") {
+          this.expenses = exp.split("+")
+            .map(v => parseFloat(v.trim()) || 0)
+            .reduce((a, b) => a + b, 0);
+        } else {
+          this.expenses = exp;
+        }
+      }
+
+      setAddons(ad) { this.addons = ad; }
+
+      computeTotalCupSale() {
+        return this.M.total + this.L.total + this.S.total + this.MC.total + this.LC.total + this.HC.total;
+      }
+      computeSalaryBonus(totalSales) {
+        let salary = 350;
+        if (totalSales >= 3000) {
+          salary += 50;
+          let extra = Math.floor((totalSales - 3000) / 1000);
+          salary += extra * 50;
+        }
+        return salary;
+      }
+      computeGrossIncome() {
+        let sales = this.computeTotalCupSale();
+        let finalSalary = this.computeSalaryBonus(sales);
+        return sales - (this.expenses + finalSalary);
+      }
+      computeFinalTotal() {
+        return this.computeGrossIncome() + this.addons;
+      }
+    }
+
+    function calculate() {
+      const system = new InventorySystem();
+
+      system.setCupsM(+document.getElementById('beginM').value || 0, +document.getElementById('endM').value || 0, +document.getElementById('tallyMC').value || 0);
+      system.setCupsL(+document.getElementById('beginL').value || 0, +document.getElementById('endL').value || 0, +document.getElementById('tallyLC').value || 0);
+      system.setCupsS(+document.getElementById('beginS').value || 0, +document.getElementById('endS').value || 0);
+      system.setCupsHC(+document.getElementById('beginHC').value || 0, +document.getElementById('endHC').value || 0);
+
+      system.setMC(+document.getElementById('tallyMC').value || 0);
+      system.setLC(+document.getElementById('tallyLC').value || 0);
+
+      system.setExpenses(document.getElementById('expenses').value || "0"); // ✅ string input supported
+      system.setAddons(+document.getElementById('addons').value || 0);
+
+      const items = [system.M, system.L, system.S, system.MC, system.LC, system.HC];
+      const totalSales = system.computeTotalCupSale();
+      const salaryBonus = system.computeSalaryBonus(totalSales);
+      const grossIncome = system.computeGrossIncome();
+      const finalTotal = system.computeFinalTotal();
+
+      let html = `<table>
+        <tr><th>Item</th><th>Cups</th><th>Price</th><th>Total</th></tr>`;
+
+      items.forEach(i => {
+        if (i.usedCups > 0) {
+          html += `<tr>
+            <td>${i.name}</td>
+            <td>${i.usedCups}</td>
+            <td>${formatMoney(i.price)}</td>
+            <td>${formatMoney(i.total)}</td>
+          </tr>`;
+        }
+      });
+
+      html += `<tr class="totals">
+        <td colspan="3">Total Cup Sales</td>
+        <td>${formatMoney(totalSales)}</td>
+      </tr></table>`;
+
+      html += `<table class="summary">
+        <tr><td>Salary + Bonus:</td><td>${formatMoney(salaryBonus)}</td></tr>
+        <tr><td>Expenses:</td><td>- ${formatMoney(system.expenses)}</td></tr>
+        <tr><td>Gross Income:</td><td>${formatMoney(grossIncome)}</td></tr>
+        <tr><td>Add-ons:</td><td>${formatMoney(system.addons)}</td></tr>
+        <tr><td><strong>Final Total:</strong></td><td><strong>${formatMoney(finalTotal)}</strong></td></tr>
+      </table>`;
+
+      document.getElementById("results").innerHTML = html;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function clearAll() {
+      document.querySelectorAll("input").forEach(input => {
+        if (!input.disabled) input.value = "";
+      });
+      document.getElementById("results").innerHTML = "";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory System</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+    body {
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: url('Image1.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #333;
+    }
+
+    /* Add overlay for readability */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(245, 238, 230, 0.7); /* Light Cream overlay */
+      z-index: -1;
+    }
+
+    .container {
+      background: #fffaf5; /* Very soft cream */
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(122, 92, 62, 0.15);
+      width: 100%;
+      max-width: 720px;
+      margin: 10px;
+      transition: transform 0.2s ease-in-out;
+      border: 1px solid #e8d5c4;
+    }
+
+    .container:hover { transform: translateY(-2px); }
+
+    .brand {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #7a5c3e;
+      margin-bottom: 10px;
+      text-align: left;
+      letter-spacing: 1px;
+    }
+
+    h2 {
+      text-align: center;
+      margin: 0 0 25px;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #7a5c3e;
+    }
+
+    .section { margin-bottom: 25px; }
+
+    h3 {
+      margin: 0 0 14px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #5c4631;
+      border-bottom: 2px solid #e8d5c4;
+      padding-bottom: 6px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 100px repeat(3, 1fr);
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .row label {
+      font-size: 0.95rem;
+      color: #5c4631;
+      font-weight: 500;
+    }
+
+    input {
+      padding: 8px 10px;
+      border: 1px solid #d4b89e;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      width: 100%;
+      box-sizing: border-box;
+      background: #f5eee6;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #c7a27c;
+      box-shadow: 0 0 0 3px rgba(199, 162, 124, 0.3);
+    }
+
+    .placeholder {
+      background: #f9f5f0;
+      border: none;
+      color: #9ca3af;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .button-group button {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.25s ease-in-out;
+    }
+
+    .button-group button:not(.secondary) {
+      background: linear-gradient(135deg, #c7a27c, #7a5c3e);
+      color: white;
+      box-shadow: 0 4px 12px rgba(122, 92, 62, 0.25);
+    }
+
+    .button-group button:not(.secondary):hover {
+      background: linear-gradient(135deg, #7a5c3e, #5c4631);
+      transform: translateY(-1px);
+    }
+
+    .button-group button.secondary {
+      background: #e8d5c4;
+      color: #5c4631;
+    }
+
+    .button-group button.secondary:hover {
+      background: #d4b89e;
+      transform: translateY(-1px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: right;
+      border-bottom: 1px solid #e8d5c4;
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+
+    th {
+      background: #f5eee6;
+      font-weight: 600;
+      color: #5c4631;
+    }
+
+    tr:hover td { background: #f9f5f0; }
+
+    .totals td {
+      font-weight: 700;
+      border-top: 2px solid #7a5c3e;
+      color: #7a5c3e;
+    }
+
+    .summary { margin-top: 18px; }
+
+    .summary td { border: none; padding: 6px 12px; }
+
+    .summary td:first-child { text-align: left; color: #5c4631; }
+
+    .summary strong { font-size: 1.05rem; color: #111827; }
+
+    @media (max-width: 600px) {
+      .row { grid-template-columns: 1fr; }
+      .row label { margin-bottom: 4px; }
+      .button-group { flex-direction: column; }
+      .button-group button { max-width: 100%; }
+      table, th, td { font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="brand">BREWS CO.</div>
+    <h2>Inventory System</h2>
+
+    <div class="section">
+      <h3>Input Cups</h3>
+      <div class="row">
+        <label>Medium</label>
+        <input type="number" id="beginM" placeholder="Begin">
+        <input type="number" id="endM" placeholder="End">
+        <input type="number" id="tallyMC" placeholder="MC Tally">
+      </div>
+      <div class="row">
+        <label>Large</label>
+        <input type="number" id="beginL" placeholder="Begin">
+        <input type="number" id="endL" placeholder="End">
+        <input type="number" id="tallyLC" placeholder="LC Tally">
+      </div>
+      <div class="row">
+        <label>Small</label>
+        <input type="number" id="beginS" placeholder="Begin">
+        <input type="number" id="endS" placeholder="End">
+        <input class="placeholder" disabled>
+      </div>
+      <div class="row">
+        <label>Hot Coffee</label>
+        <input type="number" id="beginHC" placeholder="Begin">
+        <input type="number" id="endHC" placeholder="End">
+        <input class="placeholder" disabled>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Expenses & Addons</h3>
+      <div class="row">
+        <label>Expenses</label>
+        <input type="text" id="expenses" placeholder="₱0 or 200+300+50">
+        <input class="placeholder" disabled>
+        <input class="placeholder" disabled>
+      </div>
+      <div class="row">
+        <label>Addons</label>
+        <input type="number" id="addons" placeholder="₱0">
+        <input class="placeholder" disabled>
+        <input class="placeholder" disabled>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button onclick="calculate()">Compute</button>
+      <button onclick="clearAll()" class="secondary">Clear All</button>
+    </div>
+
+    <div class="section">
+      <h3>Results</h3>
+      <div id="results"></div>
+    </div>
+  </div>
+
+  <script>
+    // ✅ Formatter for Peso with thousands separators
+    function formatMoney(value) {
+      return "₱" + value.toLocaleString("en-PH", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    class Item {
+      constructor(name, price) {
+        this.name = name;
+        this.price = price;
+        this.usedCups = 0;
+      }
+      get total() { return this.usedCups * this.price; }
+    }
+
+    class InventorySystem {
+      constructor() {
+        this.M = new Item("Medium", 29);
+        this.L = new Item("Large", 39);
+        this.S = new Item("Small", 25);
+        this.MC = new Item("Iced Coffee M", 35);
+        this.LC = new Item("Iced Coffee L", 45);
+        this.HC = new Item("Hot Coffee", 45);
+        this.expenses = 0;
+        this.addons = 0;
+      }
+      setCupsM(begin, end, tallyMC) { this.M.usedCups = (begin - end) - tallyMC; }
+      setCupsL(begin, end, tallyLC) { this.L.usedCups = (begin - end) - tallyLC; }
+      setCupsS(begin, end) { this.S.usedCups = (begin - end); }
+      setCupsHC(begin, end) { this.HC.usedCups = (begin - end); }
+      setMC(tally) { this.MC.usedCups = tally; }
+      setLC(tally) { this.LC.usedCups = tally; }
+
+      // ✅ Allow multiple expenses separated by '+'
+      setExpenses(exp) {
+        if (typeof exp === "string") {
+          this.expenses = exp.split("+")
+            .map(v => parseFloat(v.trim()) || 0)
+            .reduce((a, b) => a + b, 0);
+        } else {
+          this.expenses = exp;
+        }
+      }
+
+      setAddons(ad) { this.addons = ad; }
+
+      computeTotalCupSale() {
+        return this.M.total + this.L.total + this.S.total + this.MC.total + this.LC.total + this.HC.total;
+      }
+      computeSalaryBonus(totalSales) {
+        let salary = 350;
+        if (totalSales >= 3000) {
+          salary += 50;
+          let extra = Math.floor((totalSales - 3000) / 1000);
+          salary += extra * 50;
+        }
+        return salary;
+      }
+      computeGrossIncome() {
+        let sales = this.computeTotalCupSale();
+        let finalSalary = this.computeSalaryBonus(sales);
+        return sales - (this.expenses + finalSalary);
+      }
+      computeFinalTotal() {
+        return this.computeGrossIncome() + this.addons;
+      }
+    }
+
+    function calculate() {
+      const system = new InventorySystem();
+
+      system.setCupsM(+document.getElementById('beginM').value || 0, +document.getElementById('endM').value || 0, +document.getElementById('tallyMC').value || 0);
+      system.setCupsL(+document.getElementById('beginL').value || 0, +document.getElementById('endL').value || 0, +document.getElementById('tallyLC').value || 0);
+      system.setCupsS(+document.getElementById('beginS').value || 0, +document.getElementById('endS').value || 0);
+      system.setCupsHC(+document.getElementById('beginHC').value || 0, +document.getElementById('endHC').value || 0);
+
+      system.setMC(+document.getElementById('tallyMC').value || 0);
+      system.setLC(+document.getElementById('tallyLC').value || 0);
+
+      system.setExpenses(document.getElementById('expenses').value || "0"); // ✅ string input supported
+      system.setAddons(+document.getElementById('addons').value || 0);
+
+      const items = [system.M, system.L, system.S, system.MC, system.LC, system.HC];
+      const totalSales = system.computeTotalCupSale();
+      const salaryBonus = system.computeSalaryBonus(totalSales);
+      const grossIncome = system.computeGrossIncome();
+      const finalTotal = system.computeFinalTotal();
+
+      let html = `<table>
+        <tr><th>Item</th><th>Cups</th><th>Price</th><th>Total</th></tr>`;
+
+      items.forEach(i => {
+        if (i.usedCups > 0) {
+          html += `<tr>
+            <td>${i.name}</td>
+            <td>${i.usedCups}</td>
+            <td>${formatMoney(i.price)}</td>
+            <td>${formatMoney(i.total)}</td>
+          </tr>`;
+        }
+      });
+
+      html += `<tr class="totals">
+        <td colspan="3">Total Cup Sales</td>
+        <td>${formatMoney(totalSales)}</td>
+      </tr></table>`;
+
+      html += `<table class="summary">
+        <tr><td>Salary + Bonus:</td><td>${formatMoney(salaryBonus)}</td></tr>
+        <tr><td>Expenses:</td><td>- ${formatMoney(system.expenses)}</td></tr>
+        <tr><td>Gross Income:</td><td>${formatMoney(grossIncome)}</td></tr>
+        <tr><td>Add-ons:</td><td>${formatMoney(system.addons)}</td></tr>
+        <tr><td><strong>Final Total:</strong></td><td><strong>${formatMoney(finalTotal)}</strong></td></tr>
+      </table>`;
+
+      document.getElementById("results").innerHTML = html;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function clearAll() {
+      document.querySelectorAll("input").forEach(input => {
+        if (!input.disabled) input.value = "";
+      });
+      document.getElementById("results").innerHTML = "";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+
+</body>
+</html>
