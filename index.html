@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#7a5c3e">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#7a5c3e" />
   <title>Inventory System</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
     body {
       font-family: "Inter", "Segoe UI", Arial, sans-serif;
       margin: 0;
@@ -21,19 +20,15 @@
       min-height: 100vh;
       color: #333;
     }
-
-    /* Add overlay for readability */
     body::before {
       content: "";
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(245, 238, 230, 0.7); /* Light Cream overlay */
+      inset: 0;
+      background: rgba(245, 238, 230, 0.7);
       z-index: -1;
     }
-
     .container {
-      background: #fffaf5; /* Very soft cream */
+      background: #fffaf5;
       padding: 20px;
       border-radius: 20px;
       box-shadow: 0 8px 25px rgba(122, 92, 62, 0.15);
@@ -43,153 +38,105 @@
       transition: transform 0.2s ease-in-out;
       border: 1px solid #e8d5c4;
     }
-
     .container:hover { transform: translateY(-2px); }
-
-    .brand {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: #7a5c3e;
-      margin-bottom: 10px;
-      text-align: left;
-      letter-spacing: 1px;
-    }
-
-    h2 {
-      text-align: center;
-      margin: 0 0 25px;
-      font-size: 1.8rem;
-      font-weight: 600;
-      color: #7a5c3e;
-    }
-
+    .brand {text-align: center; font-size: 2.0rem; font-weight: 700; color: #7a5c3e; margin-bottom: 10px; }
+    h2 { text-align: center; margin: 0 0 25px; font-size: 1.8rem; font-weight: 600; color: #7a5c3e; }
     .section { margin-bottom: 25px; }
-
-    h3 {
-      margin: 0 0 14px;
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #5c4631;
-      border-bottom: 2px solid #e8d5c4;
-      padding-bottom: 6px;
-    }
-
-    .row {
-      display: grid;
-      grid-template-columns: 100px repeat(3, 1fr);
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .row label {
-      font-size: 0.95rem;
-      color: #5c4631;
-      font-weight: 500;
-    }
-
-    input {
-      padding: 8px 10px;
-      border: 1px solid #d4b89e;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      width: 100%;
-      box-sizing: border-box;
-      background: #f5eee6;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #c7a27c;
-      box-shadow: 0 0 0 3px rgba(199, 162, 124, 0.3);
-    }
-
-    .placeholder {
-      background: #f9f5f0;
+    h3 { margin: 0 0 14px; font-size: 1.2rem; font-weight: 600; color: #5c4631; border-bottom: 2px solid #e8d5c4; padding-bottom: 6px; }
+    .row { display: grid; grid-template-columns: 100px repeat(3, 1fr); gap: 10px; align-items: center; margin-bottom: 12px; }
+    .row label { font-size: 0.95rem; color: #5c4631; font-weight: 500; }
+    input { padding: 8px 10px; border: 1px solid #d4b89e; border-radius: 8px; font-size: 0.95rem; width: 100%; background: #f5eee6; box-sizing: border-box; }
+    input:focus { outline: none; border-color: #c7a27c; box-shadow: 0 0 0 3px rgba(199, 162, 124, 0.3); }
+    .placeholder { background: #f9f5f0; border: none; color: #9ca3af; }
+    .button-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 20px 0; }
+    .button-group button { flex: 1; min-width: 120px; padding: 12px 20px; border: none; border-radius: 10px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.25s ease-in-out; }
+    .button-group button:not(.secondary) { background: linear-gradient(135deg, #c7a27c, #7a5c3e); color: white; box-shadow: 0 4px 12px rgba(122, 92, 62, 0.25); }
+    .button-group button:not(.secondary):hover { background: linear-gradient(135deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
+    .button-group button.secondary { background: #e8d5c4; color: #5c4631; }
+    .button-group button.secondary:hover { background: #d4b89e; transform: translateY(-1px); }
+    .expense-row { display: flex; gap: 8px; margin: 6px 0; }
+    .expense-row input { flex: 1; }
+    .expense-row button {
+      background: linear-gradient(135deg, #c7a27c, #7a5c3e);
+      color: white;
       border: none;
-      color: #9ca3af;
+      border-radius: 8px;
+      cursor: pointer;
+      padding: 4px 10px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(122, 92, 62, 0.2);
+      transition: all 0.25s ease-in-out;
     }
-
-    .button-group {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      margin: 20px 0;
+    .expense-row button:hover {
+      background: linear-gradient(135deg, #7a5c3e, #5c4631);
+      transform: translateY(-1px);
     }
-
-    .button-group button {
-      flex: 1;
-      min-width: 120px;
+    .add-expense-btn {
+      display: block;
+      width: 100%;
+      margin: 12px 0;
       padding: 12px 20px;
       border: none;
       border-radius: 10px;
       font-weight: 600;
       font-size: 1rem;
       cursor: pointer;
-      transition: all 0.25s ease-in-out;
-    }
-
-    .button-group button:not(.secondary) {
       background: linear-gradient(135deg, #c7a27c, #7a5c3e);
       color: white;
       box-shadow: 0 4px 12px rgba(122, 92, 62, 0.25);
+      transition: all 0.25s ease-in-out;
     }
-
-    .button-group button:not(.secondary):hover {
+    .add-expense-btn:hover {
       background: linear-gradient(135deg, #7a5c3e, #5c4631);
       transform: translateY(-1px);
     }
-
-    .button-group button.secondary {
-      background: #e8d5c4;
-      color: #5c4631;
-    }
-
-    .button-group button.secondary:hover {
-      background: #d4b89e;
-      transform: translateY(-1px);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      font-size: 0.9rem;
-    }
-
-    th, td {
-      padding: 10px;
-      text-align: right;
-      border-bottom: 1px solid #e8d5c4;
-    }
-
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); font-size: 0.9rem; }
+    th, td { padding: 10px; text-align: right; border-bottom: 1px solid #e8d5c4; }
     th:first-child, td:first-child { text-align: left; }
-
-    th {
-      background: #f5eee6;
-      font-weight: 600;
-      color: #5c4631;
-    }
-
+    th { background: #f5eee6; font-weight: 600; color: #5c4631; }
     tr:hover td { background: #f9f5f0; }
-
-    .totals td {
-      font-weight: 700;
-      border-top: 2px solid #7a5c3e;
-      color: #7a5c3e;
-    }
-
+    .totals td { font-weight: 700; border-top: 2px solid #7a5c3e; color: #7a5c3e; }
     .summary { margin-top: 18px; }
-
     .summary td { border: none; padding: 6px 12px; }
-
     .summary td:first-child { text-align: left; color: #5c4631; }
-
     .summary strong { font-size: 1.05rem; color: #111827; }
+    #resultDate {
+      border: none;
+      background: transparent;
+      font-size: 0.9rem;
+      color: #5a4632;
+      cursor: pointer;
+      text-align: right;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      font-family: inherit;
+      font-variant-numeric: tabular-nums;
+    }
+    #resultDate::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; }
+    .output-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+    .output-actions button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .output-actions .primary {
+      background: linear-gradient(135deg, #c7a27c, #7a5c3e);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(122, 92, 62, 0.25);
+    }
+    .output-actions .primary:hover { transform: translateY(-1px); }
+    .output-actions .secondary { background: #e8d5c4; color: #5c4631; }
+    .output-actions .secondary:hover { background: #d4b89e; transform: translateY(-1px); }
 
     @media (max-width: 600px) {
       .row { grid-template-columns: 1fr; }
@@ -197,51 +144,46 @@
       .button-group { flex-direction: column; }
       .button-group button { max-width: 100%; }
       table, th, td { font-size: 0.85rem; }
+      .output-actions { justify-content: center; }
     }
+    /* History list styling */
+    .history-list { margin-top: 8px; }
+    .history-item {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 12px; border:1px solid #e8d5c4; border-radius:12px; background:#fff;
+      margin:8px 0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .history-item .date { font-weight:600; color:#5c4631; }
+    .history-item .actions { display:flex; gap:8px; }
+    .history-item .actions button { padding:8px 12px; border-radius:10px; border:none; cursor:pointer; }
+    .btn-restore { background:#c7a27c; color:white; }
+    .btn-delete { background:#e8d5c4; color:#5c4631; }
   </style>
 </head>
 <body>
-
   <div class="container">
-    <div class="brand">BREWS CO.</div>
+    <div class="brand">BREWS.CO</div>
     <h2>Inventory System</h2>
 
+    <!-- Input sections -->
     <div class="section">
       <h3>Input Cups</h3>
-      <div class="row">
-        <label>Medium</label>
-        <input type="number" id="beginM" placeholder="Begin">
-        <input type="number" id="endM" placeholder="End">
-        <input type="number" id="tallyMC" placeholder="MC Tally">
-      </div>
-      <div class="row">
-        <label>Large</label>
-        <input type="number" id="beginL" placeholder="Begin">
-        <input type="number" id="endL" placeholder="End">
-        <input type="number" id="tallyLC" placeholder="LC Tally">
-      </div>
-      <div class="row">
-        <label>Small</label>
-        <input type="number" id="beginS" placeholder="Begin">
-        <input type="number" id="endS" placeholder="End">
-        <input class="placeholder" disabled>
-      </div>
-      <div class="row">
-        <label>Hot Coffee</label>
-        <input type="number" id="beginHC" placeholder="Begin">
-        <input type="number" id="endHC" placeholder="End">
-        <input class="placeholder" disabled>
-      </div>
+      <div class="row"><label>Medium</label><input type="number" id="beginM" placeholder="Begin"><input type="number" id="endM" placeholder="End"><input type="number" id="tallyMC" placeholder="MC Tally"></div>
+      <div class="row"><label>Large</label><input type="number" id="beginL" placeholder="Begin"><input type="number" id="endL" placeholder="End"><input type="number" id="tallyLC" placeholder="LC Tally"></div>
+      <div class="row"><label>Small</label><input type="number" id="beginS" placeholder="Begin"><input type="number" id="endS" placeholder="End"><input class="placeholder" disabled></div>
+      <div class="row"><label>Hot Coffee</label><input type="number" id="beginHC" placeholder="Begin"><input type="number" id="endHC" placeholder="End"><input class="placeholder" disabled></div>
     </div>
 
     <div class="section">
       <h3>Expenses & Addons</h3>
-      <div class="row">
-        <label>Expenses</label>
-        <input type="text" id="expenses" placeholder="₱0 or 200+300+50">
-        <input class="placeholder" disabled>
-        <input class="placeholder" disabled>
+      <div id="expensesContainer">
+        <div class="expense-row">
+          <input type="text" class="exp-name" placeholder="Item name">
+          <input type="number" class="exp-price" placeholder="₱0">
+          <button type="button" onclick="this.parentElement.remove()">x</button>
+        </div>
       </div>
+      <button type="button" class="add-expense-btn" onclick="addExpenseRow()">+ Add Expense</button>
       <div class="row">
         <label>Addons</label>
         <input type="number" id="addons" placeholder="₱0">
@@ -253,21 +195,22 @@
     <div class="button-group">
       <button onclick="calculate()">Compute</button>
       <button onclick="clearAll()" class="secondary">Clear All</button>
+      <button onclick="showHistory()" class="secondary">Show History</button>
+      <button onclick="clearHistory()" class="secondary">Delete History</button>
     </div>
 
     <div class="section">
-      <h3>Results</h3>
       <div id="results"></div>
     </div>
   </div>
 
   <script>
-    // ✅ Formatter for Peso with thousands separators
+    let lastRenderContent = "";
+    let lastRenderDate = "";
+
     function formatMoney(value) {
-      return "₱" + value.toLocaleString("en-PH", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
+      const num = Number(value) || 0;
+      return "₱" + num.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     class Item {
@@ -281,123 +224,282 @@
 
     class InventorySystem {
       constructor() {
-        this.M = new Item("Medium", 29);
-        this.L = new Item("Large", 39);
-        this.S = new Item("Small", 25);
+        this.M  = new Item("Medium", 29);
+        this.L  = new Item("Large", 39);
+        this.S  = new Item("Small", 25);
         this.MC = new Item("Iced Coffee M", 35);
         this.LC = new Item("Iced Coffee L", 45);
         this.HC = new Item("Hot Coffee", 45);
+
+        this.expensesList = [];
         this.expenses = 0;
         this.addons = 0;
       }
-      setCupsM(begin, end, tallyMC) { this.M.usedCups = (begin - end) - tallyMC; }
-      setCupsL(begin, end, tallyLC) { this.L.usedCups = (begin - end) - tallyLC; }
-      setCupsS(begin, end) { this.S.usedCups = (begin - end); }
-      setCupsHC(begin, end) { this.HC.usedCups = (begin - end); }
-      setMC(tally) { this.MC.usedCups = tally; }
-      setLC(tally) { this.LC.usedCups = tally; }
+      setCupsM(begin, end, tallyMC) { this.M.usedCups  = (begin - end) - tallyMC; }
+      setCupsL(begin, end, tallyLC) { this.L.usedCups  = (begin - end) - tallyLC; }
+      setCupsS(begin, end)          { this.S.usedCups  = (begin - end); }
+      setCupsHC(begin, end)         { this.HC.usedCups = (begin - end); }
+      setMC(tally)                  { this.MC.usedCups = tally; }
+      setLC(tally)                  { this.LC.usedCups = tally; }
 
-      // ✅ Allow multiple expenses separated by '+'
-      setExpenses(exp) {
-        if (typeof exp === "string") {
-          this.expenses = exp.split("+")
-            .map(v => parseFloat(v.trim()) || 0)
-            .reduce((a, b) => a + b, 0);
-        } else {
-          this.expenses = exp;
-        }
+      setExpenses(list) {
+        this.expensesList = list;
+        this.expenses = list.reduce((s, i) => s + i.price, 0);
       }
-
       setAddons(ad) { this.addons = ad; }
 
       computeTotalCupSale() {
         return this.M.total + this.L.total + this.S.total + this.MC.total + this.LC.total + this.HC.total;
       }
+
       computeSalaryBonus(totalSales) {
         let salary = 350;
         if (totalSales >= 3000) {
           salary += 50;
-          let extra = Math.floor((totalSales - 3000) / 1000);
-          salary += extra * 50;
+          salary += Math.floor((totalSales - 3000) / 1000) * 50;
         }
         return salary;
       }
+
       computeGrossIncome() {
-        let sales = this.computeTotalCupSale();
-        let finalSalary = this.computeSalaryBonus(sales);
-        return sales - (this.expenses + finalSalary);
+        const sales = this.computeTotalCupSale();
+        const salary = this.computeSalaryBonus(sales);
+        return sales - (this.expenses + salary);
       }
+
       computeFinalTotal() {
         return this.computeGrossIncome() + this.addons;
       }
     }
 
+    function getExpensesFromUI() {
+      const rows = document.querySelectorAll("#expensesContainer .expense-row");
+      const list = [];
+      rows.forEach(row => {
+        const name = row.querySelector(".exp-name").value.trim();
+        const price = parseFloat(row.querySelector(".exp-price").value) || 0;
+        if (name && price > 0) list.push({ name, price });
+      });
+      return list;
+    }
+
+    function addExpenseRow() {
+      const container = document.getElementById("expensesContainer");
+      const row = document.createElement("div");
+      row.className = "expense-row";
+      row.innerHTML = `
+        <input type="text" class="exp-name" placeholder="Item name">
+        <input type="number" class="exp-price" placeholder="₱0">
+        <button type="button" onclick="this.parentElement.remove()">x</button>
+      `;
+      container.appendChild(row);
+    }
+
     function calculate() {
+      const beginM  = +document.getElementById('beginM').value || 0;
+      const endM    = +document.getElementById('endM').value   || 0;
+      const tallyMC = +document.getElementById('tallyMC').value|| 0;
+      const beginL  = +document.getElementById('beginL').value || 0;
+      const endL    = +document.getElementById('endL').value   || 0;
+      const tallyLC = +document.getElementById('tallyLC').value|| 0;
+      const beginS  = +document.getElementById('beginS').value || 0;
+      const endS    = +document.getElementById('endS').value   || 0;
+      const beginHC = +document.getElementById('beginHC').value|| 0;
+      const endHC   = +document.getElementById('endHC').value  || 0;
+
       const system = new InventorySystem();
+      system.setCupsM(beginM, endM, tallyMC);
+      system.setCupsL(beginL, endL, tallyLC);
+      system.setCupsS(beginS, endS);
+      system.setCupsHC(beginHC, endHC);
+      system.setMC(tallyMC);
+      system.setLC(tallyLC);
+      system.setExpenses(getExpensesFromUI());
+      system.setAddons(+document.getElementById('addons').value||0);
 
-      system.setCupsM(+document.getElementById('beginM').value || 0, +document.getElementById('endM').value || 0, +document.getElementById('tallyMC').value || 0);
-      system.setCupsL(+document.getElementById('beginL').value || 0, +document.getElementById('endL').value || 0, +document.getElementById('tallyLC').value || 0);
-      system.setCupsS(+document.getElementById('beginS').value || 0, +document.getElementById('endS').value || 0);
-      system.setCupsHC(+document.getElementById('beginHC').value || 0, +document.getElementById('endHC').value || 0);
-
-      system.setMC(+document.getElementById('tallyMC').value || 0);
-      system.setLC(+document.getElementById('tallyLC').value || 0);
-
-      system.setExpenses(document.getElementById('expenses').value || "0"); // ✅ string input supported
-      system.setAddons(+document.getElementById('addons').value || 0);
-
-      const items = [system.M, system.L, system.S, system.MC, system.LC, system.HC];
-      const totalSales = system.computeTotalCupSale();
+      const totalSales  = system.computeTotalCupSale();
       const salaryBonus = system.computeSalaryBonus(totalSales);
       const grossIncome = system.computeGrossIncome();
-      const finalTotal = system.computeFinalTotal();
+      const finalTotal  = system.computeFinalTotal();
 
-      let html = `<table>
-        <tr><th>Item</th><th>Cups</th><th>Price</th><th>Total</th></tr>`;
+      const orderedRows = [
+        { item: system.M,  beg: beginM,  end: endM },
+        { item: system.L,  beg: beginL,  end: endL },
+        { item: system.S,  beg: beginS,  end: endS },
+        { item: system.HC, beg: beginHC, end: endHC },
+        { item: system.MC, beg: null,    end: null },
+        { item: system.LC, beg: null,    end: null },
+      ];
 
-      items.forEach(i => {
-        if (i.usedCups > 0) {
-          html += `<tr>
-            <td>${i.name}</td>
-            <td>${i.usedCups}</td>
-            <td>${formatMoney(i.price)}</td>
-            <td>${formatMoney(i.total)}</td>
+      const dash = v => (v === null ? "—" : v);
+
+      const today = new Date().toISOString().split("T")[0];
+      const existingDate = document.getElementById("resultDate")?.value || today;
+      lastRenderDate = existingDate;
+
+      let contentHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #d4b89e; padding-bottom:4px; margin-bottom:10px;">
+          <h3 style="margin:0; font-weight:600; border:none; text-decoration:none; box-shadow:none;">Results</h3>
+          <input type="date" id="resultDate" value="${existingDate}"
+            style="border:none; background:transparent; font-size:0.9rem; color:#5a4632; cursor:pointer; text-align:right;">
+        </div>
+      `;
+
+      contentHTML += `<table>
+        <tr>
+          <th>Item</th><th>Beg</th><th>Cups</th><th>Price</th><th>End</th><th>Amount</th>
+        </tr>`;
+
+      orderedRows.forEach(({ item, beg, end }) => {
+        if (item.usedCups > 0) {
+          contentHTML += `<tr>
+            <td>${item.name}</td>
+            <td>${dash(beg)}</td>
+            <td>${item.usedCups}</td>
+            <td>${formatMoney(item.price)}</td>
+            <td>${dash(end)}</td>
+            <td>${formatMoney(item.total)}</td>
           </tr>`;
         }
       });
 
-      html += `<tr class="totals">
-        <td colspan="3">Total Cup Sales</td>
-        <td>${formatMoney(totalSales)}</td>
-      </tr></table>`;
+      contentHTML += `<tr class="totals"><td colspan="5">Total Cup Sales</td><td>${formatMoney(totalSales)}</td></tr></table>`;
 
-      html += `<table class="summary">
+      contentHTML += `<table class="summary">
         <tr><td>Salary + Bonus:</td><td>${formatMoney(salaryBonus)}</td></tr>
-        <tr><td>Expenses:</td><td>- ${formatMoney(system.expenses)}</td></tr>
+        <tr><td>Expenses:</td><td>- ${formatMoney(system.expenses)}</td></tr>`;
+
+      if (system.expensesList.length > 0) {
+        system.expensesList.forEach(e => {
+          contentHTML += `<tr><td style="padding-left:20px;">${e.name}</td><td>- ${formatMoney(e.price)}</td></tr>`;
+        });
+      }
+
+      contentHTML += `
         <tr><td>Gross Income:</td><td>${formatMoney(grossIncome)}</td></tr>
         <tr><td>Add-ons:</td><td>${formatMoney(system.addons)}</td></tr>
         <tr><td><strong>Final Total:</strong></td><td><strong>${formatMoney(finalTotal)}</strong></td></tr>
       </table>`;
 
-      document.getElementById("results").innerHTML = html;
+      lastRenderContent = contentHTML;
+
+      const actionsHTML = `
+        <div class="output-actions">
+          <button class="primary" onclick="saveCurrentResults()">Save to History</button>
+        </div>
+      `;
+
+      document.getElementById("results").innerHTML = contentHTML + actionsHTML;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function clearAll() {
-      document.querySelectorAll("input").forEach(input => {
-        if (!input.disabled) input.value = "";
-      });
+      document.querySelectorAll("input").forEach(i => { if (!i.disabled) i.value = ""; });
       document.getElementById("results").innerHTML = "";
+      document.getElementById("expensesContainer").innerHTML = `
+        <div class="expense-row">
+          <input type="text" class="exp-name" placeholder="Item name">
+          <input type="number" class="exp-price" placeholder="₱0">
+          <button type="button" onclick="this.parentElement.remove()">x</button>
+        </div>`;
+      lastRenderContent = "";
+      lastRenderDate = "";
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  </script>
 
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js")
-      .then(() => console.log("✅ Service Worker registered"))
-      .catch(err => console.error("SW failed", err));
-  }
-</script>
+    function saveCurrentResults() {
+      if (!lastRenderContent) {
+        alert("Please compute or load history first.");
+        return;
+      }
+      const dateInput = document.getElementById("resultDate");
+      const editedDate = dateInput?.value || lastRenderDate || new Date().toISOString().split("T")[0];
+      saveHistory(lastRenderContent, editedDate);
+
+      const btn = document.querySelector(".output-actions .primary");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Saved";
+        btn.style.opacity = "0.8";
+        btn.style.cursor = "default";
+      }
+    }
+
+    function saveHistory(results, date) {
+      const key = "inventoryHistory";
+      const history = JSON.parse(localStorage.getItem(key)) || [];
+      const idx = history.findIndex(h => h.date === date);
+      const entry = { date, results };
+      if (idx >= 0) history[idx] = entry; else history.push(entry);
+      localStorage.setItem(key, JSON.stringify(history));
+      if (document.getElementById("results").dataset.view === "history") showHistory();
+    }
+
+    function showHistory() {
+      const history = JSON.parse(localStorage.getItem("inventoryHistory")) || [];
+      if (!history.length) {
+        document.getElementById("results").innerHTML = "<p>No history yet.</p>";
+        document.getElementById("results").dataset.view = "history";
+        return;
+      }
+
+      // ✅ Show latest on top (sort by date descending)
+      history.sort((a, b) => (a.date > b.date ? -1 : 1));
+
+      const listHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #d4b89e; padding-bottom:4px; margin-bottom:10px;">
+          <h3 style="margin:0; font-weight:600; border:none;">History</h3>
+        </div>
+        <div class="history-list">
+          ${history.map(h => `
+            <div class="history-item">
+              <div class="date">${h.date}</div>
+              <div class="actions">
+                <button class="btn-restore" onclick="restoreHistoryEntryByDate('${h.date.replace(/'/g, "\\'")}')">Restore</button>
+                <button class="btn-delete" onclick="deleteHistoryEntryByDate('${h.date.replace(/'/g, "\\'")}')">Delete</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+      const res = document.getElementById("results");
+      res.innerHTML = listHTML;
+      res.dataset.view = "history";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function restoreHistoryEntryByDate(date) {
+      const history = JSON.parse(localStorage.getItem("inventoryHistory")) || [];
+      const entry = history.find(h => h.date === date);
+      if (!entry) return;
+      lastRenderContent = entry.results;
+      lastRenderDate = entry.date;
+
+      const actionsHTML = `
+        <div class="output-actions">
+          <button class="primary" onclick="saveCurrentResults()">Save to History</button>
+        </div>
+      `;
+      document.getElementById("results").innerHTML = entry.results + actionsHTML;
+      delete document.getElementById("results").dataset.view;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteHistoryEntryByDate(date) {
+      const history = JSON.parse(localStorage.getItem("inventoryHistory")) || [];
+      const newHist = history.filter(h => h.date !== date);
+      localStorage.setItem("inventoryHistory", JSON.stringify(newHist));
+      showHistory();
+    }
+
+    function clearHistory() {
+      if (confirm("Are you sure you want to delete all history?")) {
+        localStorage.removeItem("inventoryHistory");
+        const res = document.getElementById("results");
+        res.innerHTML = "<p>History cleared.</p>";
+        res.dataset.view = "history";
+      }
+    }
+  </script>
 </body>
 </html>
