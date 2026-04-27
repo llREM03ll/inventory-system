@@ -318,6 +318,14 @@
       background: #f0e4d8; color: #9a7a5e; font-style: italic;
       grid-column: 1 / -1; padding: 8px;
     }
+    .flavor-btn.selected {
+      background: #fdf0e0; border-color: #c7a27c; color: #5c4631;
+    }
+    .flavor-count {
+      display: inline-block; background: linear-gradient(135deg, #d4a97c, #7a5c3e);
+      color: #fff; font-size: 0.65rem; font-weight: 800; font-style: normal;
+      border-radius: 10px; padding: 1px 6px; margin-left: 4px; vertical-align: middle;
+    }
 
     /* ═══════════════════════ RECEIPT MODAL ═══════════════════════ */
     .receipt-modal .modal {
@@ -497,7 +505,7 @@
         <div class="modal-title" id="flavorModalTitle">Choose Flavor</div>
         <div class="modal-sub" id="flavorModalSub"></div>
       </div>
-      <button class="modal-cancel-btn" onclick="closeFlavorModal()">Cancel</button>
+      <button class="modal-cancel-btn" onclick="closeFlavorModal()">Done</button>
     </div>
     <div class="flavor-scroll">
       <div class="flavor-grid" id="flavorGrid"></div>
@@ -735,30 +743,51 @@ function renderDrinkButtons() {
 // ════════════════════════════════════════════════════
 function openFlavorModal(drink) {
   pendingDrink = drink;
+  document.getElementById("flavorModal").classList.add("open");
+  refreshFlavorGrid(drink);
+}
+
+function refreshFlavorGrid(drink) {
   document.getElementById("flavorModalTitle").textContent = drink.name;
-  document.getElementById("flavorModalSub").textContent   = fmt(drink.price) + " per cup";
+  document.getElementById("flavorModalSub").textContent   =
+    fmt(drink.price) + " per cup — tap a flavor to add, tap again to add more";
 
   const cat     = DRINK_FLAVOR_CAT[drink.code] || "milktea";
   const flavors = FLAVORS[cat] || [];
   const grid    = document.getElementById("flavorGrid");
   grid.innerHTML = "";
 
-  // No flavor option first
+  // Helper: how many of this drink+flavor are already in the order
+  const countInOrder = (flavor) =>
+    state.currentItems.filter(i => i.code === drink.code && i.flavor === flavor)
+                       .reduce((s, i) => s + i.qty, 0);
+
+  // No flavor option
+  const noCount  = countInOrder("");
   const noFlavor = document.createElement("button");
   noFlavor.className = "flavor-btn no-flavor";
-  noFlavor.textContent = "— No Flavor / Skip —";
-  noFlavor.addEventListener("click", () => { addItemToOrder(drink, ""); closeFlavorModal(); });
+  noFlavor.innerHTML = noCount > 0
+    ? `— No Flavor — <span class="flavor-count">${noCount}</span>`
+    : "— No Flavor / Skip —";
+  noFlavor.addEventListener("click", () => {
+    addItemToOrder(drink, "");
+    refreshFlavorGrid(drink);
+  });
   grid.appendChild(noFlavor);
 
   flavors.forEach(f => {
-    const btn = document.createElement("button");
-    btn.className = "flavor-btn";
-    btn.textContent = f;
-    btn.addEventListener("click", () => { addItemToOrder(drink, f); closeFlavorModal(); });
+    const count = countInOrder(f);
+    const btn   = document.createElement("button");
+    btn.className = "flavor-btn" + (count > 0 ? " selected" : "");
+    btn.innerHTML = count > 0
+      ? `${f} <span class="flavor-count">${count}</span>`
+      : f;
+    btn.addEventListener("click", () => {
+      addItemToOrder(drink, f);
+      refreshFlavorGrid(drink);
+    });
     grid.appendChild(btn);
   });
-
-  document.getElementById("flavorModal").classList.add("open");
 }
 
 function closeFlavorModal() {
