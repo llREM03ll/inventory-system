@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BREWS.CO – History</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body { align-items: flex-start; }
+    .container { max-width: 780px; }
+
+    /* ── Top bar ── */
+    .top-bar {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 20px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 10px;
+      padding: 8px 14px; font-weight: 600; font-size: 0.85rem;
+      color: #7a5c3e; cursor: pointer; font-family: inherit; transition: all .2s;
+    }
+    .back-btn:hover { background: #e4d0bf; transform: translateY(-1px); }
+    .delete-all-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #fdf0f0; border: 1.5px solid #f0d5d5; border-radius: 10px;
+      padding: 8px 14px; font-weight: 600; font-size: 0.85rem;
+      color: #c0665a; cursor: pointer; font-family: inherit; transition: all .2s;
+    }
+    .delete-all-btn:hover { background: #fae0de; transform: translateY(-1px); }
+
+    /* ── Month nav ── */
+    .month-nav {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 14px;
+    }
+    .month-nav h2 { margin: 0; font-size: 1.15rem; font-weight: 700; color: #7a5c3e; }
+    .month-nav button {
+      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 10px;
+      padding: 7px 14px; font-weight: 700; font-size: 1rem;
+      cursor: pointer; color: #7a5c3e; font-family: inherit; transition: all .2s;
+    }
+    .month-nav button:hover { background: #e4d0bf; transform: translateY(-1px); }
+
+    /* ── Calendar ── */
+    .cal-wrapper { overflow-x: auto; }
+
+    .calendar {
+      width: 100%; border-collapse: separate; border-spacing: 3px;
+      margin-bottom: 8px; min-width: 420px;
+    }
+
+    .calendar th {
+      background: transparent; color: #9a7a5e; font-weight: 700;
+      font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 5px 4px; text-align: center; border: none;
+    }
+    /* Week total column header */
+    .calendar th.week-col { color: #c4a98a; font-size: 0.65rem; text-align: right; padding-right: 4px; }
+
+    .calendar td {
+      border: 1.5px solid #e8d5c4; border-radius: 10px; vertical-align: top;
+      height: 70px; padding: 6px; cursor: default; background: #fdf7f2;
+      transition: all .14s;
+    }
+    .calendar td.empty   { background: transparent; border-color: transparent; }
+    .calendar td.has-entry {
+      cursor: pointer; background: #fffaf5; border-color: #d4b89e;
+      box-shadow: 0 1px 4px rgba(122,92,62,0.08);
+    }
+    .calendar td.has-entry:hover {
+      background: #f5ede5; border-color: #c7a27c;
+      box-shadow: 0 3px 10px rgba(122,92,62,0.14); transform: translateY(-1px);
+    }
+    .calendar td.today { border-color: #c7a27c; box-shadow: 0 0 0 2px rgba(199,162,124,0.3); }
+
+    /* Week total cell */
+    .calendar td.week-total-cell {
+      background: transparent; border-color: transparent;
+      text-align: right; vertical-align: middle; cursor: default;
+      height: auto; padding: 0 4px;
+    }
+    .week-total-val {
+      font-size: 0.7rem; font-weight: 700; color: #b08060;
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    .week-total-val.zero { color: #ddd0c4; }
+
+    .day-num { font-size: 0.76rem; font-weight: 600; color: #c4a98a; display: block; margin-bottom: 3px; }
+    .calendar td.has-entry .day-num { color: #7a5c3e; }
+    .calendar td.today .day-num { color: #5c4631; font-weight: 800; }
+    .day-total { font-size: 0.74rem; font-weight: 700; color: #9a6e52; line-height: 1.3; }
+    .day-badge { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: linear-gradient(135deg,#d4a97c,#9a6e52); margin-top: 5px; }
+
+    /* ── Monthly Expenses ── */
+    .monthly-exp-section { margin-top: 8px; }
+
+    /* ── Monthly Summary ── */
+    .monthly-summary {
+      margin-top: 16px; background: linear-gradient(135deg, #f9f2eb, #f5ede5);
+      border-radius: 16px; padding: 18px 20px; border: 1px solid #e8d5c4;
+    }
+    .monthly-summary h3 { margin: 0 0 12px; }
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; font-size: 0.9rem; color: #5c4631; border-bottom: 1px solid #eddcc9;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row.sub { padding-left: 16px; color: #b08060; font-size: 0.84rem; }
+    .summary-row.net { font-weight: 700; font-size: 1rem; color: #7a5c3e; border-top: 2px solid #d4b89e; margin-top: 6px; padding-top: 10px; }
+    .summary-row span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .empty-month { text-align: center; padding: 16px 0 8px; color: #b08060; font-size: 0.9rem; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(60,38,20,0.42); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; padding: 20px;
+      opacity: 0; pointer-events: none; transition: opacity .22s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: #fffaf5; border-radius: 20px; padding: 24px;
+      max-width: 560px; width: 100%; max-height: 82vh; overflow-y: auto;
+      box-shadow: 0 8px 40px rgba(122,92,62,0.22); border: 1px solid #e8d5c4;
+      transform: translateY(16px) scale(0.98); transition: transform .22s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e8d5c4;
+    }
+    .modal-header h3 { margin: 0; color: #7a5c3e; font-size: 1rem; font-weight: 700; border: none; }
+    .modal-header-actions { display: flex; gap: 8px; }
+    .modal-delete-btn {
+      background: #fdf0f0; border: 1.5px solid #f0d5d5; border-radius: 9px;
+      padding: 7px 13px; font-weight: 600; font-size: 0.82rem; color: #c0665a;
+      cursor: pointer; font-family: inherit; transition: all .18s;
+    }
+    .modal-delete-btn:hover { background: #fae0de; }
+    .modal-close {
+      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 9px;
+      padding: 7px 13px; font-weight: 600; font-size: 0.82rem;
+      color: #7a5c3e; cursor: pointer; font-family: inherit; transition: all .18s;
+    }
+    .modal-close:hover { background: #e4d0bf; }
+    .modal-body table { font-size: 0.86rem; }
+
+    @media (max-width: 600px) {
+      .calendar td { height: 52px; padding: 4px; border-radius: 7px; }
+      .day-total { font-size: 0.67rem; }
+      .day-num { font-size: 0.68rem; }
+      .modal { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top-bar">
+    <button class="back-btn" onclick="window.location.href='index.html'">← Back</button>
+    <button class="delete-all-btn" onclick="deleteAllHistory()">🗑 Delete All</button>
+  </div>
+
+  <div class="brand">BREWS.CO</div>
+  <div class="brand-sub">History</div>
+
+  <div class="month-nav">
+    <button onclick="changeMonth(-1)">&#8592;</button>
+    <h2 id="monthTitle"></h2>
+    <button onclick="changeMonth(1)">&#8594;</button>
+  </div>
+
+  <div class="cal-wrapper">
+    <table class="calendar" id="calendarTable">
+      <thead>
+        <tr>
+          <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th>
+          <th>Thu</th><th>Fri</th><th>Sat</th>
+          <th class="week-col">Week</th>
+        </tr>
+      </thead>
+      <tbody id="calendarBody"></tbody>
+    </table>
+  </div>
+
+  <div class="section monthly-exp-section">
+    <h3>Monthly Expenses</h3>
+    <div id="monthlyExpContainer"></div>
+    <button class="add-expense-btn" onclick="addMonthlyExpRow()">+ Add Monthly Expense</button>
+  </div>
+
+  <div class="monthly-summary" id="monthlySummary"></div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalDate"></h3>
+      <div class="modal-header-actions">
+        <button class="modal-delete-btn" onclick="deleteCurrentEntry()">🗑 Delete</button>
+        <button class="modal-close" onclick="closeModal()">✕ Close</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="js/history.js"></script>
+<script>
+  const today    = new Date();
+  let curYear    = today.getFullYear();
+  let curMonth   = today.getMonth();
+  let currentModalDate = "";
+
+  const MONTH_NAMES = ["January","February","March","April","May","June",
+                       "July","August","September","October","November","December"];
+
+  function formatMoney(value) {
+    return "₱" + Number(value||0).toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
+  function extractFinalTotal(html) {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    for (const row of div.querySelectorAll("tr")) {
+      const cells = row.querySelectorAll("td");
+      if (cells.length >= 2 && cells[0].textContent.includes("Final Total"))
+        return cells[1].textContent.trim();
+    }
+    return null;
+  }
+
+  function parseMoney(str) {
+    return parseFloat((str||"").replace(/[₱,]/g,"")) || 0;
+  }
+
+  // ── Monthly Expenses ─────────────────────────────────────────────────────
+  function monthKey() {
+    return `brewsMonthlyExp_${curYear}-${String(curMonth+1).padStart(2,"0")}`;
+  }
+
+  function saveMonthlyExpenses() {
+    const rows = document.querySelectorAll("#monthlyExpContainer .expense-row");
+    const list = [];
+    rows.forEach(r => {
+      const name  = r.querySelector(".exp-name").value.trim();
+      const price = parseFloat(r.querySelector(".exp-price").value) || 0;
+      if (name || price) list.push({name, price});
+    });
+    localStorage.setItem(monthKey(), JSON.stringify(list));
+    renderSummary();
+  }
+
+  function loadMonthlyExpenses() {
+    try { return JSON.parse(localStorage.getItem(monthKey())) || []; } catch { return []; }
+  }
+
+  function addMonthlyExpRow(name="", price="") {
+    const container = document.getElementById("monthlyExpContainer");
+    const row = document.createElement("div");
+    row.className = "expense-row";
+    row.innerHTML = `
+      <input type="text"   class="exp-name"  placeholder="Expense name" value="${name}">
+      <input type="number" class="exp-price" placeholder="₱0"           value="${price}">
+      <button type="button" onclick="this.parentElement.remove(); saveMonthlyExpenses();">x</button>
+    `;
+    row.addEventListener("input", saveMonthlyExpenses);
+    container.appendChild(row);
+  }
+
+  function renderMonthlyExpenses() {
+    const container = document.getElementById("monthlyExpContainer");
+    container.innerHTML = "";
+    const list = loadMonthlyExpenses();
+    if (list.length) list.forEach(e => addMonthlyExpRow(e.name, e.price));
+    else addMonthlyExpRow();
+  }
+
+  // ── Calendar ─────────────────────────────────────────────────────────────
+  function renderCalendar() {
+    document.getElementById("monthTitle").textContent = `${MONTH_NAMES[curMonth]} ${curYear}`;
+
+    const history     = getAllHistory();
+    const firstDay    = new Date(curYear, curMonth, 1).getDay();
+    const daysInMonth = new Date(curYear, curMonth+1, 0).getDate();
+    const todayStr    = today.toISOString().split("T")[0];
+
+    const entryMap = {};
+    history.forEach(h => { entryMap[h.date] = h; });
+
+    const tbody = document.getElementById("calendarBody");
+    tbody.innerHTML = "";
+
+    const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+
+    for (let i = 0; i < totalCells; i += 7) {
+      const tr = document.createElement("tr");
+      let weekTotal = 0;
+
+      for (let j = 0; j < 7; j++) {
+        const cell    = i + j;
+        const day     = cell - firstDay + 1;
+        const td      = document.createElement("td");
+
+        if (cell < firstDay || day > daysInMonth) {
+          td.classList.add("empty");
+        } else {
+          const dateStr = `${curYear}-${String(curMonth+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+          const entry   = entryMap[dateStr];
+          td.innerHTML  = `<span class="day-num">${day}</span>`;
+
+          if (entry) {
+            const totalStr = extractFinalTotal(entry.results);
+            const totalNum = parseMoney(totalStr);
+            weekTotal += totalNum;
+            td.classList.add("has-entry");
+            if (totalStr) td.innerHTML += `<div class="day-total">${totalStr}</div>`;
+            td.innerHTML += `<span class="day-badge"></span>`;
+            td.addEventListener("click", () => openModal(dateStr, entry));
+          }
+
+          if (dateStr === todayStr) td.classList.add("today");
+        }
+
+        tr.appendChild(td);
+      }
+
+      // Week total cell
+      const wtd = document.createElement("td");
+      wtd.className = "week-total-cell";
+      wtd.innerHTML = weekTotal > 0
+        ? `<span class="week-total-val">${formatMoney(weekTotal)}</span>`
+        : `<span class="week-total-val zero">—</span>`;
+      tr.appendChild(wtd);
+      tbody.appendChild(tr);
+    }
+
+    renderMonthlyExpenses();
+    renderSummary();
+  }
+
+  // ── Monthly Summary ───────────────────────────────────────────────────────
+  function renderSummary() {
+    const history = getAllHistory();
+    const prefix  = `${curYear}-${String(curMonth+1).padStart(2,"0")}`;
+
+    let totalRevenue = 0;
+    history.forEach(h => {
+      if (h.date.startsWith(prefix)) totalRevenue += parseMoney(extractFinalTotal(h.results));
+    });
+
+    const expList  = loadMonthlyExpenses().filter(e => e.name && e.price > 0);
+    const totalExp = expList.reduce((s,e) => s + e.price, 0);
+    const net      = totalRevenue - totalExp;
+    const el       = document.getElementById("monthlySummary");
+
+    if (totalRevenue === 0 && expList.length === 0) {
+      el.innerHTML = `<h3>Monthly Summary</h3><p class="empty-month">No entries for ${MONTH_NAMES[curMonth]} ${curYear}.</p>`;
+      return;
+    }
+
+    let html = `<h3>Monthly Summary — ${MONTH_NAMES[curMonth]} ${curYear}</h3>
+      <div class="summary-row"><span>Total Daily Revenue</span><span>${formatMoney(totalRevenue)}</span></div>`;
+
+    if (expList.length) {
+      html += `<div class="summary-row"><span>Monthly Expenses</span><span>- ${formatMoney(totalExp)}</span></div>`;
+      expList.forEach(e => { html += `<div class="summary-row sub"><span>${e.name}</span><span>- ${formatMoney(e.price)}</span></div>`; });
+    }
+
+    html += `<div class="summary-row net"><span>Net Monthly Income</span><span>${formatMoney(net)}</span></div>`;
+    el.innerHTML = html;
+  }
+
+  // ── Month nav ─────────────────────────────────────────────────────────────
+  function changeMonth(dir) {
+    curMonth += dir;
+    if (curMonth > 11) { curMonth = 0;  curYear++; }
+    if (curMonth < 0)  { curMonth = 11; curYear--; }
+    renderCalendar();
+  }
+
+  // ── Modal ─────────────────────────────────────────────────────────────────
+  function openModal(dateStr, entry) {
+    currentModalDate = dateStr;
+    document.getElementById("modalDate").textContent = `Receipt — ${dateStr}`;
+    document.getElementById("modalBody").innerHTML   = entry.results;
+    document.getElementById("modalOverlay").classList.add("open");
+  }
+
+  function closeModal() {
+    document.getElementById("modalOverlay").classList.remove("open");
+    currentModalDate = "";
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById("modalOverlay")) closeModal();
+  }
+
+  function deleteCurrentEntry() {
+    if (!currentModalDate) return;
+    if (!confirm(`Delete entry for ${currentModalDate}?`)) return;
+    deleteHistoryByDate(currentModalDate);
+    closeModal();
+    renderCalendar();
+  }
+
+  function deleteAllHistory() {
+    if (!confirm("Delete ALL history? This cannot be undone.")) return;
+    clearAllHistory();
+    renderCalendar();
+  }
+
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+  renderCalendar();
+</script>
+</body>
+</html>

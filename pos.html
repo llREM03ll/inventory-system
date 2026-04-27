@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>BREWS.CO – POS</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body { align-items: flex-start; padding: 0; }
+
+    /* ═══════════════════════ SETUP ═══════════════════════ */
+    #setupScreen { padding: 20px 12px; width: 100%; display: flex; justify-content: center; }
+    #setupScreen .container { max-width: 480px; }
+    .setup-note {
+      background: #fdf0e4; border: 1px solid #e8d5c4; border-radius: 12px;
+      padding: 12px 14px; font-size: 0.82rem; color: #9a7a5e;
+      margin-bottom: 20px; line-height: 1.55;
+    }
+    .start-btn {
+      width: 100%; padding: 15px;
+      background: linear-gradient(145deg, #d4a97c, #7a5c3e);
+      color: #fff; border: none; border-radius: 14px; font-size: 1rem;
+      font-weight: 700; font-family: inherit; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(122,92,62,0.3); transition: all .2s;
+    }
+    .start-btn:hover  { background: linear-gradient(145deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
+    .start-btn:active { transform: scale(0.98); }
+
+    /* ═══════════════════════ POS SCREEN ═══════════════════════ */
+    #posScreen { display: none; flex-direction: column; width: 100%; min-height: 100vh; }
+
+    /* ── Header ── */
+    .pos-header {
+      background: linear-gradient(135deg, #6b4f36, #4a3320);
+      padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 12px rgba(30,18,8,0.28);
+    }
+    .pos-header-left { display: flex; flex-direction: column; }
+    .pos-header-brand { font-size: 1rem; font-weight: 800; color: #fff; letter-spacing: 0.1em; }
+    .pos-header-meta  { font-size: 0.68rem; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; margin-top: 1px; display: flex; gap: 8px; }
+    .pos-clock        { font-variant-numeric: tabular-nums; }
+    .pos-header-right { display: flex; align-items: center; gap: 8px; }
+    .header-stat {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px; padding: 6px 11px; text-align: right;
+    }
+    .header-stat-label { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; display: block; }
+    .header-stat-val   { font-size: 0.92rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+    .end-shift-btn {
+      background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.28);
+      border-radius: 10px; padding: 8px 12px; color: #fff; font-weight: 700;
+      font-size: 0.78rem; font-family: inherit; cursor: pointer; transition: all .2s;
+    }
+    .end-shift-btn:hover { background: rgba(255,255,255,0.22); }
+
+    /* ── POS Body ── */
+    .pos-body {
+      display: flex; flex-direction: column; flex: 1;
+      padding: 12px; gap: 12px; max-width: 600px; width: 100%; margin: 0 auto;
+    }
+
+    /* ── Drink Grid ── */
+    .drinks-section-label {
+      font-size: 0.68rem; font-weight: 700; color: #b08060;
+      letter-spacing: 0.1em; text-transform: uppercase; padding: 0 2px 4px;
+    }
+    .drinks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px; }
+
+    .drink-btn {
+      position: relative; background: #fffaf5; border: 2px solid #e8d5c4;
+      border-radius: 14px; padding: 12px 6px 10px; display: flex;
+      flex-direction: column; align-items: center; gap: 2px; cursor: pointer;
+      font-family: inherit; transition: all .14s;
+      box-shadow: 0 2px 5px rgba(122,92,62,0.06);
+      -webkit-tap-highlight-color: transparent; user-select: none;
+    }
+    .drink-btn:active { transform: scale(0.92); }
+    .drink-btn.has-qty { border-color: #c7a27c; background: #fdf5ec; box-shadow: 0 3px 10px rgba(122,92,62,0.13); }
+    .drink-btn.low-stock { border-color: #e8b87a; background: #fff8f0; }
+    .drink-btn.out-stock { border-color: #e8a0a0; background: #fff4f4; opacity: 0.6; pointer-events: none; }
+    .drink-btn.fruit-tea { border-style: dashed; }
+    .drink-btn.fruit-tea.has-qty { border-style: solid; }
+
+    .drink-btn-icon  { font-size: 1.4rem; line-height: 1; }
+    .drink-btn-code  { font-size: 0.76rem; font-weight: 800; color: #7a5c3e; letter-spacing: 0.05em; }
+    .drink-btn-name  { font-size: 0.62rem; color: #9a7a5e; text-align: center; line-height: 1.2; }
+    .drink-btn-price { font-size: 0.7rem; font-weight: 700; color: #5c4631; margin-top: 1px; }
+    .stock-pill {
+      font-size: 0.58rem; font-weight: 700; padding: 1px 5px; border-radius: 20px;
+      margin-top: 2px; background: #f0e4d8; color: #9a7a5e; letter-spacing: 0.03em;
+    }
+    .drink-btn.low-stock .stock-pill { background: #fde8c8; color: #b06820; }
+    .drink-btn.out-stock .stock-pill { background: #fdd8d8; color: #b04040; }
+    .qty-badge {
+      position: absolute; top: -7px; right: -7px;
+      background: linear-gradient(135deg, #d4a97c, #7a5c3e);
+      color: #fff; font-size: 0.68rem; font-weight: 800;
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 6px rgba(122,92,62,0.35);
+      opacity: 0; transform: scale(0.4); transition: all .16s;
+    }
+    .drink-btn.has-qty .qty-badge { opacity: 1; transform: scale(1); }
+    @keyframes popBadge { 0%{transform:scale(1)} 40%{transform:scale(1.4)} 100%{transform:scale(1)} }
+    .qty-badge.pop { animation: popBadge .22s ease; }
+
+    /* ── Order Panel ── */
+    .order-panel {
+      background: #fffaf5; border: 1.5px solid #e8d5c4;
+      border-radius: 18px; overflow: hidden; box-shadow: 0 2px 8px rgba(122,92,62,0.07);
+    }
+    .order-panel-header {
+      background: #f5ede5; padding: 9px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #e8d5c4;
+    }
+    .order-panel-title { font-size: 0.75rem; font-weight: 700; color: #9a7a5e; letter-spacing: 0.09em; text-transform: uppercase; }
+    .order-panel-actions { display: flex; gap: 6px; }
+    .undo-btn {
+      background: none; border: none; font-size: 0.72rem; color: #7a5c3e;
+      font-weight: 600; font-family: inherit; cursor: pointer;
+      padding: 2px 7px; border-radius: 6px; transition: background .15s; display: none;
+    }
+    .undo-btn.visible { display: inline; }
+    .undo-btn:hover { background: #f0e4d8; }
+    .clear-order-btn {
+      background: none; border: none; font-size: 0.72rem; color: #c0665a;
+      font-weight: 600; font-family: inherit; cursor: pointer;
+      padding: 2px 7px; border-radius: 6px; transition: background .15s;
+    }
+    .clear-order-btn:hover { background: #fae0de; }
+
+    .order-items { padding: 8px 14px; min-height: 50px; max-height: 180px; overflow-y: auto; }
+    .empty-order { text-align: center; color: #c4a98a; font-size: 0.82rem; padding: 10px 0; }
+
+    .order-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 0; border-bottom: 1px solid #f5ede5;
+      animation: slideIn .15s ease;
+    }
+    .order-item:last-child { border-bottom: none; }
+    @keyframes slideIn { from{opacity:0;transform:translateX(-5px)} to{opacity:1;transform:none} }
+
+    .order-item-info  { flex: 1; }
+    .order-item-name  { font-size: 0.84rem; color: #5c4631; font-weight: 600; line-height: 1.2; }
+    .order-item-flavor { font-size: 0.72rem; color: #9a7a5e; }
+    .order-item-qty-controls { display: flex; align-items: center; gap: 4px; }
+    .qty-btn {
+      width: 26px; height: 26px; border-radius: 8px; border: 1.5px solid #e0c9b8;
+      background: #f5ede5; color: #7a5c3e; font-weight: 800; font-size: 0.95rem;
+      font-family: inherit; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; transition: all .12s; -webkit-tap-highlight-color: transparent;
+    }
+    .qty-btn:hover  { background: #e4d0bf; }
+    .qty-btn:active { transform: scale(0.88); }
+    .order-item-qty   { font-size: 0.88rem; font-weight: 700; color: #5c4631; min-width: 22px; text-align: center; }
+    .order-item-total { font-size: 0.84rem; font-weight: 600; color: #7a5c3e; min-width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* ── Add-ons section in order panel ── */
+    .addons-section { padding: 8px 14px; border-top: 1px dashed #e8d5c4; }
+    .addons-section-label {
+      font-size: 0.68rem; font-weight: 700; color: #b08060;
+      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 7px;
+    }
+    .addon-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .addon-pill {
+      display: flex; align-items: center; gap: 4px;
+      background: #f5ede5; border: 1.5px solid #e0c9b8; border-radius: 20px;
+      padding: 4px 10px; font-size: 0.76rem; font-weight: 600; color: #7a5c3e;
+      cursor: pointer; font-family: inherit; transition: all .14s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .addon-pill:hover  { background: #e8d5c4; border-color: #c7a27c; }
+    .addon-pill:active { transform: scale(0.93); }
+    .addon-pill.active { background: #fdf5ec; border-color: #c7a27c; color: #5c4631; }
+    .addon-pill-qty {
+      background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
+      border-radius: 10px; padding: 1px 6px; font-size: 0.68rem; font-weight: 800;
+    }
+
+    /* ── Change calculator ── */
+    .change-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-top: 1px solid #f0e4d8; background: #fdf7f2;
+    }
+    .change-label { font-size: 0.78rem; color: #7a5c3e; font-weight: 600; white-space: nowrap; }
+    .change-input {
+      flex: 1; padding: 7px 10px; border: 1.5px solid #dfc9b4; border-radius: 9px;
+      font-size: 0.88rem; font-family: inherit; background: #fff; color: #3d2b1a;
+      min-width: 0;
+    }
+    .change-input:focus { outline: none; border-color: #c7a27c; }
+    .change-display {
+      font-size: 0.88rem; font-weight: 700; color: #5c4631;
+      min-width: 80px; text-align: right; font-variant-numeric: tabular-nums;
+    }
+    .change-display.negative { color: #c0665a; }
+
+    /* ── Order footer ── */
+    .order-footer { padding: 10px 14px 13px; border-top: 1.5px solid #e8d5c4; background: #fdf7f2; }
+    .order-subtotal { display: flex; justify-content: space-between; font-size: 1rem; font-weight: 700; color: #5c4631; margin-bottom: 9px; }
+    .place-order-btn {
+      width: 100%; padding: 13px;
+      background: linear-gradient(145deg, #d4a97c, #7a5c3e);
+      color: #fff; border: none; border-radius: 12px; font-size: 0.95rem;
+      font-weight: 700; font-family: inherit; cursor: pointer;
+      box-shadow: 0 3px 10px rgba(122,92,62,0.25); transition: all .18s;
+    }
+    .place-order-btn:hover    { background: linear-gradient(145deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
+    .place-order-btn:active   { transform: scale(0.98); }
+    .place-order-btn:disabled { opacity: 0.38; cursor: default; transform: none; box-shadow: none; }
+
+    /* ── POS Expenses ── */
+    .pos-expenses-panel {
+      background: #fffaf5; border: 1.5px solid #e8d5c4; border-radius: 16px; overflow: hidden;
+    }
+    .pos-expenses-header {
+      background: #f5ede5; padding: 9px 14px; display: flex; align-items: center;
+      justify-content: space-between; border-bottom: 1px solid #e8d5c4; cursor: pointer;
+    }
+    .pos-expenses-title { font-size: 0.75rem; font-weight: 700; color: #9a7a5e; letter-spacing: 0.09em; text-transform: uppercase; }
+    .pos-expenses-toggle { font-size: 0.7rem; color: #b08060; transition: transform .2s; }
+    .pos-expenses-toggle.open { transform: rotate(180deg); }
+    .pos-expenses-body { padding: 10px 14px 12px; display: none; }
+    .pos-expenses-body.open { display: block; }
+
+    /* ── Orders Log ── */
+    .orders-log { display: flex; flex-direction: column; gap: 8px; padding-bottom: 24px; }
+    .orders-log-header {
+      font-size: 0.74rem; font-weight: 700; color: #9a7a5e;
+      letter-spacing: 0.1em; text-transform: uppercase; padding: 0 2px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .orders-count-badge {
+      background: #f0e4d8; color: #7a5c3e; border-radius: 20px;
+      padding: 2px 9px; font-size: 0.7rem; font-weight: 700; transition: transform .2s;
+    }
+    @keyframes pulseBadge { 0%{transform:scale(1)} 50%{transform:scale(1.28)} 100%{transform:scale(1)} }
+    .orders-count-badge.pulse { animation: pulseBadge .25s ease; }
+    .order-log-item {
+      background: #fffaf5; border: 1.5px solid #e8d5c4; border-radius: 14px;
+      overflow: hidden; box-shadow: 0 1px 4px rgba(122,92,62,0.05);
+      cursor: pointer; transition: all .15s; animation: slideIn .2s ease;
+    }
+    .order-log-item:hover { border-color: #d4b89e; box-shadow: 0 3px 8px rgba(122,92,62,0.1); }
+    .order-log-summary { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; }
+    .order-log-left  { display: flex; flex-direction: column; gap: 2px; }
+    .order-log-num   { font-size: 0.78rem; font-weight: 700; color: #7a5c3e; }
+    .order-log-desc  { font-size: 0.72rem; color: #9a7a5e; }
+    .order-log-right { display: flex; align-items: center; gap: 6px; }
+    .order-log-total { font-size: 0.9rem; font-weight: 700; color: #5c4631; font-variant-numeric: tabular-nums; }
+    .order-log-chevron { font-size: 0.6rem; color: #c4a98a; transition: transform .2s; display: inline-block; }
+    .order-log-item.expanded .order-log-chevron { transform: rotate(180deg); }
+    .order-log-detail { border-top: 1px solid #f0e4d8; padding: 10px 14px; display: none; }
+    .order-log-item.expanded .order-log-detail { display: block; }
+    .order-log-detail-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: #7a5c3e; padding: 3px 0; }
+    .order-log-detail-row.sub { color: #9a7a5e; font-size: 0.75rem; padding-left: 10px; }
+    .no-orders { text-align: center; color: #c4a98a; font-size: 0.85rem; padding: 14px 0; }
+
+    /* ═══════════════════════ FLAVOR MODAL ═══════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(50,30,12,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 200; padding: 0;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: #fffaf5; width: 100%; max-width: 600px;
+      border-radius: 20px 20px 0 0; padding: 0;
+      max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;
+      box-shadow: 0 -8px 40px rgba(90,56,24,0.25); border-top: 1px solid #e8d5c4;
+      transform: translateY(20px); transition: transform .22s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+
+    /* Center modals that aren't bottom-sheet */
+    .modal-overlay.centered { align-items: center; padding: 20px; }
+    .modal-overlay.centered .modal {
+      border-radius: 20px; max-width: 420px;
+      transform: translateY(16px) scale(0.97);
+    }
+    .modal-overlay.centered.open .modal { transform: translateY(0) scale(1); }
+
+    .modal-handle {
+      width: 36px; height: 4px; background: #d4b89e; border-radius: 2px;
+      margin: 10px auto 0; flex-shrink: 0;
+    }
+
+    .modal-header-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px 10px; border-bottom: 1px solid #e8d5c4; flex-shrink: 0;
+    }
+    .modal-title { font-size: 1rem; font-weight: 700; color: #5c4631; }
+    .modal-sub   { font-size: 0.75rem; color: #9a7a5e; margin-top: 2px; }
+    .modal-cancel-btn {
+      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 9px;
+      padding: 7px 13px; font-weight: 600; font-size: 0.82rem; color: #7a5c3e;
+      cursor: pointer; font-family: inherit; flex-shrink: 0;
+    }
+
+    /* Flavor grid */
+    .flavor-scroll { overflow-y: auto; padding: 12px 16px 20px; flex: 1; }
+    .flavor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .flavor-btn {
+      background: #fdf7f2; border: 1.5px solid #e8d5c4; border-radius: 11px;
+      padding: 9px 6px; font-size: 0.76rem; font-weight: 600; color: #5c4631;
+      text-align: center; cursor: pointer; font-family: inherit;
+      transition: all .14s; line-height: 1.3;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .flavor-btn:hover  { background: #f5ede5; border-color: #c7a27c; }
+    .flavor-btn:active { transform: scale(0.93); }
+    .flavor-btn.no-flavor {
+      background: #f0e4d8; color: #9a7a5e; font-style: italic;
+      grid-column: 1 / -1; padding: 8px;
+    }
+
+    /* ═══════════════════════ RECEIPT MODAL ═══════════════════════ */
+    .receipt-modal .modal {
+      max-width: 360px; border-radius: 20px; padding: 22px;
+      max-height: 85vh; overflow-y: auto;
+    }
+    .receipt-header { text-align: center; margin-bottom: 12px; }
+    .receipt-brand  { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; color: #7a5c3e; }
+    .receipt-meta   { font-size: 0.68rem; color: #b08060; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+    .receipt-ordernum { font-size: 0.72rem; color: #b08060; margin-top: 5px; }
+    .modal-divider { border: none; border-top: 1px dashed #d4b89e; margin: 10px 0; }
+    .receipt-row { display: flex; justify-content: space-between; font-size: 0.86rem; color: #5c4631; padding: 3px 0; }
+    .receipt-row.flavor-sub { padding-left: 10px; color: #9a7a5e; font-size: 0.76rem; }
+    .receipt-row.addon-row  { color: #7a5c3e; }
+    .receipt-total-row { display: flex; justify-content: space-between; font-size: 1.05rem; font-weight: 800; color: #3d2b1a; padding: 6px 0 2px; }
+    .receipt-progress { height: 3px; background: #f0e4d8; border-radius: 2px; margin: 12px 0 8px; overflow: hidden; }
+    .receipt-progress-bar { height: 100%; background: linear-gradient(90deg, #d4a97c, #7a5c3e); border-radius: 2px; width: 100%; transition: width linear; }
+    .modal-close-btn {
+      width: 100%; padding: 12px; background: linear-gradient(145deg, #d4a97c, #7a5c3e);
+      color: #fff; border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: all .18s;
+    }
+    .modal-close-btn:hover { background: linear-gradient(145deg, #7a5c3e, #5c4631); }
+
+    /* ═══════════════════════ END SHIFT MODAL ═══════════════════════ */
+    .end-shift-modal .modal { max-width: 420px; padding: 22px; border-radius: 20px; max-height: 85vh; overflow-y: auto; }
+    .end-shift-summary { background: #f5ede5; border-radius: 12px; padding: 12px 14px; margin: 10px 0; }
+    .end-shift-row { display: flex; justify-content: space-between; font-size: 0.87rem; color: #5c4631; padding: 4px 0; border-bottom: 1px solid #e8d5c4; }
+    .end-shift-row:last-child { border-bottom: none; }
+    .end-shift-row.section-head { font-weight: 700; color: #7a5c3e; font-size: 0.76rem; letter-spacing: 0.07em; text-transform: uppercase; border-top: 1.5px solid #d4b89e; margin-top: 4px; padding-top: 9px; }
+    .end-shift-row.bold { font-weight: 700; color: #5c4631; }
+    .end-shift-actions { display: flex; gap: 10px; margin-top: 12px; }
+    .end-shift-actions button { flex: 1; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 0.88rem; font-family: inherit; cursor: pointer; border: none; transition: all .2s; }
+    .btn-cancel-shift  { background: #f0e4d8; color: #7a5c3e; border: 1.5px solid #e0c9b8 !important; }
+    .btn-cancel-shift:hover  { background: #e4d0bf; }
+    .btn-confirm-shift { background: linear-gradient(145deg, #d4a97c, #7a5c3e); color: #fff; box-shadow: 0 3px 10px rgba(122,92,62,0.25); }
+    .btn-confirm-shift:hover { background: linear-gradient(145deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
+
+    @media (max-width: 380px) {
+      .drinks-grid { gap: 6px; }
+      .drink-btn   { padding: 10px 4px 8px; border-radius: 11px; }
+      .drink-btn-icon { font-size: 1.25rem; }
+      .flavor-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ SETUP SCREEN ═══════════ -->
+<div id="setupScreen">
+  <div class="container">
+    <div class="brand">BREWS.CO</div>
+    <div class="brand-sub">Point of Sale</div>
+    <div class="setup-note">
+      Enter beginning cup counts before starting the shift. The POS will track stock, flavors, add-ons, and auto-fill the inventory form when you end the shift.
+    </div>
+    <div class="section">
+      <h3>Beginning Cups</h3>
+      <div class="row"><label>Medium</label><input type="number" id="setupBegM"  placeholder="0" min="0"><input class="placeholder" disabled><input class="placeholder" disabled></div>
+      <div class="row"><label>Large</label><input type="number" id="setupBegL"  placeholder="0" min="0"><input class="placeholder" disabled><input class="placeholder" disabled></div>
+      <div class="row"><label>Small</label><input type="number" id="setupBegS"  placeholder="0" min="0"><input class="placeholder" disabled><input class="placeholder" disabled></div>
+      <div class="row"><label>Hot Coffee</label><input type="number" id="setupBegHC" placeholder="0" min="0"><input class="placeholder" disabled><input class="placeholder" disabled></div>
+    </div>
+    <button class="start-btn" onclick="startShift()">▶ &nbsp;Start Shift</button>
+  </div>
+</div>
+
+<!-- ═══════════ POS SCREEN ═══════════ -->
+<div id="posScreen">
+  <div class="pos-header">
+    <div class="pos-header-left">
+      <span class="pos-header-brand">BREWS.CO</span>
+      <div class="pos-header-meta">
+        <span>Active Shift</span><span>·</span>
+        <span class="pos-clock" id="posClock"></span>
+      </div>
+    </div>
+    <div class="pos-header-right">
+      <div class="header-stat">
+        <span class="header-stat-label">Orders</span>
+        <span class="header-stat-val" id="headerOrderCount">0</span>
+      </div>
+      <div class="header-stat">
+        <span class="header-stat-label">Total</span>
+        <span class="header-stat-val" id="shiftTotalDisplay">₱0.00</span>
+      </div>
+      <button class="end-shift-btn" onclick="openEndShift()">End Shift</button>
+    </div>
+  </div>
+
+  <div class="pos-body">
+
+    <!-- Milktea & Iced Coffee & Hot Coffee -->
+    <div>
+      <div class="drinks-section-label">Milktea &amp; Coffee</div>
+      <div class="drinks-grid" id="drinksGridMain"></div>
+    </div>
+
+    <!-- Fruit Tea -->
+    <div>
+      <div class="drinks-section-label">Fruit Tea</div>
+      <div class="drinks-grid" id="drinksGridFT"></div>
+    </div>
+
+    <!-- Current Order -->
+    <div class="order-panel">
+      <div class="order-panel-header">
+        <span class="order-panel-title">Current Order</span>
+        <div class="order-panel-actions">
+          <button class="undo-btn" id="undoBtn" onclick="undoLastOrder()">↩ Undo</button>
+          <button class="clear-order-btn" onclick="clearCurrentOrder()">✕ Clear</button>
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div class="order-items" id="orderItems">
+        <div class="empty-order">Tap a drink to start an order</div>
+      </div>
+
+      <!-- Add-ons -->
+      <div class="addons-section">
+        <div class="addons-section-label">Add-ons</div>
+        <div class="addon-pills" id="addonPills"></div>
+      </div>
+
+      <!-- Change calculator -->
+      <div class="change-row">
+        <span class="change-label">Given</span>
+        <input class="change-input" id="givenInput" type="number" placeholder="₱0" oninput="updateChange()">
+        <span class="change-display" id="changeDisplay">Change: —</span>
+      </div>
+
+      <!-- Footer -->
+      <div class="order-footer">
+        <div class="order-subtotal">
+          <span>Subtotal</span>
+          <span id="orderSubtotal">₱0.00</span>
+        </div>
+        <button class="place-order-btn" id="placeOrderBtn" onclick="placeOrder()" disabled>
+          Place Order
+        </button>
+      </div>
+    </div>
+
+    <!-- Shift Expenses -->
+    <div class="pos-expenses-panel">
+      <div class="pos-expenses-header" onclick="toggleExpenses()">
+        <span class="pos-expenses-title">Shift Expenses</span>
+        <span class="pos-expenses-toggle" id="expensesToggle">▼</span>
+      </div>
+      <div class="pos-expenses-body" id="posExpensesBody">
+        <div id="posExpensesContainer" style="margin-bottom:8px;"></div>
+        <button class="add-expense-btn" style="margin-top:0;" onclick="addPosExpenseRow()">+ Add Expense</button>
+      </div>
+    </div>
+
+    <!-- Orders Log -->
+    <div class="orders-log">
+      <div class="orders-log-header">
+        <span>Orders This Shift</span>
+        <span class="orders-count-badge" id="ordersCountBadge">0</span>
+      </div>
+      <div id="ordersLogList">
+        <div class="no-orders">No orders yet — get brewing! ☕</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════ FLAVOR MODAL (bottom sheet) ═══════════ -->
+<div class="modal-overlay" id="flavorModal" onclick="handleFlavorOverlay(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header-row">
+      <div>
+        <div class="modal-title" id="flavorModalTitle">Choose Flavor</div>
+        <div class="modal-sub" id="flavorModalSub"></div>
+      </div>
+      <button class="modal-cancel-btn" onclick="closeFlavorModal()">Cancel</button>
+    </div>
+    <div class="flavor-scroll">
+      <div class="flavor-grid" id="flavorGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ RECEIPT MODAL ═══════════ -->
+<div class="modal-overlay centered receipt-modal" id="receiptModal">
+  <div class="modal">
+    <div class="receipt-header">
+      <div class="receipt-brand">BREWS.CO</div>
+      <div class="receipt-meta">Order Receipt</div>
+      <div class="receipt-ordernum" id="receiptOrderNum"></div>
+    </div>
+    <hr class="modal-divider">
+    <div id="receiptItems"></div>
+    <hr class="modal-divider">
+    <div class="receipt-total-row" id="receiptTotal"></div>
+    <div class="receipt-progress"><div class="receipt-progress-bar" id="receiptProgressBar"></div></div>
+    <button class="modal-close-btn" onclick="closeReceiptModal()">Done</button>
+  </div>
+</div>
+
+<!-- ═══════════ END SHIFT MODAL ═══════════ -->
+<div class="modal-overlay centered end-shift-modal" id="endShiftModal">
+  <div class="modal">
+    <div class="receipt-header">
+      <div class="receipt-brand">End Shift</div>
+      <div class="receipt-meta">Summary</div>
+    </div>
+    <div class="end-shift-summary" id="endShiftSummary"></div>
+    <div class="end-shift-actions">
+      <button class="btn-cancel-shift" onclick="closeEndShift()">Cancel</button>
+      <button class="btn-confirm-shift" onclick="confirmEndShift()">Confirm &amp; Continue →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+//  CATALOGUE
+// ════════════════════════════════════════════════════
+
+const DRINKS = [
+  // Main grid
+  { code:"M",  name:"Milktea M",     icon:"🧋", price:29, cup:"M",  grid:"main" },
+  { code:"L",  name:"Milktea L",     icon:"🧋", price:39, cup:"L",  grid:"main" },
+  { code:"S",  name:"Milktea S",     icon:"🧋", price:25, cup:"S",  grid:"main" },
+  { code:"MC", name:"Iced Coffee M", icon:"☕", price:35, cup:"M",  grid:"main" },
+  { code:"LC", name:"Iced Coffee L", icon:"☕", price:45, cup:"L",  grid:"main" },
+  { code:"HC", name:"Hot Coffee",    icon:"☕", price:45, cup:"HC", grid:"main" },
+  // Fruit Tea grid
+  { code:"FTM",name:"Fruit Tea M",   icon:"🍵", price:29, cup:"M",  grid:"ft"   },
+  { code:"FTL",name:"Fruit Tea L",   icon:"🍵", price:39, cup:"L",  grid:"ft"   },
+];
+
+const ADDONS = [
+  { name:"Pearl",        price:6  },
+  { name:"Nata",         price:6  },
+  { name:"Coffee Jelly", price:6  },
+  { name:"Oreo",         price:6  },
+  { name:"Cream Cheese", price:10 },
+  { name:"Espresso Shot",price:6  },
+];
+
+const FLAVORS = {
+  milktea: [
+    "Chocolate","Red Velvet","Dark Chocolate","Nutella","Black Forest","Mocha",
+    "Taro","Cheesecake","Strawberry","Mango Cheesecake","Winter Melon","Okinawa",
+    "Salted Caramel","Matcha","Cookies & Cream","Cappuccino","Avocado",
+    "Buko Pandan","Vanilla","Hokkaido"
+  ],
+  fruittea: [
+    "Lychee","Blueberry","Strawberry","Green Apple","Mango",
+    "Four Seasons","Passion Fruit","Lemon","Kiwi"
+  ],
+  icedcoffee: [
+    "Caramel Macchiato","Vanilla","Matcha","Dark Chocolate","Chocolate Espresso",
+    "Salted Caramel","Mocha","Brewsko Original","Spanish Latte"
+  ],
+  hotcoffee: [
+    "Matcha","Chocolate","Brewsko","Caramel Latte","Spanish Latte"
+  ],
+};
+
+const DRINK_FLAVOR_CAT = {
+  M:"milktea", L:"milktea", S:"milktea",
+  FTM:"fruittea", FTL:"fruittea",
+  MC:"icedcoffee", LC:"icedcoffee",
+  HC:"hotcoffee",
+};
+
+const LOW_STOCK = 5;
+const RECEIPT_MS = 5500;
+const POS_KEY    = "brewsPOSState";
+const SHIFT_KEY  = "brewsShiftResult";
+
+// ════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════
+let state = {
+  begM:0, begL:0, begS:0, begHC:0,
+  currentItems:  [],  // [{key,code,name,icon,flavor,qty,unitPrice,cup}]
+  currentAddons: {},  // {addonName: qty}
+  orders:        [],  // [{id,items,addons,total,time}]
+  shiftTotal:    0,
+  expenses:      [],  // [{name,price}]
+};
+
+let pendingDrink  = null;
+let receiptTimer  = null;
+let clockInterval = null;
+
+// ════════════════════════════════════════════════════
+//  PERSISTENCE
+// ════════════════════════════════════════════════════
+function saveState() { localStorage.setItem(POS_KEY, JSON.stringify(state)); }
+function loadState() {
+  try { const r = localStorage.getItem(POS_KEY); if (r) state = JSON.parse(r); } catch {}
+}
+function clearPOSState() { localStorage.removeItem(POS_KEY); }
+
+// ════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════
+function fmt(v) {
+  return "₱" + Number(v||0).toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function timeNow() {
+  return new Date().toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"});
+}
+function vibrate(p) { if (navigator.vibrate) navigator.vibrate(p); }
+
+function remainingCups() {
+  const used = {M:0,L:0,S:0,HC:0};
+  state.orders.forEach(o => o.items.forEach(i => {
+    const d = DRINKS.find(d=>d.code===i.code);
+    if (d) used[d.cup] = (used[d.cup]||0) + i.qty;
+  }));
+  state.currentItems.forEach(i => { used[i.cup] = (used[i.cup]||0) + i.qty; });
+  return { M:state.begM-(used.M||0), L:state.begL-(used.L||0), S:state.begS-(used.S||0), HC:state.begHC-(used.HC||0) };
+}
+
+function getQtyForCode(code) {
+  return state.currentItems.filter(i=>i.code===code).reduce((s,i)=>s+i.qty,0);
+}
+
+function getItemTotal() {
+  return state.currentItems.reduce((s,i) => s + i.unitPrice * i.qty, 0);
+}
+
+function getAddonTotal() {
+  return Object.entries(state.currentAddons).reduce((s,[name,qty]) => {
+    const a = ADDONS.find(a=>a.name===name);
+    return s + (a ? a.price * qty : 0);
+  }, 0);
+}
+
+function getOrderTotal() { return getItemTotal() + getAddonTotal(); }
+
+// ════════════════════════════════════════════════════
+//  CLOCK
+// ════════════════════════════════════════════════════
+function startClock() {
+  const tick = () => { const el=document.getElementById("posClock"); if(el) el.textContent=timeNow(); };
+  tick();
+  clockInterval = setInterval(tick, 10000);
+}
+
+// ════════════════════════════════════════════════════
+//  SETUP → START SHIFT
+// ════════════════════════════════════════════════════
+function startShift() {
+  state.begM  = +document.getElementById("setupBegM").value  || 0;
+  state.begL  = +document.getElementById("setupBegL").value  || 0;
+  state.begS  = +document.getElementById("setupBegS").value  || 0;
+  state.begHC = +document.getElementById("setupBegHC").value || 0;
+  state.currentItems=[]; state.currentAddons={}; state.orders=[]; state.shiftTotal=0; state.expenses=[];
+  saveState(); showPOS();
+}
+
+function showSetup() {
+  document.getElementById("setupScreen").style.display="flex";
+  document.getElementById("posScreen").style.display="none";
+  if(clockInterval) clearInterval(clockInterval);
+}
+
+function showPOS() {
+  document.getElementById("setupScreen").style.display="none";
+  document.getElementById("posScreen").style.display="flex";
+  renderDrinkButtons(); renderCurrentOrder(); renderAddonPills();
+  renderOrdersLog(); updateHeaderStats(); startClock();
+  renderPosExpenses();
+}
+
+// ════════════════════════════════════════════════════
+//  DRINK BUTTONS
+// ════════════════════════════════════════════════════
+function renderDrinkButtons() {
+  const rem  = remainingCups();
+  const main = document.getElementById("drinksGridMain");
+  const ft   = document.getElementById("drinksGridFT");
+  main.innerHTML=""; ft.innerHTML="";
+
+  DRINKS.forEach(d => {
+    const qty  = getQtyForCode(d.code);
+    const left = rem[d.cup] ?? 999;
+    const low  = left > 0 && left <= LOW_STOCK;
+    const out  = left <= 0;
+    const cls  = ["drink-btn",
+      qty  > 0 ? "has-qty"    : "",
+      low        ? "low-stock"  : "",
+      out        ? "out-stock"  : "",
+      d.grid==="ft" ? "fruit-tea" : "",
+    ].filter(Boolean).join(" ");
+
+    const btn = document.createElement("button");
+    btn.className = cls;
+    btn.innerHTML = `
+      <span class="qty-badge" id="badge-${d.code}">${qty}</span>
+      <span class="drink-btn-icon">${d.icon}</span>
+      <span class="drink-btn-code">${d.code}</span>
+      <span class="drink-btn-name">${d.name}</span>
+      <span class="drink-btn-price">${fmt(d.price)}</span>
+      <span class="stock-pill">${out?"OUT":low?`${left} left`:left}</span>
+    `;
+    if (!out) btn.addEventListener("click", () => openFlavorModal(d));
+    (d.grid==="ft" ? ft : main).appendChild(btn);
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  FLAVOR MODAL
+// ════════════════════════════════════════════════════
+function openFlavorModal(drink) {
+  pendingDrink = drink;
+  document.getElementById("flavorModalTitle").textContent = drink.name;
+  document.getElementById("flavorModalSub").textContent   = fmt(drink.price) + " per cup";
+
+  const cat     = DRINK_FLAVOR_CAT[drink.code] || "milktea";
+  const flavors = FLAVORS[cat] || [];
+  const grid    = document.getElementById("flavorGrid");
+  grid.innerHTML = "";
+
+  // No flavor option first
+  const noFlavor = document.createElement("button");
+  noFlavor.className = "flavor-btn no-flavor";
+  noFlavor.textContent = "— No Flavor / Skip —";
+  noFlavor.addEventListener("click", () => { addItemToOrder(drink, ""); closeFlavorModal(); });
+  grid.appendChild(noFlavor);
+
+  flavors.forEach(f => {
+    const btn = document.createElement("button");
+    btn.className = "flavor-btn";
+    btn.textContent = f;
+    btn.addEventListener("click", () => { addItemToOrder(drink, f); closeFlavorModal(); });
+    grid.appendChild(btn);
+  });
+
+  document.getElementById("flavorModal").classList.add("open");
+}
+
+function closeFlavorModal() {
+  document.getElementById("flavorModal").classList.remove("open");
+  pendingDrink = null;
+}
+
+function handleFlavorOverlay(e) {
+  if (e.target === document.getElementById("flavorModal")) closeFlavorModal();
+}
+
+// ════════════════════════════════════════════════════
+//  CURRENT ORDER
+// ════════════════════════════════════════════════════
+function addItemToOrder(drink, flavor) {
+  vibrate(25);
+  const key = drink.code + "||" + flavor;
+  const existing = state.currentItems.find(i => i.key === key);
+  if (existing) { existing.qty++; }
+  else {
+    state.currentItems.push({ key, code:drink.code, name:drink.name, icon:drink.icon,
+      flavor, qty:1, unitPrice:drink.price, cup:drink.cup });
+  }
+  saveState(); renderDrinkButtons(); renderCurrentOrder();
+  // Animate badge
+  const badge = document.getElementById(`badge-${drink.code}`);
+  if (badge) { badge.classList.remove("pop"); void badge.offsetWidth; badge.classList.add("pop"); }
+}
+
+function setItemQty(key, qty) {
+  vibrate(18);
+  if (qty <= 0) state.currentItems = state.currentItems.filter(i => i.key !== key);
+  else { const it = state.currentItems.find(i=>i.key===key); if(it) it.qty = qty; }
+  saveState(); renderDrinkButtons(); renderCurrentOrder();
+}
+
+function clearCurrentOrder() {
+  state.currentItems=[]; state.currentAddons={};
+  document.getElementById("givenInput").value="";
+  document.getElementById("changeDisplay").textContent="Change: —";
+  saveState(); renderDrinkButtons(); renderCurrentOrder(); renderAddonPills();
+}
+
+function renderCurrentOrder() {
+  const container = document.getElementById("orderItems");
+  const subtotal  = getOrderTotal();
+  document.getElementById("orderSubtotal").textContent = fmt(subtotal);
+  document.getElementById("placeOrderBtn").disabled    = state.currentItems.length === 0;
+
+  // Undo button visibility
+  const undoBtn = document.getElementById("undoBtn");
+  if (state.orders.length > 0) undoBtn.classList.add("visible");
+  else undoBtn.classList.remove("visible");
+
+  if (!state.currentItems.length) {
+    container.innerHTML = `<div class="empty-order">Tap a drink to start an order</div>`;
+    updateChange(); return;
+  }
+
+  container.innerHTML = state.currentItems.map(item => `
+    <div class="order-item">
+      <div class="order-item-info">
+        <div class="order-item-name">${item.name} <span style="opacity:.5;font-size:.75em">(${item.code})</span></div>
+        ${item.flavor ? `<div class="order-item-flavor">${item.flavor}</div>` : ""}
+      </div>
+      <div class="order-item-qty-controls">
+        <button class="qty-btn" onclick="setItemQty('${item.key.replace(/'/g,"\\'")}', ${item.qty-1})">−</button>
+        <span class="order-item-qty">${item.qty}</span>
+        <button class="qty-btn" onclick="setItemQty('${item.key.replace(/'/g,"\\'")}', ${item.qty+1})">+</button>
+      </div>
+      <span class="order-item-total">${fmt(item.unitPrice * item.qty)}</span>
+    </div>
+  `).join("");
+
+  updateChange();
+}
+
+// ════════════════════════════════════════════════════
+//  ADD-ONS
+// ════════════════════════════════════════════════════
+function renderAddonPills() {
+  const container = document.getElementById("addonPills");
+  container.innerHTML = "";
+  ADDONS.forEach(a => {
+    const qty = state.currentAddons[a.name] || 0;
+    const pill = document.createElement("button");
+    pill.className = "addon-pill" + (qty > 0 ? " active" : "");
+    pill.innerHTML = qty > 0
+      ? `${a.name} <span class="addon-pill-qty">×${qty}</span> <span style="opacity:.6;font-size:.7em">+${fmt(a.price)}</span>`
+      : `${a.name} <span style="opacity:.5;font-size:.7em">+${fmt(a.price)}</span>`;
+    pill.addEventListener("click", () => {
+      vibrate(18);
+      state.currentAddons[a.name] = (state.currentAddons[a.name] || 0) + 1;
+      saveState(); renderAddonPills(); renderCurrentOrder();
+    });
+    pill.addEventListener("contextmenu", e => {
+      e.preventDefault(); vibrate(18);
+      if (state.currentAddons[a.name]) {
+        state.currentAddons[a.name]--;
+        if (!state.currentAddons[a.name]) delete state.currentAddons[a.name];
+        saveState(); renderAddonPills(); renderCurrentOrder();
+      }
+    });
+    container.appendChild(pill);
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  CHANGE CALCULATOR
+// ════════════════════════════════════════════════════
+function updateChange() {
+  const given    = parseFloat(document.getElementById("givenInput").value) || 0;
+  const subtotal = getOrderTotal();
+  const display  = document.getElementById("changeDisplay");
+  if (!given || subtotal === 0) { display.textContent="Change: —"; display.className="change-display"; return; }
+  const change = given - subtotal;
+  display.textContent = change >= 0 ? `Change: ${fmt(change)}` : `Short: ${fmt(Math.abs(change))}`;
+  display.className   = "change-display" + (change < 0 ? " negative" : "");
+}
+
+// ════════════════════════════════════════════════════
+//  PLACE ORDER
+// ════════════════════════════════════════════════════
+function placeOrder() {
+  if (!state.currentItems.length) return;
+  vibrate([30,20,30]);
+
+  const addonTotal = getAddonTotal();
+  const total      = getItemTotal() + addonTotal;
+  const order = {
+    id: state.orders.length + 1,
+    items: [...state.currentItems],
+    addons: {...state.currentAddons},
+    total,
+    time: timeNow(),
+  };
+
+  state.orders.push(order);
+  state.shiftTotal += total;
+  state.currentItems=[]; state.currentAddons={};
+  document.getElementById("givenInput").value="";
+  saveState();
+
+  renderDrinkButtons(); renderCurrentOrder(); renderAddonPills();
+  renderOrdersLog(); updateHeaderStats(); showReceipt(order);
+
+  const badge=document.getElementById("ordersCountBadge");
+  badge.classList.remove("pulse"); void badge.offsetWidth; badge.classList.add("pulse");
+}
+
+// ════════════════════════════════════════════════════
+//  UNDO LAST ORDER
+// ════════════════════════════════════════════════════
+function undoLastOrder() {
+  if (!state.orders.length) return;
+  vibrate(40);
+  const last = state.orders.pop();
+  state.shiftTotal -= last.total;
+  saveState(); renderDrinkButtons(); renderCurrentOrder(); renderOrdersLog(); updateHeaderStats();
+}
+
+// ════════════════════════════════════════════════════
+//  ORDERS LOG
+// ════════════════════════════════════════════════════
+function renderOrdersLog() {
+  const list  = document.getElementById("ordersLogList");
+  const badge = document.getElementById("ordersCountBadge");
+  badge.textContent = state.orders.length;
+
+  if (!state.orders.length) {
+    list.innerHTML=`<div class="no-orders">No orders yet — get brewing! ☕</div>`; return;
+  }
+
+  list.innerHTML = [...state.orders].reverse().map(order => {
+    const desc = order.items.map(i=>`${i.qty}×${i.code}${i.flavor?" ("+i.flavor+")":""}`).join(", ");
+    const itemRows = order.items.map(i =>
+      `<div class="order-log-detail-row"><span>${i.qty}× ${i.name}</span><span>${fmt(i.unitPrice*i.qty)}</span></div>
+       ${i.flavor?`<div class="order-log-detail-row sub"><span>${i.flavor}</span></div>`:""}`
+    ).join("");
+    const addonRows = Object.entries(order.addons||{}).map(([name,qty])=>{
+      const a=ADDONS.find(a=>a.name===name);
+      return `<div class="order-log-detail-row"><span>${qty}× ${name}</span><span>${fmt((a?.price||0)*qty)}</span></div>`;
+    }).join("");
+    const totalRow = `<div class="order-log-detail-row" style="font-weight:700;color:#7a5c3e;border-top:1px solid #e8d5c4;margin-top:6px;padding-top:6px;"><span>Total</span><span>${fmt(order.total)}</span></div>`;
+    return `<div class="order-log-item" onclick="this.classList.toggle('expanded')">
+      <div class="order-log-summary">
+        <div class="order-log-left">
+          <span class="order-log-num">Order #${order.id} · ${order.time}</span>
+          <span class="order-log-desc">${desc}</span>
+        </div>
+        <div class="order-log-right">
+          <span class="order-log-total">${fmt(order.total)}</span>
+          <span class="order-log-chevron">▼</span>
+        </div>
+      </div>
+      <div class="order-log-detail">${itemRows}${addonRows}${totalRow}</div>
+    </div>`;
+  }).join("");
+}
+
+// ════════════════════════════════════════════════════
+//  HEADER STATS
+// ════════════════════════════════════════════════════
+function updateHeaderStats() {
+  document.getElementById("shiftTotalDisplay").textContent = fmt(state.shiftTotal);
+  document.getElementById("headerOrderCount").textContent  = state.orders.length;
+}
+
+// ════════════════════════════════════════════════════
+//  POS EXPENSES
+// ════════════════════════════════════════════════════
+function toggleExpenses() {
+  const body    = document.getElementById("posExpensesBody");
+  const toggle  = document.getElementById("expensesToggle");
+  const isOpen  = body.classList.toggle("open");
+  toggle.classList.toggle("open", isOpen);
+}
+
+function addPosExpenseRow(name="", price="") {
+  const container = document.getElementById("posExpensesContainer");
+  const row = document.createElement("div");
+  row.className = "expense-row";
+  row.innerHTML = `
+    <input type="text"   class="exp-name"  placeholder="Expense name" value="${name}">
+    <input type="number" class="exp-price" placeholder="₱0"           value="${price}">
+    <button type="button" onclick="this.parentElement.remove(); savePosExpenses();">x</button>
+  `;
+  row.addEventListener("input", savePosExpenses);
+  container.appendChild(row);
+}
+
+function savePosExpenses() {
+  const rows = document.querySelectorAll("#posExpensesContainer .expense-row");
+  state.expenses = [];
+  rows.forEach(r => {
+    const name  = r.querySelector(".exp-name").value.trim();
+    const price = parseFloat(r.querySelector(".exp-price").value) || 0;
+    if (name || price) state.expenses.push({name, price});
+  });
+  saveState();
+}
+
+function renderPosExpenses() {
+  const container = document.getElementById("posExpensesContainer");
+  container.innerHTML = "";
+  if (state.expenses.length) state.expenses.forEach(e => addPosExpenseRow(e.name, e.price));
+}
+
+// ════════════════════════════════════════════════════
+//  RECEIPT MODAL
+// ════════════════════════════════════════════════════
+function showReceipt(order) {
+  document.getElementById("receiptOrderNum").textContent = `Order #${order.id} · ${order.time}`;
+
+  let itemsHTML = order.items.map(i => `
+    <div class="receipt-row">
+      <span>${i.qty}× ${i.name} (${i.code})</span>
+      <span>${fmt(i.unitPrice*i.qty)}</span>
+    </div>
+    ${i.flavor?`<div class="receipt-row flavor-sub"><span>↳ ${i.flavor}</span></div>`:""}
+  `).join("");
+
+  const addonRows = Object.entries(order.addons||{}).map(([name,qty]) => {
+    const a=ADDONS.find(a=>a.name===name);
+    return `<div class="receipt-row addon-row"><span>${qty}× ${name}</span><span>${fmt((a?.price||0)*qty)}</span></div>`;
+  }).join("");
+
+  if (addonRows) itemsHTML += `<div style="border-top:1px dashed #e8d5c4;margin-top:6px;padding-top:6px;">${addonRows}</div>`;
+
+  document.getElementById("receiptItems").innerHTML = itemsHTML;
+  document.getElementById("receiptTotal").innerHTML = `<span>Total</span><span>${fmt(order.total)}</span>`;
+
+  const bar = document.getElementById("receiptProgressBar");
+  bar.style.transition="none"; bar.style.width="100%";
+  document.getElementById("receiptModal").classList.add("open");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ bar.style.transition=`width ${RECEIPT_MS}ms linear`; bar.style.width="0%"; }));
+  if(receiptTimer) clearTimeout(receiptTimer);
+  receiptTimer = setTimeout(closeReceiptModal, RECEIPT_MS);
+}
+
+function closeReceiptModal() {
+  if(receiptTimer){clearTimeout(receiptTimer);receiptTimer=null;}
+  document.getElementById("receiptModal").classList.remove("open");
+}
+
+// ════════════════════════════════════════════════════
+//  END SHIFT
+// ════════════════════════════════════════════════════
+function computeCupTotals() {
+  const t={M:0,L:0,S:0,MC:0,LC:0,HC:0,FTM:0,FTL:0};
+  state.orders.forEach(o=>o.items.forEach(i=>{t[i.code]=(t[i.code]||0)+i.qty;}));
+  return t;
+}
+
+function computeAddonRevenue() {
+  let total=0;
+  state.orders.forEach(o=>{
+    Object.entries(o.addons||{}).forEach(([name,qty])=>{
+      const a=ADDONS.find(a=>a.name===name); if(a) total+=a.price*qty;
+    });
+  });
+  return total;
+}
+
+function openEndShift() {
+  const t=computeCupTotals();
+  const endM  = state.begM  - t.M  - t.MC  - t.FTM;
+  const endL  = state.begL  - t.L  - t.LC  - t.FTL;
+  const endS  = state.begS  - t.S;
+  const endHC = state.begHC - t.HC;
+  const warn  = v => v<0 ? `<span style="color:#c0665a;font-weight:700">${v} ⚠</span>` : v;
+  const addonRev = computeAddonRevenue();
+  const expTotal = state.expenses.reduce((s,e)=>s+e.price,0);
+
+  document.getElementById("endShiftSummary").innerHTML=`
+    <div class="end-shift-row bold"><span>Orders Placed</span><span>${state.orders.length}</span></div>
+    <div class="end-shift-row bold"><span>Shift Revenue</span><span>${fmt(state.shiftTotal)}</span></div>
+    ${addonRev?`<div class="end-shift-row"><span>Add-on Revenue</span><span>${fmt(addonRev)}</span></div>`:""}
+    ${expTotal?`<div class="end-shift-row"><span>Expenses</span><span>- ${fmt(expTotal)}</span></div>`:""}
+    <div class="end-shift-row section-head"><span>Cup Counts → Auto-filled</span><span></span></div>
+    <div class="end-shift-row"><span>Medium (M)</span><span>${state.begM} → ${warn(endM)}</span></div>
+    <div class="end-shift-row"><span>Large (L)</span><span>${state.begL} → ${warn(endL)}</span></div>
+    <div class="end-shift-row"><span>Small (S)</span><span>${state.begS} → ${warn(endS)}</span></div>
+    <div class="end-shift-row"><span>Hot Coffee (HC)</span><span>${state.begHC} → ${warn(endHC)}</span></div>
+    <div class="end-shift-row"><span>MC Tally</span><span>${t.MC}</span></div>
+    <div class="end-shift-row"><span>LC Tally</span><span>${t.LC}</span></div>
+    <div class="end-shift-row"><span>FTM Tally</span><span>${t.FTM}</span></div>
+    <div class="end-shift-row"><span>FTL Tally</span><span>${t.FTL}</span></div>
+  `;
+  document.getElementById("endShiftModal").classList.add("open");
+}
+
+function closeEndShift() { document.getElementById("endShiftModal").classList.remove("open"); }
+
+function confirmEndShift() {
+  const t=computeCupTotals();
+  const endM  = state.begM  - t.M  - t.MC  - t.FTM;
+  const endL  = state.begL  - t.L  - t.LC  - t.FTL;
+  const endS  = state.begS  - t.S;
+  const endHC = state.begHC - t.HC;
+
+  localStorage.setItem(SHIFT_KEY, JSON.stringify({
+    begM:state.begM,   endM,
+    begL:state.begL,   endL,
+    begS:state.begS,   endS,
+    begHC:state.begHC, endHC,
+    tallyMC:t.MC, tallyLC:t.LC, tallyFTM:t.FTM, tallyFTL:t.FTL,
+    expenses: state.expenses,
+    addonRevenue: computeAddonRevenue(),
+  }));
+
+  clearPOSState();
+  if(clockInterval) clearInterval(clockInterval);
+  window.location.href="index.html";
+}
+
+// ════════════════════════════════════════════════════
+//  KEY SHORTCUTS
+// ════════════════════════════════════════════════════
+document.addEventListener("keydown", e => {
+  if (e.key==="Escape") { closeFlavorModal(); closeReceiptModal(); closeEndShift(); }
+});
+
+// ════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════
+loadState();
+const hasShift = state.orders.length>0 || state.currentItems.length>0 || state.begM||state.begL||state.begS||state.begHC;
+if (hasShift) showPOS(); else showSetup();
+</script>
+</body>
+</html>
