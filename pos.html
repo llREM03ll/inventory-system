@@ -65,7 +65,7 @@
       font-size: 0.68rem; font-weight: 700; color: #b08060;
       letter-spacing: 0.1em; text-transform: uppercase; padding: 0 2px 4px;
     }
-    .drinks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px; }
+    .drinks-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 4px; }
 
     .drink-btn {
       position: relative; background: #fffaf5; border: 2px solid #e8d5c4;
@@ -418,16 +418,10 @@
 
   <div class="pos-body">
 
-    <!-- Milktea & Iced Coffee & Hot Coffee -->
+    <!-- Drinks -->
     <div>
-      <div class="drinks-section-label">Milktea &amp; Coffee</div>
-      <div class="drinks-grid" id="drinksGridMain"></div>
-    </div>
-
-    <!-- Fruit Tea -->
-    <div>
-      <div class="drinks-section-label">Fruit Tea</div>
-      <div class="drinks-grid" id="drinksGridFT"></div>
+      <div class="drinks-section-label">Drinks</div>
+      <div class="drinks-grid" id="drinksGrid"></div>
     </div>
 
     <!-- Current Order -->
@@ -551,16 +545,14 @@
 // ════════════════════════════════════════════════════
 
 const DRINKS = [
-  // Main grid
-  { code:"M",  name:"Milktea M",     icon:"🧋", price:29, cup:"M",  grid:"main" },
-  { code:"L",  name:"Milktea L",     icon:"🧋", price:39, cup:"L",  grid:"main" },
-  { code:"S",  name:"Milktea S",     icon:"🧋", price:25, cup:"S",  grid:"main" },
-  { code:"MC", name:"Iced Coffee M", icon:"☕", price:35, cup:"M",  grid:"main" },
-  { code:"LC", name:"Iced Coffee L", icon:"☕", price:45, cup:"L",  grid:"main" },
-  { code:"HC", name:"Hot Coffee",    icon:"☕", price:45, cup:"HC", grid:"main" },
-  // Fruit Tea grid
-  { code:"FTM",name:"Fruit Tea M",   icon:"🍵", price:29, cup:"M",  grid:"ft"   },
-  { code:"FTL",name:"Fruit Tea L",   icon:"🍵", price:39, cup:"L",  grid:"ft"   },
+  { code:"M",   name:"Milktea M",     icon:"🧋", price:29, cup:"M"  },
+  { code:"L",   name:"Milktea L",     icon:"🧋", price:39, cup:"L"  },
+  { code:"MC",  name:"Iced Coffee M", icon:"☕", price:35, cup:"M"  },
+  { code:"LC",  name:"Iced Coffee L", icon:"☕", price:45, cup:"L"  },
+  { code:"HC",  name:"Hot Coffee",    icon:"☕", price:45, cup:"HC" },
+  { code:"S",   name:"Milktea S",     icon:"🧋", price:25, cup:"S"  },
+  { code:"FTM", name:"Fruit Tea M",   icon:"🍵", price:29, cup:"M"  },
+  { code:"FTL", name:"Fruit Tea L",   icon:"🍵", price:39, cup:"L"  },
 ];
 
 const ADDONS = [
@@ -707,9 +699,8 @@ function showPOS() {
 // ════════════════════════════════════════════════════
 function renderDrinkButtons() {
   const rem  = remainingCups();
-  const main = document.getElementById("drinksGridMain");
-  const ft   = document.getElementById("drinksGridFT");
-  main.innerHTML=""; ft.innerHTML="";
+  const grid = document.getElementById("drinksGrid");
+  grid.innerHTML = "";
 
   DRINKS.forEach(d => {
     const qty  = getQtyForCode(d.code);
@@ -717,10 +708,9 @@ function renderDrinkButtons() {
     const low  = left > 0 && left <= LOW_STOCK;
     const out  = left <= 0;
     const cls  = ["drink-btn",
-      qty  > 0 ? "has-qty"    : "",
-      low        ? "low-stock"  : "",
-      out        ? "out-stock"  : "",
-      d.grid==="ft" ? "fruit-tea" : "",
+      qty > 0 ? "has-qty"   : "",
+      low      ? "low-stock" : "",
+      out      ? "out-stock" : "",
     ].filter(Boolean).join(" ");
 
     const btn = document.createElement("button");
@@ -731,10 +721,10 @@ function renderDrinkButtons() {
       <span class="drink-btn-code">${d.code}</span>
       <span class="drink-btn-name">${d.name}</span>
       <span class="drink-btn-price">${fmt(d.price)}</span>
-      <span class="stock-pill">${out?"OUT":low?`${left} left`:left}</span>
+      <span class="stock-pill">${out ? "OUT" : low ? `${left} left` : left}</span>
     `;
     if (!out) btn.addEventListener("click", () => openFlavorModal(d));
-    (d.grid==="ft" ? ft : main).appendChild(btn);
+    grid.appendChild(btn);
   });
 }
 
