@@ -649,6 +649,32 @@ function loadState() {
 function clearPOSState() { localStorage.removeItem(POS_KEY); }
 
 // ════════════════════════════════════════════════════
+//  ORDER LOG — save full shift orders for history page
+// ════════════════════════════════════════════════════
+const ORDER_LOG_KEY  = "brewsOrderLog";
+const RETENTION_KEY  = "brewsOrderRetention";
+
+function saveOrderLog() {
+  const logDate = new Date().toISOString().split("T")[0];
+  const logs    = JSON.parse(localStorage.getItem(ORDER_LOG_KEY) || "[]");
+  const idx     = logs.findIndex(l => l.date === logDate);
+  const entry   = { date: logDate, orders: state.orders, savedAt: Date.now() };
+  if (idx >= 0) logs[idx] = entry; else logs.push(entry);
+  localStorage.setItem(ORDER_LOG_KEY, JSON.stringify(logs));
+}
+
+function cleanupOrderLogs() {
+  const days   = parseInt(localStorage.getItem(RETENTION_KEY) || "7");
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  const logs   = JSON.parse(localStorage.getItem(ORDER_LOG_KEY) || "[]");
+  const kept   = logs.filter(l => {
+    const ts = l.savedAt || new Date(l.date + "T23:59:59").getTime();
+    return ts > cutoff;
+  });
+  localStorage.setItem(ORDER_LOG_KEY, JSON.stringify(kept));
+}
+
+// ════════════════════════════════════════════════════
 //  HELPERS
 // ════════════════════════════════════════════════════
 function fmt(v) {
@@ -1199,6 +1225,7 @@ function confirmEndShift() {
     addonRevenue: computeAddonRevenue(),
   }));
 
+  saveOrderLog();
   clearPOSState();
   if(clockInterval) clearInterval(clockInterval);
   window.location.href="index.html";
@@ -1215,6 +1242,7 @@ document.addEventListener("keydown", e => {
 //  INIT
 // ════════════════════════════════════════════════════
 loadState();
+cleanupOrderLogs();
 const hasShift = state.orders.length>0 || state.currentItems.length>0 || state.begM||state.begL||state.begS||state.begHC;
 if (hasShift) showPOS(); else showSetup();
 </script>
