@@ -92,6 +92,14 @@
     .day-total { font-size: 0.74rem; font-weight: 700; color: #9a6e52; line-height: 1.3; }
     .day-badge { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: linear-gradient(135deg,#d4a97c,#9a6e52); margin-top: 5px; }
 
+    /* POS order-log dot on calendar cell */
+    .log-dot {
+      display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+      background: #7ab87a; margin-top: 5px; margin-left: 3px;
+      vertical-align: top; flex-shrink: 0;
+    }
+    .calendar td .dots-row { display: flex; align-items: center; gap: 2px; margin-top: 4px; }
+
     /* ── Monthly Expenses ── */
     .monthly-exp-section { margin-top: 8px; }
 
@@ -250,6 +258,14 @@
       <tbody id="calendarBody"></tbody>
     </table>
   </div>
+  <div style="display:flex;gap:14px;padding:4px 2px 2px;font-size:0.72rem;color:#9a7a5e;">
+    <span style="display:flex;align-items:center;gap:5px;">
+      <span style="width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#d4a97c,#9a6e52);display:inline-block;"></span> Inventory saved
+    </span>
+    <span style="display:flex;align-items:center;gap:5px;">
+      <span style="width:7px;height:7px;border-radius:50%;background:#7ab87a;display:inline-block;"></span> Order log saved
+    </span>
+  </div>
 
   <div class="section monthly-exp-section">
     <h3>Monthly Expenses</h3>
@@ -371,6 +387,10 @@
     const entryMap = {};
     history.forEach(h => { entryMap[h.date] = h; });
 
+    // Build set of dates that have saved POS order logs
+    const orderLogs  = JSON.parse(localStorage.getItem(ORDER_LOG_KEY) || "[]");
+    const logDateSet = new Set(orderLogs.map(l => l.date));
+
     const tbody = document.getElementById("calendarBody");
     tbody.innerHTML = "";
 
@@ -388,9 +408,10 @@
         if (cell < firstDay || day > daysInMonth) {
           td.classList.add("empty");
         } else {
-          const dateStr = `${curYear}-${String(curMonth+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-          const entry   = entryMap[dateStr];
-          td.innerHTML  = `<span class="day-num">${day}</span>`;
+          const dateStr  = `${curYear}-${String(curMonth+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+          const entry    = entryMap[dateStr];
+          const hasLog   = logDateSet.has(dateStr);
+          td.innerHTML   = `<span class="day-num">${day}</span>`;
 
           if (entry) {
             const totalStr = extractFinalTotal(entry.results);
@@ -398,9 +419,26 @@
             weekTotal += totalNum;
             td.classList.add("has-entry");
             if (totalStr) td.innerHTML += `<div class="day-total">${totalStr}</div>`;
-            td.innerHTML += `<span class="day-badge"></span>`;
-            td.addEventListener("click", () => openModal(dateStr, entry));
           }
+
+          // Dots row — brown dot for inventory save, green dot for order log
+          if (entry || hasLog) {
+            const dots = `<div class="dots-row">
+              ${entry   ? `<span class="day-badge" title="Inventory saved"></span>` : ""}
+              ${hasLog  ? `<span class="log-dot"   title="Order log saved"></span>` : ""}
+            </div>`;
+            td.innerHTML += dots;
+            if (!td.classList.contains("has-entry")) td.classList.add("has-entry");
+          }
+
+          if (entry) td.addEventListener("click", () => openModal(dateStr, entry));
+          else if (hasLog) td.addEventListener("click", () => {
+            document.getElementById("orderLogsContainer")
+              ?.querySelector(`#logday-${dateStr}`)
+              ?.scrollIntoView({ behavior: "smooth", block: "center" });
+            // also expand it
+            document.getElementById(`logday-${dateStr}`)?.classList.add("expanded");
+          });
 
           if (dateStr === todayStr) td.classList.add("today");
         }
@@ -488,9 +526,11 @@
   }
 
   function deleteAllHistory() {
-    if (!confirm("Delete ALL history? This cannot be undone.")) return;
+    if (!confirm("Delete ALL inventory history and order logs? This cannot be undone.")) return;
     clearAllHistory();
+    localStorage.removeItem(ORDER_LOG_KEY);
     renderCalendar();
+    renderOrderLogs();
   }
 
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
