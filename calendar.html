@@ -153,6 +153,72 @@
       .day-num { font-size: 0.68rem; }
       .modal { padding: 16px; }
     }
+
+    /* ── Retention Settings ── */
+    .retention-section { margin-top: 20px; }
+    .retention-desc { font-size: 0.84rem; color: #9a7a5e; margin: 0 0 12px; line-height: 1.5; }
+    .retention-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .retention-pill {
+      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 20px;
+      padding: 8px 18px; font-size: 0.84rem; font-weight: 600; color: #7a5c3e;
+      cursor: pointer; font-family: inherit; transition: all .18s;
+    }
+    .retention-pill:hover { background: #e4d0bf; }
+    .retention-pill.active {
+      background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
+      border-color: transparent; box-shadow: 0 2px 8px rgba(122,92,62,0.28);
+    }
+    .retention-note { font-size: 0.76rem; color: #b08060; margin-top: 10px; font-style: italic; }
+
+    /* ── Order Logs ── */
+    .order-logs-section { margin-top: 20px; padding-bottom: 32px; }
+    .log-empty { text-align: center; color: #c4a98a; font-size: 0.86rem; padding: 14px 0; }
+
+    .log-day-item {
+      background: #fffaf5; border: 1.5px solid #e8d5c4; border-radius: 14px;
+      overflow: hidden; margin-bottom: 10px;
+      box-shadow: 0 1px 4px rgba(122,92,62,0.05);
+    }
+    .log-day-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 14px; cursor: pointer; transition: background .14s;
+    }
+    .log-day-header:hover { background: #f5ede5; }
+    .log-day-left { display: flex; flex-direction: column; gap: 2px; }
+    .log-day-date { font-size: 0.84rem; font-weight: 700; color: #5c4631; }
+    .log-day-meta { font-size: 0.72rem; color: #9a7a5e; }
+    .log-day-right { display: flex; align-items: center; gap: 10px; }
+    .log-day-total { font-size: 0.9rem; font-weight: 700; color: #7a5c3e; font-variant-numeric: tabular-nums; }
+    .log-day-chevron { font-size: 0.6rem; color: #c4a98a; transition: transform .2s; }
+    .log-day-item.expanded .log-day-chevron { transform: rotate(180deg); }
+
+    .log-day-body { border-top: 1px solid #f0e4d8; display: none; }
+    .log-day-item.expanded .log-day-body { display: block; }
+
+    .log-order-item {
+      border-bottom: 1px solid #f5ede5; padding: 9px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .log-order-item:last-child { border-bottom: none; }
+    .log-order-num {
+      font-size: 0.7rem; font-weight: 700; color: #c4a98a;
+      background: #f5ede5; border-radius: 6px; padding: 2px 7px;
+      white-space: nowrap; margin-top: 1px; flex-shrink: 0;
+    }
+    .log-order-num.done-badge { color: #3a7a3a; background: #e6f5e6; }
+    .log-order-info { flex: 1; min-width: 0; }
+    .log-order-desc { font-size: 0.8rem; color: #5c4631; font-weight: 600; line-height: 1.4; }
+    .log-order-flavors { font-size: 0.72rem; color: #9a7a5e; margin-top: 1px; }
+    .log-order-addons  { font-size: 0.72rem; color: #b08060; margin-top: 1px; }
+    .log-order-payment { font-size: 0.72rem; color: #7a5c3e; margin-top: 3px; }
+    .log-order-total { font-size: 0.84rem; font-weight: 700; color: #7a5c3e; font-variant-numeric: tabular-nums; white-space: nowrap; padding-top: 1px; }
+
+    .log-delete-btn {
+      background: #fdf0f0; border: 1.5px solid #f0d5d5; border-radius: 8px;
+      padding: 4px 10px; font-size: 0.72rem; font-weight: 600; color: #c0665a;
+      cursor: pointer; font-family: inherit; transition: all .15s; flex-shrink: 0;
+    }
+    .log-delete-btn:hover { background: #fae0de; }
   </style>
 </head>
 <body>
@@ -192,6 +258,20 @@
   </div>
 
   <div class="monthly-summary" id="monthlySummary"></div>
+
+  <!-- Retention Settings -->
+  <div class="section retention-section">
+    <h3>Order Log Retention</h3>
+    <p class="retention-desc">Saved shift orders auto-delete after a set period. Choose how long to keep them:</p>
+    <div class="retention-pills" id="retentionPills"></div>
+    <p class="retention-note" id="retentionNote"></p>
+  </div>
+
+  <!-- Saved Order Logs -->
+  <div class="section order-logs-section">
+    <h3>Saved Order Logs</h3>
+    <div id="orderLogsContainer"></div>
+  </div>
 </div>
 
 <!-- Receipt Modal -->
@@ -414,6 +494,128 @@
   }
 
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+  // ══════════════════════════════════════════════════════
+  //  ORDER LOG RETENTION & DISPLAY
+  // ══════════════════════════════════════════════════════
+  const ORDER_LOG_KEY  = "brewsOrderLog";
+  const RETENTION_KEY  = "brewsOrderRetention";
+  const ADDONS_PRICES  = {
+    "Pearl":6,"Nata":6,"Coffee Jelly":6,"Oreo":6,"Cream Cheese":10,"Espresso Shot":6
+  };
+
+  const RETENTION_OPTIONS = [
+    { label: "3 Days",  days: 3  },
+    { label: "1 Week",  days: 7  },
+    { label: "2 Weeks", days: 14 },
+    { label: "1 Month", days: 30 },
+  ];
+
+  function getRetentionDays() {
+    return parseInt(localStorage.getItem(RETENTION_KEY) || "7");
+  }
+
+  function setRetention(days) {
+    localStorage.setItem(RETENTION_KEY, days);
+    cleanupOrderLogs();
+    renderRetentionPills();
+    renderOrderLogs();
+  }
+
+  function cleanupOrderLogs() {
+    const days   = getRetentionDays();
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    const logs   = JSON.parse(localStorage.getItem(ORDER_LOG_KEY) || "[]");
+    const kept   = logs.filter(l => {
+      const ts = l.savedAt || new Date(l.date + "T23:59:59").getTime();
+      return ts > cutoff;
+    });
+    localStorage.setItem(ORDER_LOG_KEY, JSON.stringify(kept));
+  }
+
+  function deleteOrderLog(date) {
+    if (!confirm(`Delete order log for ${date}?`)) return;
+    const logs = JSON.parse(localStorage.getItem(ORDER_LOG_KEY) || "[]");
+    localStorage.setItem(ORDER_LOG_KEY, JSON.stringify(logs.filter(l => l.date !== date)));
+    renderOrderLogs();
+  }
+
+  function renderRetentionPills() {
+    const current = getRetentionDays();
+    const container = document.getElementById("retentionPills");
+    const note      = document.getElementById("retentionNote");
+    container.innerHTML = "";
+    RETENTION_OPTIONS.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "retention-pill" + (opt.days === current ? " active" : "");
+      btn.textContent = opt.label;
+      btn.addEventListener("click", () => setRetention(opt.days));
+      container.appendChild(btn);
+    });
+    const opt = RETENTION_OPTIONS.find(o => o.days === current) || RETENTION_OPTIONS[1];
+    note.textContent = `Currently keeping logs for ${opt.label.toLowerCase()}. Older logs are deleted automatically on page load.`;
+  }
+
+  function renderOrderLogs() {
+    const container = document.getElementById("orderLogsContainer");
+    const raw       = localStorage.getItem(ORDER_LOG_KEY);
+    const logs      = raw ? JSON.parse(raw) : [];
+
+    if (!logs.length) {
+      container.innerHTML = `<div class="log-empty">No saved order logs yet. Logs appear here after you end a shift in the POS.</div>`;
+      return;
+    }
+
+    // Sort newest first
+    const sorted = [...logs].sort((a, b) => b.date.localeCompare(a.date));
+
+    container.innerHTML = sorted.map(log => {
+      const orders    = log.orders || [];
+      const dayTotal  = orders.reduce((s, o) => s + (o.total || 0), 0);
+      const doneCount = orders.filter(o => o.done).length;
+
+      const orderRows = orders.map(order => {
+        const desc = order.items.map(i => `${i.qty}×${i.code}`).join(", ");
+        const flavors = order.items.filter(i => i.flavor).map(i => `${i.code}: ${i.flavor}`).join(" · ");
+        const addons  = Object.entries(order.addons || {})
+          .map(([n, q]) => `${q}× ${n}`).join(", ");
+        const change  = order.given > 0 ? order.given - order.total : null;
+        const isDone  = !!order.done;
+        return `
+          <div class="log-order-item">
+            <span class="log-order-num${isDone ? " done-badge" : ""}">#${order.id}${isDone ? " ✓" : ""}</span>
+            <div class="log-order-info">
+              <div class="log-order-desc">${desc} — ${formatMoney(order.total)}</div>
+              ${flavors ? `<div class="log-order-flavors">🍵 ${flavors}</div>` : ""}
+              ${addons  ? `<div class="log-order-addons">+ ${addons}</div>` : ""}
+              ${order.given > 0 ? `<div class="log-order-payment">Given ${formatMoney(order.given)} · ${change >= 0 ? "Change" : "Short"} ${formatMoney(Math.abs(change))}</div>` : ""}
+            </div>
+            <span class="log-order-total">${order.time || ""}</span>
+          </div>`;
+      }).join("");
+
+      return `
+        <div class="log-day-item" id="logday-${log.date}">
+          <div class="log-day-header" onclick="document.getElementById('logday-${log.date}').classList.toggle('expanded')">
+            <div class="log-day-left">
+              <span class="log-day-date">${log.date}</span>
+              <span class="log-day-meta">${orders.length} order${orders.length !== 1 ? "s" : ""} · ${doneCount} done</span>
+            </div>
+            <div class="log-day-right">
+              <span class="log-day-total">${formatMoney(dayTotal)}</span>
+              <button class="log-delete-btn" onclick="event.stopPropagation();deleteOrderLog('${log.date}')">🗑</button>
+              <span class="log-day-chevron">▼</span>
+            </div>
+          </div>
+          <div class="log-day-body">${orderRows}</div>
+        </div>`;
+    }).join("");
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  cleanupOrderLogs();
+  renderRetentionPills();
+  renderOrderLogs();
   renderCalendar();
 </script>
 </body>
