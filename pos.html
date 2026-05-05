@@ -370,6 +370,28 @@
       .drink-btn-icon { font-size: 1.25rem; }
       .flavor-grid { grid-template-columns: repeat(2, 1fr); }
     }
+
+    /* ── Done button on order log ── */
+    .order-done-btn {
+      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 8px;
+      padding: 4px 10px; font-size: 0.7rem; font-weight: 700; color: #7a5c3e;
+      cursor: pointer; font-family: inherit; transition: all .15s; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .order-done-btn.done { background: #e6f5e6; border-color: #90c890; color: #2e7a2e; }
+    .order-done-btn:active { transform: scale(0.9); }
+    .order-log-item.order-done { opacity: 0.6; }
+    .order-log-item.order-done .order-log-num { text-decoration: line-through; opacity: 0.7; }
+
+    /* ── Quota toast ── */
+    .quota-toast {
+      position: fixed; top: 76px; left: 50%; transform: translateX(-50%) translateY(-12px);
+      background: linear-gradient(135deg, #4a9e4a, #2e7a2e); color: #fff;
+      padding: 11px 22px; border-radius: 14px; font-weight: 700; font-size: 0.88rem;
+      box-shadow: 0 4px 22px rgba(46,122,46,0.38); z-index: 300; pointer-events: none;
+      opacity: 0; transition: opacity .3s, transform .3s; white-space: nowrap; text-align: center;
+    }
+    .quota-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -409,7 +431,7 @@
         <span class="header-stat-val" id="headerOrderCount">0</span>
       </div>
       <div class="header-stat">
-        <span class="header-stat-label">Total</span>
+        <span class="header-stat-label">Cup Sales</span>
         <span class="header-stat-val" id="shiftTotalDisplay">₱0.00</span>
       </div>
       <button class="end-shift-btn" onclick="openEndShift()">End Shift</button>
@@ -490,6 +512,9 @@
   </div>
 </div>
 
+<!-- ═══════════ QUOTA TOAST ═══════════ -->
+<div class="quota-toast" id="quotaToast">🎉 Quota reached! ₱3,000 in cup sales!</div>
+
 <!-- ═══════════ FLAVOR MODAL (bottom sheet) ═══════════ -->
 <div class="modal-overlay" id="flavorModal" onclick="handleFlavorOverlay(event)">
   <div class="modal">
@@ -519,6 +544,7 @@
     <div id="receiptItems"></div>
     <hr class="modal-divider">
     <div class="receipt-total-row" id="receiptTotal"></div>
+    <div id="receiptPayment"></div>
     <div class="receipt-progress"><div class="receipt-progress-bar" id="receiptProgressBar"></div></div>
     <button class="modal-close-btn" onclick="closeReceiptModal()">Done</button>
   </div>
@@ -566,7 +592,7 @@ const ADDONS = [
 
 const FLAVORS = {
   milktea: [
-    "Chocolate","Red Velvet","Dark Chocolate","Nutella","Black Forest","Mocha",
+    "Chocolate","Red Velvet","Dark Chocolate","Choco Kisses","Nutella","Black Forest","Mocha",
     "Taro","Cheesecake","Strawberry","Mango Cheesecake","Winter Melon","Okinawa",
     "Salted Caramel","Matcha","Cookies & Cream","Cappuccino","Avocado",
     "Buko Pandan","Vanilla","Hokkaido"
@@ -611,6 +637,7 @@ let state = {
 let pendingDrink  = null;
 let receiptTimer  = null;
 let clockInterval = null;
+let quotaNotified = false;
 
 // ════════════════════════════════════════════════════
 //  PERSISTENCE
@@ -677,6 +704,7 @@ function startShift() {
   state.begS  = +document.getElementById("setupBegS").value  || 0;
   state.begHC = +document.getElementById("setupBegHC").value || 0;
   state.currentItems=[]; state.currentAddons={}; state.orders=[]; state.shiftTotal=0; state.expenses=[];
+  quotaNotified = false;
   saveState(); showPOS();
 }
 
@@ -905,6 +933,7 @@ function placeOrder() {
   if (!state.currentItems.length) return;
   vibrate([30,20,30]);
 
+  const given      = parseFloat(document.getElementById("givenInput").value) || 0;
   const addonTotal = getAddonTotal();
   const total      = getItemTotal() + addonTotal;
   const order = {
@@ -913,6 +942,8 @@ function placeOrder() {
     addons: {...state.currentAddons},
     total,
     time: timeNow(),
+    given,
+    done: false,
   };
 
   state.orders.push(order);
@@ -920,6 +951,12 @@ function placeOrder() {
   state.currentItems=[]; state.currentAddons={};
   document.getElementById("givenInput").value="";
   saveState();
+
+  // Check quota (cup sales only, addons excluded)
+  if (!quotaNotified && computeShiftCupTotal() >= 3000) {
+    quotaNotified = true;
+    showQuotaToast();
+  }
 
   renderDrinkButtons(); renderCurrentOrder(); renderAddonPills();
   renderOrdersLog(); updateHeaderStats(); showReceipt(order);
@@ -939,9 +976,11 @@ function undoLastOrder() {
   saveState(); renderDrinkButtons(); renderCurrentOrder(); renderOrdersLog(); updateHeaderStats();
 }
 
-// ════════════════════════════════════════════════════
-//  ORDERS LOG
-// ════════════════════════════════════════════════════
+function toggleOrderDone(id) {
+  const order = state.orders.find(o => o.id === id);
+  if (order) { order.done = !order.done; saveState(); renderOrdersLog(); }
+}
+
 function renderOrdersLog() {
   const list  = document.getElementById("ordersLogList");
   const badge = document.getElementById("ordersCountBadge");
@@ -962,18 +1001,24 @@ function renderOrdersLog() {
       return `<div class="order-log-detail-row"><span>${qty}× ${name}</span><span>${fmt((a?.price||0)*qty)}</span></div>`;
     }).join("");
     const totalRow = `<div class="order-log-detail-row" style="font-weight:700;color:#7a5c3e;border-top:1px solid #e8d5c4;margin-top:6px;padding-top:6px;"><span>Total</span><span>${fmt(order.total)}</span></div>`;
-    return `<div class="order-log-item" onclick="this.classList.toggle('expanded')">
+    const paymentRows = order.given > 0
+      ? `<div class="order-log-detail-row" style="color:#9a7a5e"><span>Given</span><span>${fmt(order.given)}</span></div>
+         <div class="order-log-detail-row" style="color:${order.given>=order.total?"#3a7a3a":"#c0665a"};font-weight:600"><span>${order.given>=order.total?"Change":"Short"}</span><span>${fmt(Math.abs(order.given-order.total))}</span></div>`
+      : "";
+    const doneLabel = order.done ? "✓ Done" : "Mark Done";
+    return `<div class="order-log-item${order.done?" order-done":""}" onclick="this.classList.toggle('expanded')">
       <div class="order-log-summary">
         <div class="order-log-left">
           <span class="order-log-num">Order #${order.id} · ${order.time}</span>
           <span class="order-log-desc">${desc}</span>
         </div>
         <div class="order-log-right">
+          <button class="order-done-btn${order.done?" done":""}" onclick="event.stopPropagation();toggleOrderDone(${order.id})">${doneLabel}</button>
           <span class="order-log-total">${fmt(order.total)}</span>
           <span class="order-log-chevron">▼</span>
         </div>
       </div>
-      <div class="order-log-detail">${itemRows}${addonRows}${totalRow}</div>
+      <div class="order-log-detail">${itemRows}${addonRows}${totalRow}${paymentRows}</div>
     </div>`;
   }).join("");
 }
@@ -981,8 +1026,19 @@ function renderOrdersLog() {
 // ════════════════════════════════════════════════════
 //  HEADER STATS
 // ════════════════════════════════════════════════════
+function computeShiftCupTotal() {
+  return state.orders.reduce((s, o) =>
+    s + o.items.reduce((si, i) => si + i.unitPrice * i.qty, 0), 0);
+}
+
+function showQuotaToast() {
+  const toast = document.getElementById("quotaToast");
+  toast.classList.add("visible");
+  setTimeout(() => toast.classList.remove("visible"), 4500);
+}
+
 function updateHeaderStats() {
-  document.getElementById("shiftTotalDisplay").textContent = fmt(state.shiftTotal);
+  document.getElementById("shiftTotalDisplay").textContent = fmt(computeShiftCupTotal());
   document.getElementById("headerOrderCount").textContent  = state.orders.length;
 }
 
@@ -1049,6 +1105,20 @@ function showReceipt(order) {
 
   document.getElementById("receiptItems").innerHTML = itemsHTML;
   document.getElementById("receiptTotal").innerHTML = `<span>Total</span><span>${fmt(order.total)}</span>`;
+
+  // Payment rows (given / change)
+  let paymentHTML = "";
+  if (order.given > 0) {
+    const change = order.given - order.total;
+    paymentHTML = `
+      <hr class="modal-divider">
+      <div class="receipt-row" style="color:#9a7a5e"><span>Given</span><span>${fmt(order.given)}</span></div>
+      <div class="receipt-row" style="font-weight:700;color:${change>=0?"#2e7a2e":"#c0665a"}">
+        <span>${change>=0?"Change":"Short"}</span><span>${fmt(Math.abs(change))}</span>
+      </div>`;
+  }
+  const paymentEl = document.getElementById("receiptPayment");
+  if (paymentEl) paymentEl.innerHTML = paymentHTML;
 
   const bar = document.getElementById("receiptProgressBar");
   bar.style.transition="none"; bar.style.width="100%";
