@@ -229,7 +229,7 @@
     .log-delete-btn:hover { background: #fae0de; }
   </style>
 </head>
-<body>
+<body class="has-bottom-nav">
 <div class="container">
 
   <div class="top-bar">
@@ -658,5 +658,20 @@
   renderOrderLogs();
   renderCalendar();
 </script>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="bottom-nav-item">
+    <span class="bottom-nav-icon">🧮</span>
+    <span class="bottom-nav-label">Calculate</span>
+  </a>
+  <a href="pos.html" class="bottom-nav-item bottom-nav-shift">
+    <span class="bottom-nav-shift-pill">🧋</span>
+    <span class="bottom-nav-label">Start Shift</span>
+  </a>
+  <a href="calendar.html" class="bottom-nav-item active">
+    <span class="bottom-nav-icon">📅</span>
+    <span class="bottom-nav-label">History</span>
+  </a>
+</nav>
 </body>
 </html>
