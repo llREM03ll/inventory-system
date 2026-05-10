@@ -394,7 +394,7 @@
     .quota-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
-<body>
+<body class="has-bottom-nav">
 
 <!-- ═══════════ SETUP SCREEN ═══════════ -->
 <div id="setupScreen">
@@ -407,6 +407,14 @@
     <div class="brand-sub">Point of Sale</div>
     <div class="setup-note">
       Enter beginning cup counts before starting the shift. The POS will track stock, flavors, add-ons, and auto-fill the inventory form when you end the shift.
+    </div>
+
+    <!-- Resume last shift -->
+    <div id="resumeSection" style="display:none;margin-bottom:16px;">
+      <div style="background:#fdf5e8;border:1.5px solid #e8d5c4;border-radius:12px;padding:11px 14px;font-size:0.82rem;color:#7a5c3e;margin-bottom:10px;line-height:1.55;">
+        ↩ You recently ended a shift. Orders are still saved — want to continue where you left off?
+      </div>
+      <button class="start-btn" onclick="resumeShift()" style="background:linear-gradient(145deg,#a07850,#6b4f36);margin-bottom:10px;">↩ &nbsp;Resume Last Shift</button>
     </div>
     <div class="section">
       <h3>Beginning Cups</h3>
@@ -569,6 +577,22 @@
   </div>
 </div>
 
+<!-- ═══════════ BOTTOM NAV ═══════════ -->
+<nav class="bottom-nav">
+  <a href="index.html" class="bottom-nav-item">
+    <span class="bottom-nav-icon">🧮</span>
+    <span class="bottom-nav-label">Calculate</span>
+  </a>
+  <span class="bottom-nav-item bottom-nav-shift active">
+    <span class="bottom-nav-shift-pill">🧋</span>
+    <span class="bottom-nav-label">Shift</span>
+  </span>
+  <a href="calendar.html" class="bottom-nav-item">
+    <span class="bottom-nav-icon">📅</span>
+    <span class="bottom-nav-label">History</span>
+  </a>
+</nav>
+
 <script>
 // ════════════════════════════════════════════════════
 //  CATALOGUE
@@ -638,10 +662,10 @@ let state = {
   expenses:      [],  // [{name,price}]
 };
 
-let pendingDrink  = null;
-let receiptTimer  = null;
-let clockInterval = null;
-let quotaNotified = false;
+let pendingDrink       = null;
+let receiptTimer       = null;
+let clockInterval      = null;
+let nextQuotaThreshold = 3000; // fires at ₱3K then every ₱1K after
 
 // ════════════════════════════════════════════════════
 //  PERSISTENCE
@@ -734,7 +758,8 @@ function startShift() {
   state.begS  = +document.getElementById("setupBegS").value  || 0;
   state.begHC = +document.getElementById("setupBegHC").value || 0;
   state.currentItems=[]; state.currentAddons={}; state.orders=[]; state.shiftTotal=0; state.expenses=[];
-  quotaNotified = false;
+  nextQuotaThreshold = 3000;
+  localStorage.removeItem("brewsResumeShift");
   saveState(); showPOS();
 }
 
@@ -742,6 +767,8 @@ function showSetup() {
   document.getElementById("setupScreen").style.display="flex";
   document.getElementById("posScreen").style.display="none";
   if(clockInterval) clearInterval(clockInterval);
+  const resumeSec = document.getElementById("resumeSection");
+  if (resumeSec) resumeSec.style.display = localStorage.getItem("brewsResumeShift") ? "block" : "none";
 }
 
 function showPOS() {
@@ -750,6 +777,26 @@ function showPOS() {
   renderDrinkButtons(); renderCurrentOrder(); renderAddonPills();
   renderOrdersLog(); updateHeaderStats(); startClock();
   renderPosExpenses();
+}
+
+function resumeShift() {
+  const raw = localStorage.getItem("brewsResumeShift");
+  if (!raw) return;
+  try {
+    const s = JSON.parse(raw);
+    state.begM  = s.begM  || 0; state.begL  = s.begL  || 0;
+    state.begS  = s.begS  || 0; state.begHC = s.begHC || 0;
+    state.orders      = s.orders      || [];
+    state.shiftTotal  = s.shiftTotal  || 0;
+    state.expenses    = s.expenses    || [];
+    state.currentItems  = [];
+    state.currentAddons = {};
+    // Restore correct next quota milestone
+    const cupsSoFar = state.orders.reduce((t,o)=>t+o.items.reduce((s,i)=>s+i.unitPrice*i.qty,0),0);
+    nextQuotaThreshold = Math.max(3000, (Math.floor(cupsSoFar / 1000) + 1) * 1000);
+    localStorage.removeItem("brewsResumeShift");
+    saveState(); showPOS();
+  } catch { localStorage.removeItem("brewsResumeShift"); }
 }
 
 // ════════════════════════════════════════════════════
@@ -982,10 +1029,11 @@ function placeOrder() {
   document.getElementById("givenInput").value="";
   saveState();
 
-  // Check quota (cup sales only, addons excluded)
-  if (!quotaNotified && computeShiftCupTotal() >= 3000) {
-    quotaNotified = true;
-    showQuotaToast();
+  // Notify at ₱3,000 then every ₱1,000 milestone (cup sales only)
+  const _cupSales = computeShiftCupTotal();
+  while (_cupSales >= nextQuotaThreshold) {
+    showQuotaToast(nextQuotaThreshold);
+    nextQuotaThreshold += 1000;
   }
 
   renderDrinkButtons(); renderCurrentOrder(); renderAddonPills();
@@ -1061,8 +1109,11 @@ function computeShiftCupTotal() {
     s + o.items.reduce((si, i) => si + i.unitPrice * i.qty, 0), 0);
 }
 
-function showQuotaToast() {
+function showQuotaToast(milestone) {
   const toast = document.getElementById("quotaToast");
+  toast.textContent = milestone === 3000
+    ? "🎉 Quota hit! ₱3,000 in cup sales!"
+    : `🚀 ₱${milestone.toLocaleString()} milestone! Keep it up!`;
   toast.classList.add("visible");
   setTimeout(() => toast.classList.remove("visible"), 4500);
 }
@@ -1231,6 +1282,12 @@ function confirmEndShift() {
     addonRevenue: computeAddonRevenue(),
   }));
 
+  // Save resumable snapshot so staff can pick up again if needed
+  localStorage.setItem("brewsResumeShift", JSON.stringify({
+    begM:state.begM, begL:state.begL, begS:state.begS, begHC:state.begHC,
+    orders:state.orders, shiftTotal:state.shiftTotal, expenses:state.expenses,
+    savedAt: Date.now(),
+  }));
   saveOrderLog();
   clearPOSState();
   if(clockInterval) clearInterval(clockInterval);
