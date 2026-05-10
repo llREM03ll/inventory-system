@@ -31,7 +31,7 @@
     }
   </style>
 </head>
-<body>
+<body class="has-bottom-nav">
   <div class="container">
     <div class="brand">BREWS.CO</div>
     <div class="brand-sub">Inventory System</div>
@@ -85,6 +85,7 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="js/InventorySystem.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/history.js"></script>
@@ -97,5 +98,19 @@
         .catch(err => console.error("SW failed", err));
     }
   </script>
+  <nav class="bottom-nav">
+    <a href="index.html" class="bottom-nav-item active">
+      <span class="bottom-nav-icon">🧮</span>
+      <span class="bottom-nav-label">Calculate</span>
+    </a>
+    <a href="pos.html" class="bottom-nav-item bottom-nav-shift">
+      <span class="bottom-nav-shift-pill">🧋</span>
+      <span class="bottom-nav-label">Start Shift</span>
+    </a>
+    <a href="calendar.html" class="bottom-nav-item">
+      <span class="bottom-nav-icon">📅</span>
+      <span class="bottom-nav-label">History</span>
+    </a>
+  </nav>
 </body>
 </html>
