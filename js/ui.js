@@ -193,14 +193,39 @@ function clearAll() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// ── Print Receipt as Image ────────────────────────────────────────────────────
+
+function printReceipt() {
+  if (!lastRenderContent) { alert("Please compute first."); return; }
+  const el      = document.getElementById("results");
+  const actions = el.querySelector(".output-actions");
+  if (actions) actions.style.visibility = "hidden";
+  if (typeof html2canvas === "undefined") {
+    if (actions) actions.style.visibility = "";
+    alert("Image library not loaded. Refresh and try again."); return;
+  }
+  html2canvas(el, { backgroundColor: "#fffaf5", scale: 2, useCORS: true, logging: false })
+    .then(canvas => {
+      if (actions) actions.style.visibility = "";
+      const link    = document.createElement("a");
+      const date    = lastRenderDate || new Date().toISOString().split("T")[0];
+      link.download = `BREWS-receipt-${date}.png`;
+      link.href     = canvas.toDataURL("image/png");
+      link.click();
+    }).catch(() => {
+      if (actions) actions.style.visibility = "";
+      alert("Could not save image. Try again.");
+    });
+}
+
 // ── Render helper ─────────────────────────────────────────────────────────────
 
 function renderResults(contentHTML) {
   const res = document.getElementById("results");
   res.innerHTML = contentHTML + `
     <div class="output-actions">
-      <button class="primary" onclick="saveCurrentResults()">Save to History</button>
-      <button class="secondary" onclick="window.location.href='calendar.html'">View History</button>
+      <button class="primary"   onclick="saveCurrentResults()">Save to History</button>
+      <button class="secondary" onclick="printReceipt()">📷 Save as Image</button>
     </div>`;
   delete res.dataset.view;
 }
