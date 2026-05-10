@@ -8,23 +8,36 @@
   <title>Inventory System</title>
   <link rel="stylesheet" href="css/styles.css" />
   <style>
-    .nav-row {
-      display: flex; gap: 10px; margin-bottom: 20px;
+    /* ── Daily greeting ── */
+    .daily-greeting {
+      text-align: center; margin-bottom: 18px;
+      padding: 16px 14px 14px;
+      background: linear-gradient(135deg, #fdf5eb, #f5ede5);
+      border-radius: 18px; border: 1px solid #e8d5c4;
     }
-    .pos-nav-btn {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      flex: 1; padding: 12px; background: #f5ede5;
-      border: 1.5px dashed #c9a882; border-radius: 14px;
-      font-size: 0.88rem; font-weight: 600; color: #7a5c3e;
-      font-family: inherit; cursor: pointer;
-      transition: all .2s; text-decoration: none;
+    .greeting-msg {
+      font-size: 1.08rem; font-weight: 700; color: #5c4631; margin-bottom: 3px;
     }
-    .pos-nav-btn:hover { background: #fdf0e4; border-color: #b08060; transform: translateY(-1px); }
-    .pos-nav-btn.secondary {
-      background: transparent; border-style: solid; border-color: #e0c9b8;
-      color: #9a7a5e; flex: 0 0 auto; padding: 12px 18px;
+    .greeting-sub { font-size: 0.78rem; color: #9a7a5e; font-weight: 500; }
+
+    /* ── Resume shift banner ── */
+    .resume-banner {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #fffbf0; border: 1.5px solid #e8c87a;
+      border-radius: 14px; padding: 11px 14px; margin-bottom: 18px; gap: 10px;
     }
-    .pos-nav-btn.secondary:hover { background: #f5ede5; border-color: #c9a882; }
+    .resume-banner-info { flex: 1; min-width: 0; }
+    .resume-banner-text { font-size: 0.84rem; font-weight: 700; color: #7a5c3e; }
+    .resume-banner-sub  { font-size: 0.72rem; color: #b08060; margin-top: 2px; }
+    .resume-banner-btn  {
+      background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
+      border: none; border-radius: 10px; padding: 9px 16px;
+      font-weight: 700; font-size: 0.82rem; font-family: inherit;
+      cursor: pointer; text-decoration: none; white-space: nowrap;
+      transition: all .18s; flex-shrink: 0;
+    }
+    .resume-banner-btn:hover { background: linear-gradient(135deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
+
     .damage-note {
       font-size: 0.75rem; color: #b08060; font-weight: 400;
       margin-left: 6px; font-style: italic;
@@ -36,10 +49,63 @@
     <div class="brand">BREWS.CO</div>
     <div class="brand-sub">Inventory System</div>
 
-    <div class="nav-row">
-      <a class="pos-nav-btn" href="pos.html">🧋 Open POS — Start a New Shift</a>
-      <a class="pos-nav-btn secondary" href="calendar.html">📅 History</a>
+    <!-- Daily rotating greeting -->
+    <div class="daily-greeting" id="dailyGreeting">
+      <div class="greeting-msg" id="greetingMsg"></div>
+      <div class="greeting-sub" id="greetingSub"></div>
     </div>
+
+    <!-- Resume shift banner — shown only when a shift was recently ended -->
+    <div class="resume-banner" id="resumeBanner" style="display:none;">
+      <div class="resume-banner-info">
+        <div class="resume-banner-text">↩ Unfinished shift detected</div>
+        <div class="resume-banner-sub">Orders are saved — you can pick up right where you left off.</div>
+      </div>
+      <a href="pos.html" class="resume-banner-btn">Resume Shift →</a>
+    </div>
+
+    <script>
+      // Daily greeting — rotates by calendar day so it changes every day
+      const GREETINGS = [
+        { msg: "Ready to brew? ☕",                sub: "Let's make today count." },
+        { msg: "Good shift starts here 🌅",         sub: "You got this." },
+        { msg: "Brew hard, count harder 💪",        sub: "Every cup adds up." },
+        { msg: "Let's get brewing! 🧋",             sub: "Track it. Own it." },
+        { msg: "Another day, another sip ✨",       sub: "Make it a great one." },
+        { msg: "Rise & brew ☕",                    sub: "Time to make it happen." },
+        { msg: "Cups don't count themselves 😄",    sub: "Good thing you do." },
+        { msg: "Today's a good day to sell out 🎯", sub: "Let's get to work." },
+        { msg: "Milk tea season, always 🧋",        sub: "Ready when you are." },
+        { msg: "Let's hit that quota! 🚀",          sub: "₱3,000 won't earn itself." },
+        { msg: "Freshly brewed and ready ✅",       sub: "Start when you're set." },
+        { msg: "One shift at a time 🌟",            sub: "Make it count." },
+        { msg: "Shake it, brew it, count it 🎶",   sub: "Let's go!" },
+        { msg: "The best cup is the next one ☕",  sub: "Keep going." },
+        { msg: "Grind first, chill later 💼",       sub: "Let's have a great shift." },
+        { msg: "Small cups, big dreams 🧋",         sub: "You're building something real." },
+        { msg: "Consistency hits different ✨",     sub: "Show up and show out." },
+        { msg: "Brew goals loading… ☕",            sub: "Almost there, let's go." },
+        { msg: "New shift, new wins 🏆",             sub: "Yesterday doesn't count now." },
+        { msg: "Keep the cups moving 🚀",           sub: "Revenue doesn't lie." },
+        { msg: "Flavor by flavor, shift by shift 🍵", sub: "You're doing great." },
+        { msg: "The line won't serve itself 😄",    sub: "Let's brew something amazing." },
+        { msg: "Every peso counts 💰",              sub: "Track it carefully today." },
+        { msg: "BREWS.CO is open for business ☕",  sub: "Have an amazing shift!" },
+        { msg: "You're the barista and the boss 👑", sub: "Act like it." },
+        { msg: "Stir things up today 🧋",            sub: "In the best way possible." },
+        { msg: "Tally up and get paid 💸",          sub: "Numbers don't lie — let's go." },
+        { msg: "Another shift, another story ✨",   sub: "Make it a good one." },
+      ];
+      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+      const g = GREETINGS[dayOfYear % GREETINGS.length];
+      document.getElementById("greetingMsg").textContent = g.msg;
+      document.getElementById("greetingSub").textContent = g.sub;
+
+      // Show resume banner if a shift snapshot exists
+      if (localStorage.getItem("brewsResumeShift")) {
+        document.getElementById("resumeBanner").style.display = "flex";
+      }
+    </script>
 
     <div class="section">
       <h3>Input Cups</h3>
