@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BREWS.CO – Calculate</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .damage-note {
+      font-size: 0.75rem; color: #b08060; font-weight: 400;
+      margin-left: 6px; font-style: italic;
+    }
+    /* Delivered + Damage combined section */
+    .del-dmg-row {
+      display: grid;
+      grid-template-columns: 100px 1fr 1fr;
+      gap: 8px; align-items: center; margin-bottom: 10px;
+    }
+    .del-dmg-row label { font-size: 0.88rem; color: #7a5c3e; font-weight: 600; }
+    .del-dmg-header {
+      display: grid;
+      grid-template-columns: 100px 1fr 1fr;
+      gap: 8px; margin-bottom: 4px;
+    }
+    .del-dmg-header span {
+      font-size: 0.7rem; font-weight: 700; color: #b08060;
+      letter-spacing: 0.07em; text-transform: uppercase; text-align: center;
+    }
+    .del-dmg-header span:first-child { text-align: left; }
+    @media (max-width: 600px) {
+      .del-dmg-row, .del-dmg-header { grid-template-columns: 1fr; }
+      .del-dmg-header { display: none; }
+    }
+  </style>
+</head>
+<body class="has-bottom-nav">
+  <div class="container">
+    <a href="index.html" style="text-decoration:none;">
+      <div class="brand">BREWS.CO</div>
+      <div class="brand-sub">Calculate</div>
+    </a>
+
+    <div class="section">
+      <h3>Input Cups</h3>
+      <div class="row"><label>Medium</label><input type="number" id="beginM" placeholder="Begin"><input type="number" id="endM" placeholder="End"><input type="number" id="tallyMC" placeholder="MC Tally"></div>
+      <div class="row"><label>Large</label><input type="number" id="beginL" placeholder="Begin"><input type="number" id="endL" placeholder="End"><input type="number" id="tallyLC" placeholder="LC Tally"></div>
+      <div class="row"><label>Small</label><input type="number" id="beginS" placeholder="Begin"><input type="number" id="endS" placeholder="End"><input class="placeholder" disabled></div>
+      <div class="row"><label>Hot Coffee</label><input type="number" id="beginHC" placeholder="Begin"><input type="number" id="endHC" placeholder="End"><input class="placeholder" disabled></div>
+    </div>
+
+    <div class="section">
+      <h3>Delivered &amp; Damage Cups <span class="damage-note">optional — shown in receipt only</span></h3>
+      <div class="del-dmg-header">
+        <span>Cup</span><span>Delivered</span><span>Damage</span>
+      </div>
+      <div class="del-dmg-row"><label>Medium</label><input type="number" id="deliveredM" placeholder="0"><input type="number" id="damageM" placeholder="0"></div>
+      <div class="del-dmg-row"><label>Large</label><input type="number" id="deliveredL" placeholder="0"><input type="number" id="damageL" placeholder="0"></div>
+      <div class="del-dmg-row"><label>Small</label><input type="number" id="deliveredS" placeholder="0"><input type="number" id="damageS" placeholder="0"></div>
+      <div class="del-dmg-row"><label>Hot Coffee</label><input type="number" id="deliveredHC" placeholder="0"><input type="number" id="damageHC" placeholder="0"></div>
+    </div>
+
+    <div class="section">
+      <h3>Expenses &amp; Addons</h3>
+      <div id="expensesContainer">
+        <div class="expense-row">
+          <input type="text" class="exp-name" placeholder="Item name">
+          <input type="number" class="exp-price" placeholder="₱0">
+          <button type="button" onclick="this.parentElement.remove(); saveInputs();">x</button>
+        </div>
+      </div>
+      <button type="button" class="add-expense-btn" onclick="addExpenseRow()">+ Add Expense</button>
+      <div class="row">
+        <label>Addons</label>
+        <input type="number" id="addons" placeholder="₱0">
+        <input class="placeholder" disabled>
+        <input class="placeholder" disabled>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button onclick="calculate()">Compute</button>
+      <button onclick="clearAll()" class="secondary">Clear All</button>
+    </div>
+
+    <div class="section">
+      <div id="results"></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="calculate.html" class="bottom-nav-item active">
+      <span class="bottom-nav-icon">🧮</span>
+      <span class="bottom-nav-label">Calculate</span>
+    </a>
+    <a href="pos.html" class="bottom-nav-item bottom-nav-shift">
+      <span class="bottom-nav-shift-pill">🧋</span>
+      <span class="bottom-nav-label">Shift</span>
+    </a>
+    <a href="calendar.html" class="bottom-nav-item">
+      <span class="bottom-nav-icon">📅</span>
+      <span class="bottom-nav-label">History</span>
+    </a>
+  </nav>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="js/InventorySystem.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
