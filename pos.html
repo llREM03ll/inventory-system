@@ -8,42 +8,39 @@
   <style>
     body { align-items: flex-start; padding: 0; }
 
-    /* ── Setup cup grid ── */
-    .beg-cups-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
-    .beg-cup-row {
-      display: flex; align-items: center; gap: 10px;
-      background: #fdf7f2; border: 1.5px solid #e8d5c4; border-radius: 13px; padding: 11px 14px;
+    /* ── Setup cup stack ── */
+    .beg-cups-stack { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    .beg-cup-card {
+      background: #fdf7f2; border: 1.5px solid #e8d5c4; border-radius: 14px;
+      padding: 14px 16px; transition: border-color .16s;
     }
-    .beg-cup-label {
-      font-size: 1.15rem; font-weight: 800; color: #7a5c3e;
-      width: 22px; flex-shrink: 0; letter-spacing: 0.02em;
+    .beg-cup-card:focus-within { border-color: #c7a27c; background: #fff; }
+    .beg-cup-name {
+      font-size: 0.7rem; font-weight: 700; color: #b08060;
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;
     }
-    .beg-cup-row input {
-      flex: 1; border: none; background: transparent;
-      font-size: 1.05rem; font-weight: 600; padding: 0;
-      color: #3d2b1a; min-width: 0; font-family: inherit;
+    .beg-cup-card input {
+      width: 100%; border: none; background: transparent;
+      font-size: 1.35rem; font-weight: 700; padding: 0;
+      color: #3d2b1a; font-family: inherit;
     }
-    .beg-cup-row input:focus { outline: none; }
-    .beg-cup-row input::placeholder { color: #c4a98a; font-weight: 400; }
-    .beg-cup-hint {
-      font-size: 0.62rem; color: #c4a98a; font-weight: 600;
-      letter-spacing: 0.06em; text-transform: uppercase; flex-shrink: 0;
-    }
+    .beg-cup-card input:focus { outline: none; box-shadow: none; }
+    .beg-cup-card input::placeholder { color: #d4b89e; font-weight: 400; font-size: 1.1rem; }
 
     /* ═══════════════════════ SETUP ═══════════════════════ */
     #setupScreen { padding: 20px 12px; width: 100%; display: flex; justify-content: center; }
     #setupScreen .container { max-width: 480px; }
     .setup-note {
-      background: #fdf0e4; border: 1px solid #e8d5c4; border-radius: 12px;
-      padding: 12px 14px; font-size: 0.82rem; color: #9a7a5e;
+      background: #fdf0e4; border: 1.5px solid #e8d5c4; border-radius: 12px;
+      padding: 12px 14px; font-size: 0.84rem; color: #9a7a5e;
       margin-bottom: 20px; line-height: 1.55;
     }
     .start-btn {
-      width: 100%; padding: 15px;
+      width: 100%; padding: 13px;
       background: linear-gradient(145deg, #d4a97c, #7a5c3e);
-      color: #fff; border: none; border-radius: 14px; font-size: 1rem;
+      color: #fff; border: none; border-radius: 12px; font-size: 0.92rem;
       font-weight: 700; font-family: inherit; cursor: pointer;
-      box-shadow: 0 4px 14px rgba(122,92,62,0.3); transition: all .2s;
+      box-shadow: 0 3px 12px rgba(122,92,62,0.28); transition: all .18s;
     }
     .start-btn:hover  { background: linear-gradient(145deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
     .start-btn:active { transform: scale(0.98); }
@@ -421,11 +418,11 @@
 <!-- ═══════════ SETUP SCREEN ═══════════ -->
 <div id="setupScreen">
   <div class="container">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-      <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:#f0e4d8;border:1.5px solid #e0c9b8;border-radius:10px;padding:7px 13px;font-weight:600;font-size:0.82rem;color:#7a5c3e;text-decoration:none;transition:all .2s;" onmouseover="this.style.background='#e4d0bf'" onmouseout="this.style.background='#f0e4d8'">← Back</a>
-      <span style="font-size:0.72rem;color:#b08060;font-weight:500;letter-spacing:0.05em;">BREWS.CO POS</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <a href="index.html" class="back-btn">← Back</a>
+      <span style="font-size:0.68rem;color:#b08060;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">POS Setup</span>
     </div>
-    <div class="brand" style="margin-top:12px;">BREWS.CO</div>
+    <div class="brand">BREWS.CO</div>
     <div class="brand-sub">Point of Sale</div>
     <div class="setup-note">
       Enter beginning cup counts before starting the shift. The POS will track stock, flavors, add-ons, and auto-fill the inventory form when you end the shift.
@@ -433,18 +430,31 @@
 
     <!-- Resume last shift -->
     <div id="resumeSection" style="display:none;margin-bottom:16px;">
-      <div style="background:#fdf5e8;border:1.5px solid #e8d5c4;border-radius:12px;padding:11px 14px;font-size:0.82rem;color:#7a5c3e;margin-bottom:10px;line-height:1.55;">
-        ↩ You recently ended a shift. Orders are still saved — want to continue where you left off?
+      <div style="background:#fdf5e8;border:1.5px solid #e8d5c4;border-radius:12px;padding:12px 14px;font-size:0.84rem;color:#7a5c3e;margin-bottom:10px;line-height:1.55;">
+        ↩ You recently ended a shift — orders are still saved. Want to pick up where you left off?
       </div>
       <button class="start-btn" onclick="resumeShift()" style="background:linear-gradient(145deg,#a07850,#6b4f36);margin-bottom:10px;">↩ &nbsp;Resume Last Shift</button>
     </div>
+
     <div class="section">
       <h3>Beginning Cups</h3>
-      <div class="beg-cups-grid">
-        <div class="beg-cup-row"><span class="beg-cup-label">M</span><input type="number" id="setupBegM"  placeholder="0" min="0"><span class="beg-cup-hint">Medium</span></div>
-        <div class="beg-cup-row"><span class="beg-cup-label">L</span><input type="number" id="setupBegL"  placeholder="0" min="0"><span class="beg-cup-hint">Large</span></div>
-        <div class="beg-cup-row"><span class="beg-cup-label">S</span><input type="number" id="setupBegS"  placeholder="0" min="0"><span class="beg-cup-hint">Small</span></div>
-        <div class="beg-cup-row"><span class="beg-cup-label">H</span><input type="number" id="setupBegHC" placeholder="0" min="0"><span class="beg-cup-hint">Hot Coffee</span></div>
+      <div class="beg-cups-stack">
+        <div class="beg-cup-card">
+          <div class="beg-cup-name">Medium</div>
+          <input type="number" id="setupBegM" placeholder="0" min="0">
+        </div>
+        <div class="beg-cup-card">
+          <div class="beg-cup-name">Large</div>
+          <input type="number" id="setupBegL" placeholder="0" min="0">
+        </div>
+        <div class="beg-cup-card">
+          <div class="beg-cup-name">Small</div>
+          <input type="number" id="setupBegS" placeholder="0" min="0">
+        </div>
+        <div class="beg-cup-card">
+          <div class="beg-cup-name">Hot Coffee</div>
+          <input type="number" id="setupBegHC" placeholder="0" min="0">
+        </div>
       </div>
     </div>
     <button class="start-btn" onclick="startShift()">▶ &nbsp;Start Shift</button>
