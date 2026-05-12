@@ -10,6 +10,7 @@ const FIELD_IDS = [
   "beginL", "endL", "tallyLC",
   "beginS", "endS",
   "beginHC", "endHC",
+  "deliveredM", "deliveredL", "deliveredS", "deliveredHC",
   "damageM", "damageL", "damageS", "damageHC",
   "addons"
 ];
