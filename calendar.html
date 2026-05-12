@@ -664,14 +664,20 @@
     <span class="bottom-nav-icon">🧮</span>
     <span class="bottom-nav-label">Calculate</span>
   </a>
-  <a href="pos.html" class="bottom-nav-item bottom-nav-shift">
+  <a href="pos.html" class="bottom-nav-item bottom-nav-shift" id="shiftNavBtn">
     <span class="bottom-nav-shift-pill">🧋</span>
-    <span class="bottom-nav-label">Start Shift</span>
+    <span class="bottom-nav-label" id="shiftNavLabel">Shift</span>
   </a>
   <a href="calendar.html" class="bottom-nav-item active">
     <span class="bottom-nav-icon">📅</span>
     <span class="bottom-nav-label">History</span>
   </a>
 </nav>
+<script>
+  if (localStorage.getItem("brewsShiftActive")) {
+    document.getElementById("shiftNavLabel").textContent = "↩ Shift";
+    document.getElementById("shiftNavBtn").title = "Return to active shift";
+  }
+</script>
 </body>
 </html>
