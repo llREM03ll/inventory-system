@@ -6,6 +6,7 @@
 
 let lastRenderContent = "";
 let lastRenderDate    = "";
+let lastRenderData    = null;  // structured data for clean receipt image
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -175,6 +176,14 @@ function calculate() {
   </table>`;
 
   lastRenderContent = html;
+  lastRenderData = {
+    date:         existingDate,
+    rows:         orderedRows.filter(r => !(r.item.usedCups === 0 && r.beg === null)),
+    totalSales, salary, grossIncome, finalTotal,
+    expenses:     system.expensesList,
+    addons:       system.addons,
+    dmg, del,
+  };
   renderResults(html);
   saveInputs();
   window.scrollTo({ top: document.getElementById("results").offsetTop - 20, behavior: "smooth" });
@@ -210,47 +219,157 @@ function clearAll() {
 // ── Print Receipt as Image ────────────────────────────────────────────────────
 
 function printReceipt() {
-  if (!lastRenderContent) { alert("Please compute first."); return; }
-  const el      = document.getElementById("results");
-  const actions = el.querySelector(".output-actions");
-  if (actions) actions.style.visibility = "hidden";
-  if (typeof html2canvas === "undefined") {
-    if (actions) actions.style.visibility = "";
-    alert("Image library not loaded. Refresh and try again."); return;
-  }
+  if (!lastRenderData) { alert("Please compute first."); return; }
+  if (typeof html2canvas === "undefined") { alert("Image library not loaded. Refresh and try again."); return; }
 
-  // Build filename: MMDDYY_cashonhand  e.g. 051026_3000
-  const dateStr  = lastRenderDate || new Date().toISOString().split("T")[0];
-  const dateParts = dateStr.split("-"); // [YYYY, MM, DD]
-  const mmddyy   = dateParts[1] + dateParts[2] + dateParts[0].slice(2);
+  const d = lastRenderData;
 
-  // Pull Final Total value for the cash-on-hand part of filename
-  const tempDiv  = document.createElement("div");
-  tempDiv.innerHTML = lastRenderContent;
-  let cashRaw = 0;
-  for (const td of tempDiv.querySelectorAll("td")) {
-    if (td.textContent.includes("Final Total")) {
-      const next = td.nextElementSibling;
-      if (next) cashRaw = next.textContent.replace(/[₱,\s]/g,"").replace(/[^\d.]/g,"");
-    }
-  }
-  const cashPart = cashRaw ? Math.round(parseFloat(cashRaw)) : "0";
-  const filename  = `${mmddyy}_${cashPart}.png`;
+  // ── Build filename: MMDDYY_cashonhand ─────────────────────────────────────
+  const dp     = (d.date || new Date().toISOString().split("T")[0]).split("-");
+  const mmddyy = dp[1] + dp[2] + dp[0].slice(2);
+  const cash   = Math.round(d.finalTotal);
+  const filename = `${mmddyy}_${cash}.png`;
 
-  // Capture with extra padding so nothing is clipped
-  const origPad = el.style.padding;
-  el.style.padding = "24px";
+  // ── Build receipt rows HTML ───────────────────────────────────────────────
+  const fmtR = v => "₱" + Number(v||0).toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  const cupRows = d.rows.map(({ item, beg, end, dmg }) => {
+    const endTxt = end === null ? "—"
+      : dmg > 0 ? `${end} <span style="color:#b08060;font-size:.82em">(−${dmg} dmg)</span>`
+      : `${end}`;
+    const neg = item.usedCups < 0;
+    return `
+      <tr>
+        <td style="text-align:left;padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"}">${item.name}</td>
+        <td style="padding:5px 8px;color:#7a5c3e">${beg === null ? "—" : beg}</td>
+        <td style="padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:${neg?700:400}">${item.usedCups}${neg?" ⚠":""}</td>
+        <td style="padding:5px 8px;color:#9a7a5e">${fmtR(item.price)}</td>
+        <td style="padding:5px 8px">${endTxt}</td>
+        <td style="text-align:right;padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:600">${fmtR(item.total)}</td>
+      </tr>`;
+  }).join("");
+
+  const expRows = d.expenses.map(e =>
+    `<tr><td style="padding:3px 8px 3px 20px;color:#9a7a5e;font-size:.83rem" colspan="2">↳ ${e.name}</td>
+         <td style="text-align:right;padding:3px 8px;color:#9a7a5e;font-size:.83rem" colspan="4">− ${fmtR(e.price)}</td></tr>`
+  ).join("");
+
+  const dmgNote = (() => {
+    const parts = [];
+    if (d.dmg.M)  parts.push(`M ×${d.dmg.M}`);
+    if (d.dmg.L)  parts.push(`L ×${d.dmg.L}`);
+    if (d.dmg.S)  parts.push(`S ×${d.dmg.S}`);
+    if (d.dmg.HC) parts.push(`HC ×${d.dmg.HC}`);
+    return parts.length ? `<div style="margin:8px 0 2px;padding:8px 12px;background:#fdf7f0;border-radius:8px;font-size:.78rem;color:#9a7a5e;">🗂 Damage: ${parts.join(", ")}</div>` : "";
+  })();
+
+  const delNote = (() => {
+    const parts = [];
+    if (d.del.M)  parts.push(`M ×${d.del.M}`);
+    if (d.del.L)  parts.push(`L ×${d.del.L}`);
+    if (d.del.S)  parts.push(`S ×${d.del.S}`);
+    if (d.del.HC) parts.push(`HC ×${d.del.HC}`);
+    return parts.length ? `<div style="margin:2px 0 8px;padding:8px 12px;background:#f0f7f0;border-radius:8px;font-size:.78rem;color:#4a7a4a;">📦 Delivered: ${parts.join(", ")}</div>` : "";
+  })();
+
+  // ── Compose receipt element ───────────────────────────────────────────────
+  const el = document.createElement("div");
+  el.style.cssText = `
+    position:fixed; left:-9999px; top:0;
+    width:360px; background:#fffaf5;
+    font-family:"Inter","Segoe UI",sans-serif;
+    padding:32px 28px 36px; box-sizing:border-box;
+    border-radius:0; color:#3d2b1a;
+  `;
+
+  el.innerHTML = `
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:18px;">
+      <div style="font-size:1.5rem;font-weight:800;letter-spacing:0.12em;color:#7a5c3e;">BREWS.CO</div>
+      <div style="font-size:0.65rem;letter-spacing:0.18em;text-transform:uppercase;color:#b08060;margin-top:2px;">Daily Inventory Receipt</div>
+      <div style="font-size:0.78rem;color:#9a7a5e;margin-top:6px;">${d.date}</div>
+    </div>
+
+    <!-- Dashed divider -->
+    <div style="border-top:1.5px dashed #d4b89e;margin:0 0 14px;"></div>
+
+    <!-- Cup Sales table -->
+    <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#b08060;margin-bottom:6px;">Cup Sales</div>
+    <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+      <thead>
+        <tr style="background:#f5ede5;">
+          <th style="text-align:left;padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600;letter-spacing:.05em">Item</th>
+          <th style="padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600">Beg</th>
+          <th style="padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600">Cups</th>
+          <th style="padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600">Price</th>
+          <th style="padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600">End</th>
+          <th style="text-align:right;padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600">Amount</th>
+        </tr>
+      </thead>
+      <tbody>${cupRows}</tbody>
+      <tfoot>
+        <tr style="border-top:2px solid #d4b89e;background:#fdf7f2;">
+          <td colspan="5" style="padding:7px 8px;font-weight:700;color:#7a5c3e;font-size:.85rem;">Total Cup Sales</td>
+          <td style="text-align:right;padding:7px 8px;font-weight:700;color:#7a5c3e;">${fmtR(d.totalSales)}</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    ${dmgNote}${delNote}
+
+    <!-- Dashed divider -->
+    <div style="border-top:1.5px dashed #d4b89e;margin:14px 0;"></div>
+
+    <!-- Expenses breakdown -->
+    <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#b08060;margin-bottom:6px;">Breakdown</div>
+    <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
+      <tr>
+        <td colspan="2" style="padding:4px 8px;color:#5c4631;font-weight:600;">Total Cup Sales</td>
+        <td colspan="4" style="text-align:right;padding:4px 8px;color:#5c4631;font-weight:600;">${fmtR(d.totalSales)}</td>
+      </tr>
+      <tr>
+        <td colspan="2" style="padding:4px 8px;color:#7a5c3e;">Salary + Bonus</td>
+        <td colspan="4" style="text-align:right;padding:4px 8px;color:#7a5c3e;">− ${fmtR(d.salary)}</td>
+      </tr>
+      ${expRows}
+      <tr style="border-top:1px solid #e8d5c4;">
+        <td colspan="2" style="padding:5px 8px;color:#5c4631;">Gross Income</td>
+        <td colspan="4" style="text-align:right;padding:5px 8px;color:#5c4631;">${fmtR(d.grossIncome)}</td>
+      </tr>
+      ${d.addons > 0 ? `<tr>
+        <td colspan="2" style="padding:4px 8px;color:#7a5c3e;">Add-ons</td>
+        <td colspan="4" style="text-align:right;padding:4px 8px;color:#7a5c3e;">+ ${fmtR(d.addons)}</td>
+      </tr>` : ""}
+    </table>
+
+    <!-- Dashed divider -->
+    <div style="border-top:1.5px dashed #d4b89e;margin:14px 0 10px;"></div>
+
+    <!-- Final Total -->
+    <div style="display:flex;justify-content:space-between;align-items:center;
+                background:linear-gradient(135deg,#f9f2eb,#f0e4d8);
+                border-radius:12px;padding:14px 16px;">
+      <span style="font-size:0.88rem;font-weight:700;color:#7a5c3e;letter-spacing:0.06em;text-transform:uppercase;">Final Total</span>
+      <span style="font-size:1.4rem;font-weight:800;color:#3d2b1a;font-variant-numeric:tabular-nums;">${fmtR(d.finalTotal)}</span>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align:center;margin-top:20px;font-size:0.62rem;color:#c4a98a;letter-spacing:0.1em;text-transform:uppercase;">
+      Generated ${new Date().toLocaleString("en-PH")}
+    </div>
+  `;
+
+  document.body.appendChild(el);
+
   html2canvas(el, { backgroundColor: "#fffaf5", scale: 2, useCORS: true, logging: false })
     .then(canvas => {
-      el.style.padding = origPad;
-      if (actions) actions.style.visibility = "";
+      document.body.removeChild(el);
       const link    = document.createElement("a");
       link.download = filename;
       link.href     = canvas.toDataURL("image/png");
       link.click();
     }).catch(() => {
-      el.style.padding = origPad;
-      if (actions) actions.style.visibility = "";
+      if (document.body.contains(el)) document.body.removeChild(el);
       alert("Could not save image. Try again.");
     });
 }
