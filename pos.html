@@ -8,6 +8,28 @@
   <style>
     body { align-items: flex-start; padding: 0; }
 
+    /* ── Setup cup grid ── */
+    .beg-cups-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+    .beg-cup-row {
+      display: flex; align-items: center; gap: 10px;
+      background: #fdf7f2; border: 1.5px solid #e8d5c4; border-radius: 13px; padding: 11px 14px;
+    }
+    .beg-cup-label {
+      font-size: 1.15rem; font-weight: 800; color: #7a5c3e;
+      width: 22px; flex-shrink: 0; letter-spacing: 0.02em;
+    }
+    .beg-cup-row input {
+      flex: 1; border: none; background: transparent;
+      font-size: 1.05rem; font-weight: 600; padding: 0;
+      color: #3d2b1a; min-width: 0; font-family: inherit;
+    }
+    .beg-cup-row input:focus { outline: none; }
+    .beg-cup-row input::placeholder { color: #c4a98a; font-weight: 400; }
+    .beg-cup-hint {
+      font-size: 0.62rem; color: #c4a98a; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase; flex-shrink: 0;
+    }
+
     /* ═══════════════════════ SETUP ═══════════════════════ */
     #setupScreen { padding: 20px 12px; width: 100%; display: flex; justify-content: center; }
     #setupScreen .container { max-width: 480px; }
@@ -418,10 +440,12 @@
     </div>
     <div class="section">
       <h3>Beginning Cups</h3>
-      <div class="row"><label>Medium</label><input type="number" id="setupBegM"  placeholder="0" min="0"><input class="placeholder" disabled><input class="placeholder" disabled></div>
-      <div class="row"><label>Large</label><input type="number" id="setupBegL"  placeholder="0" min="0"><input class="placeholder" disabled><input class="placeholder" disabled></div>
-      <div class="row"><label>Small</label><input type="number" id="setupBegS"  placeholder="0" min="0"><input class="placeholder" disabled><input class="placeholder" disabled></div>
-      <div class="row"><label>Hot Coffee</label><input type="number" id="setupBegHC" placeholder="0" min="0"><input class="placeholder" disabled><input class="placeholder" disabled></div>
+      <div class="beg-cups-grid">
+        <div class="beg-cup-row"><span class="beg-cup-label">M</span><input type="number" id="setupBegM"  placeholder="0" min="0"><span class="beg-cup-hint">Medium</span></div>
+        <div class="beg-cup-row"><span class="beg-cup-label">L</span><input type="number" id="setupBegL"  placeholder="0" min="0"><span class="beg-cup-hint">Large</span></div>
+        <div class="beg-cup-row"><span class="beg-cup-label">S</span><input type="number" id="setupBegS"  placeholder="0" min="0"><span class="beg-cup-hint">Small</span></div>
+        <div class="beg-cup-row"><span class="beg-cup-label">H</span><input type="number" id="setupBegHC" placeholder="0" min="0"><span class="beg-cup-hint">Hot Coffee</span></div>
+      </div>
     </div>
     <button class="start-btn" onclick="startShift()">▶ &nbsp;Start Shift</button>
   </div>
