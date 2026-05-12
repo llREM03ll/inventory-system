@@ -68,6 +68,7 @@ function calculate() {
 
   // Damage cups — displayed only, not included in computation
   const dmg = { M: v("damageM"), L: v("damageL"), S: v("damageS"), HC: v("damageHC") };
+  const del = { M: v("deliveredM"), L: v("deliveredL"), S: v("deliveredS"), HC: v("deliveredHC") };
 
   const orderedRows = [
     { item: system.M,  beg: v("beginM"),  end: v("endM"),  dmg: dmg.M  },
@@ -139,6 +140,19 @@ function calculate() {
     </div>`;
   }
 
+  const totalDel = del.M + del.L + del.S + del.HC;
+  if (totalDel > 0) {
+    const parts = [];
+    if (del.M)  parts.push(`M ×${del.M}`);
+    if (del.L)  parts.push(`L ×${del.L}`);
+    if (del.S)  parts.push(`S ×${del.S}`);
+    if (del.HC) parts.push(`HC ×${del.HC}`);
+    html += `<div style="background:#f0f7f0;border:1px solid #c8e0c8;border-radius:10px;
+                          padding:9px 13px;margin-top:8px;font-size:0.82rem;color:#4a7a4a;line-height:1.6;">
+      📦 Delivered: ${parts.join(", ")} — recorded for reference.
+    </div>`;
+  }
+
   const totalExpenses = system.expenses + salary;
   html += `<table class="summary">
     <tr class="expense-header">
@@ -204,15 +218,38 @@ function printReceipt() {
     if (actions) actions.style.visibility = "";
     alert("Image library not loaded. Refresh and try again."); return;
   }
+
+  // Build filename: MMDDYY_cashonhand  e.g. 051026_3000
+  const dateStr  = lastRenderDate || new Date().toISOString().split("T")[0];
+  const dateParts = dateStr.split("-"); // [YYYY, MM, DD]
+  const mmddyy   = dateParts[1] + dateParts[2] + dateParts[0].slice(2);
+
+  // Pull Final Total value for the cash-on-hand part of filename
+  const tempDiv  = document.createElement("div");
+  tempDiv.innerHTML = lastRenderContent;
+  let cashRaw = 0;
+  for (const td of tempDiv.querySelectorAll("td")) {
+    if (td.textContent.includes("Final Total")) {
+      const next = td.nextElementSibling;
+      if (next) cashRaw = next.textContent.replace(/[₱,\s]/g,"").replace(/[^\d.]/g,"");
+    }
+  }
+  const cashPart = cashRaw ? Math.round(parseFloat(cashRaw)) : "0";
+  const filename  = `${mmddyy}_${cashPart}.png`;
+
+  // Capture with extra padding so nothing is clipped
+  const origPad = el.style.padding;
+  el.style.padding = "24px";
   html2canvas(el, { backgroundColor: "#fffaf5", scale: 2, useCORS: true, logging: false })
     .then(canvas => {
+      el.style.padding = origPad;
       if (actions) actions.style.visibility = "";
       const link    = document.createElement("a");
-      const date    = lastRenderDate || new Date().toISOString().split("T")[0];
-      link.download = `BREWS-receipt-${date}.png`;
+      link.download = filename;
       link.href     = canvas.toDataURL("image/png");
       link.click();
     }).catch(() => {
+      el.style.padding = origPad;
       if (actions) actions.style.visibility = "";
       alert("Could not save image. Try again.");
     });
