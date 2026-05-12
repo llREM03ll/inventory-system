@@ -263,7 +263,7 @@
       position: fixed; inset: 0;
       background: rgba(50,30,12,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
       display: flex; align-items: flex-end; justify-content: center;
-      z-index: 200; padding: 0;
+      z-index: 1000; padding: 0 0 70px;          /* 70px lifts sheet above bottom nav */
       opacity: 0; pointer-events: none; transition: opacity .2s;
     }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
@@ -303,7 +303,7 @@
     }
 
     /* Flavor grid */
-    .flavor-scroll { overflow-y: auto; padding: 12px 16px 20px; flex: 1; }
+    .flavor-scroll { overflow-y: auto; padding: 12px 16px 24px; flex: 1; }
     .flavor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
     .flavor-btn {
       background: #fdf7f2; border: 1.5px solid #e8d5c4; border-radius: 11px;
@@ -579,7 +579,7 @@
 
 <!-- ═══════════ BOTTOM NAV ═══════════ -->
 <nav class="bottom-nav">
-  <a href="index.html" class="bottom-nav-item">
+  <a href="calculate.html" class="bottom-nav-item">
     <span class="bottom-nav-icon">🧮</span>
     <span class="bottom-nav-label">Calculate</span>
   </a>
@@ -647,8 +647,9 @@ const DRINK_FLAVOR_CAT = {
 
 const LOW_STOCK = 5;
 const RECEIPT_MS = 5500;
-const POS_KEY    = "brewsPOSState";
-const SHIFT_KEY  = "brewsShiftResult";
+const POS_KEY          = "brewsPOSState";
+const SHIFT_KEY        = "brewsShiftResult";
+const SHIFT_ACTIVE_KEY = "brewsShiftActive";
 
 // ════════════════════════════════════════════════════
 //  STATE
@@ -674,7 +675,10 @@ function saveState() { localStorage.setItem(POS_KEY, JSON.stringify(state)); }
 function loadState() {
   try { const r = localStorage.getItem(POS_KEY); if (r) state = JSON.parse(r); } catch {}
 }
-function clearPOSState() { localStorage.removeItem(POS_KEY); }
+function clearPOSState() {
+  localStorage.removeItem(POS_KEY);
+  localStorage.removeItem(SHIFT_ACTIVE_KEY);
+}
 
 // ════════════════════════════════════════════════════
 //  ORDER LOG — save full shift orders for history page
@@ -760,6 +764,7 @@ function startShift() {
   state.currentItems=[]; state.currentAddons={}; state.orders=[]; state.shiftTotal=0; state.expenses=[];
   nextQuotaThreshold = 3000;
   localStorage.removeItem("brewsResumeShift");
+  localStorage.setItem(SHIFT_ACTIVE_KEY, "1");
   saveState(); showPOS();
 }
 
@@ -795,6 +800,7 @@ function resumeShift() {
     const cupsSoFar = state.orders.reduce((t,o)=>t+o.items.reduce((s,i)=>s+i.unitPrice*i.qty,0),0);
     nextQuotaThreshold = Math.max(3000, (Math.floor(cupsSoFar / 1000) + 1) * 1000);
     localStorage.removeItem("brewsResumeShift");
+    localStorage.setItem(SHIFT_ACTIVE_KEY, "1");
     saveState(); showPOS();
   } catch { localStorage.removeItem("brewsResumeShift"); }
 }
@@ -1291,7 +1297,7 @@ function confirmEndShift() {
   saveOrderLog();
   clearPOSState();
   if(clockInterval) clearInterval(clockInterval);
-  window.location.href="index.html";
+  window.location.href="calculate.html";
 }
 
 // ════════════════════════════════════════════════════
@@ -1306,7 +1312,9 @@ document.addEventListener("keydown", e => {
 // ════════════════════════════════════════════════════
 loadState();
 cleanupOrderLogs();
-const hasShift = state.orders.length>0 || state.currentItems.length>0 || state.begM||state.begL||state.begS||state.begHC;
+const hasShift = !!localStorage.getItem(SHIFT_ACTIVE_KEY) ||
+                 state.orders.length > 0 || state.currentItems.length > 0 ||
+                 state.begM || state.begL || state.begS || state.begHC;
 if (hasShift) showPOS(); else showSetup();
 </script>
 </body>
