@@ -328,38 +328,38 @@ function printReceipt() {
     <!-- Dashed divider -->
     <div style="border-top:1.5px dashed #d4b89e;margin:14px 0;"></div>
 
-    <!-- Expenses breakdown -->
-    <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#b08060;margin-bottom:6px;text-align:center;">Breakdown</div>
+    <!-- Breakdown -->
     <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
-      <tr>
-        <td colspan="2" style="padding:4px 8px;color:#5c4631;font-weight:600;">Total Cup Sales</td>
-        <td colspan="4" style="text-align:right;padding:4px 8px;color:#5c4631;font-weight:600;">${fmtR(d.totalSales)}</td>
+      <tr style="border-bottom:1px solid #e8d5c4;">
+        <td style="padding:6px 8px;color:#3d2b1a;font-weight:700;">Total Cup Sales</td>
+        <td style="text-align:right;padding:6px 8px;color:#3d2b1a;font-weight:700;">${fmtR(d.totalSales)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e8d5c4;">
+        <td style="padding:6px 8px;color:#3d2b1a;font-weight:700;">Total Expenses:</td>
+        <td style="text-align:right;padding:6px 8px;color:#3d2b1a;font-weight:700;">− ${fmtR(d.salary + d.expenses.reduce((s,e)=>s+e.price,0))}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #f0e4d8;">
+        <td style="padding:3px 8px 3px 22px;color:#9a7a5e;font-size:0.8rem;">Salary + Bonus</td>
+        <td style="text-align:right;padding:3px 8px;color:#9a7a5e;font-size:0.8rem;">− ${fmtR(d.salary)}</td>
+      </tr>
+      ${d.expenses.map(e=>`
+      <tr style="border-bottom:1px solid #f0e4d8;">
+        <td style="padding:3px 8px 3px 22px;color:#9a7a5e;font-size:0.8rem;">${e.name}</td>
+        <td style="text-align:right;padding:3px 8px;color:#9a7a5e;font-size:0.8rem;">− ${fmtR(e.price)}</td>
+      </tr>`).join("")}
+      <tr style="border-bottom:1px solid #e8d5c4;">
+        <td style="padding:6px 8px;color:#5c4631;">Gross Income:</td>
+        <td style="text-align:right;padding:6px 8px;color:#5c4631;">${fmtR(d.grossIncome)}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #e8d5c4;">
+        <td style="padding:6px 8px;color:#5c4631;">Add-ons:</td>
+        <td style="text-align:right;padding:6px 8px;color:#5c4631;">${fmtR(d.addons)}</td>
       </tr>
       <tr>
-        <td colspan="2" style="padding:4px 8px;color:#7a5c3e;">Salary + Bonus</td>
-        <td colspan="4" style="text-align:right;padding:4px 8px;color:#7a5c3e;">− ${fmtR(d.salary)}</td>
+        <td style="padding:8px 8px;color:#3d2b1a;font-weight:700;font-size:0.92rem;">Final Total:</td>
+        <td style="text-align:right;padding:8px 8px;color:#3d2b1a;font-weight:800;font-size:0.92rem;">${fmtR(d.finalTotal)}</td>
       </tr>
-      ${expRows}
-      <tr style="border-top:1px solid #e8d5c4;">
-        <td colspan="2" style="padding:5px 8px;color:#5c4631;">Gross Income</td>
-        <td colspan="4" style="text-align:right;padding:5px 8px;color:#5c4631;">${fmtR(d.grossIncome)}</td>
-      </tr>
-      ${d.addons > 0 ? `<tr>
-        <td colspan="2" style="padding:4px 8px;color:#7a5c3e;">Add-ons</td>
-        <td colspan="4" style="text-align:right;padding:4px 8px;color:#7a5c3e;">+ ${fmtR(d.addons)}</td>
-      </tr>` : ""}
     </table>
-
-    <!-- Dashed divider -->
-    <div style="border-top:1.5px dashed #d4b89e;margin:14px 0 10px;"></div>
-
-    <!-- Final Total -->
-    <div style="display:flex;justify-content:space-between;align-items:center;
-                background:linear-gradient(135deg,#f9f2eb,#f0e4d8);
-                border-radius:12px;padding:14px 16px;">
-      <span style="font-size:0.88rem;font-weight:700;color:#7a5c3e;letter-spacing:0.06em;text-transform:uppercase;">Final Total</span>
-      <span style="font-size:1.4rem;font-weight:800;color:#3d2b1a;font-variant-numeric:tabular-nums;">${fmtR(d.finalTotal)}</span>
-    </div>
 
     <!-- Footer -->
     <div style="text-align:center;margin-top:20px;font-size:0.62rem;color:#c4a98a;letter-spacing:0.1em;text-transform:uppercase;">
