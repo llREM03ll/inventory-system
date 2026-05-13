@@ -390,6 +390,24 @@
       .flavor-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
+    /* ── Flavor out-of-stock toast ── */
+    .flavor-toast {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%) translateY(-8px);
+      background: #c0665a; color: #fff; font-size: 0.8rem; font-weight: 700;
+      padding: 8px 18px; border-radius: 20px;
+      box-shadow: 0 3px 14px rgba(192,102,90,0.4);
+      opacity: 0; transition: opacity .2s, transform .2s;
+      pointer-events: none; white-space: nowrap; z-index: 10;
+    }
+    .flavor-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    @keyframes shakeGrid {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-6px); }
+      40%      { transform: translateX(6px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(4px); }
+    }
+
     /* ── Done button on order log ── */
     .order-done-btn {
       background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 8px;
@@ -565,7 +583,8 @@
 <div class="modal-overlay" id="flavorModal" onclick="handleFlavorOverlay(event)">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-header-row">
+    <div class="modal-header-row" style="position:relative;">
+      <div class="flavor-toast" id="flavorToast"></div>
       <div>
         <div class="modal-title" id="flavorModalTitle">Choose Flavor</div>
         <div class="modal-sub" id="flavorModalSub"></div>
@@ -697,7 +716,15 @@ let state = {
   expenses:      [],  // [{name,price}]
 };
 
-let pendingDrink       = null;
+let flavorToastTimer = null;
+function showFlavorToast(msg) {
+  const t = document.getElementById("flavorToast");
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add("show");
+  if (flavorToastTimer) clearTimeout(flavorToastTimer);
+  flavorToastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+}
 let receiptTimer       = null;
 let clockInterval      = null;
 let nextQuotaThreshold = 3000; // fires at ₱3K then every ₱1K after
@@ -899,7 +926,7 @@ function refreshFlavorGrid(drink) {
   // Attach hold-to-close on any button
   function attachHold(btn) {
     let holdTimer = null;
-    const start = () => { holdTimer = setTimeout(() => { closeFlavorModal(); vibrate(40); }, 2000); };
+    const start = () => { holdTimer = setTimeout(() => { closeFlavorModal(); vibrate(40); }, 500); };
     const cancel = () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } };
     btn.addEventListener("mousedown",   start);
     btn.addEventListener("touchstart",  start, { passive: true });
@@ -949,15 +976,13 @@ function addItemToOrder(drink, flavor) {
   const rem  = remainingCups();
   const left = rem[drink.cup] ?? 0;
   if (left <= 0) {
-    // Flash the modal title red briefly
-    const title = document.getElementById("flavorModalTitle");
-    title.style.color = "#c0665a";
-    title.textContent = "No cups left!";
-    setTimeout(() => {
-      title.style.color = "";
-      title.textContent = drink.name;
-    }, 1200);
-    vibrate([40, 30, 40]);
+    vibrate([30, 20, 30]);
+    showFlavorToast(`Out of ${drink.cup} cups!`);
+    // Shake the flavor grid
+    const grid = document.getElementById("flavorGrid");
+    grid.style.animation = "none";
+    void grid.offsetWidth;
+    grid.style.animation = "shakeGrid .35s ease";
     return;
   }
 
@@ -970,17 +995,9 @@ function addItemToOrder(drink, flavor) {
       flavor, qty:1, unitPrice:drink.price, cup:drink.cup });
   }
   saveState(); renderDrinkButtons(); renderCurrentOrder();
-  // Animate badge
   const badge = document.getElementById(`badge-${drink.code}`);
   if (badge) { badge.classList.remove("pop"); void badge.offsetWidth; badge.classList.add("pop"); }
-
-  // Auto-close modal if no cups remain after this addition
-  const remAfter = remainingCups();
-  if ((remAfter[drink.cup] ?? 0) <= 0) {
-    setTimeout(() => closeFlavorModal(), 300);
-  } else {
-    refreshFlavorGrid(drink);
-  }
+  refreshFlavorGrid(drink);
 }
 
 function setItemQty(key, qty) {
