@@ -926,9 +926,9 @@ function refreshFlavorGrid(drink) {
                        .reduce((s, i) => s + i.qty, 0);
 
   // Attach hold-to-close on any button
-  function attachHold(btn) {
+  function attachHold(btn, onHold) {
     let holdTimer = null;
-    const start = () => { holdTimer = setTimeout(() => { closeFlavorModal(); vibrate(40); }, 500); };
+    const start = () => { holdTimer = setTimeout(() => { onHold(); vibrate(40); }, 500); };
     const cancel = () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } };
     btn.addEventListener("mousedown",   start);
     btn.addEventListener("touchstart",  start, { passive: true });
@@ -946,7 +946,7 @@ function refreshFlavorGrid(drink) {
     ? `— No Flavor — <span class="flavor-count">${noCount}</span>`
     : "— No Flavor / Skip —";
   noFlavor.addEventListener("click", () => addItemToOrder(drink, ""));
-  attachHold(noFlavor);
+  attachHold(noFlavor, () => { addItemToOrder(drink, ""); closeFlavorModal(); });
   grid.appendChild(noFlavor);
 
   flavors.forEach(f => {
@@ -957,7 +957,7 @@ function refreshFlavorGrid(drink) {
       ? `${f} <span class="flavor-count">${count}</span>`
       : f;
     btn.addEventListener("click", () => addItemToOrder(drink, f));
-    attachHold(btn);
+    attachHold(btn, () => { addItemToOrder(drink, f); closeFlavorModal(); });
     grid.appendChild(btn);
   });
 }
