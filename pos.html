@@ -440,8 +440,10 @@
       <a href="index.html" class="back-btn">← Back</a>
       <span style="font-size:0.68rem;color:#b08060;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">POS Setup</span>
     </div>
-    <div class="brand">BREWS.CO</div>
-    <div class="brand-sub">Point of Sale</div>
+    <a href="index.html" style="text-decoration:none;display:block;text-align:center;">
+      <div class="brand">BREWS.CO</div>
+      <div class="brand-sub">Point of Sale</div>
+    </a>
     <div class="setup-note">
       Enter beginning cup counts before starting the shift. The POS will track stock, flavors, add-ons, and auto-fill the inventory form when you end the shift.
     </div>
@@ -483,7 +485,7 @@
 <div id="posScreen">
   <div class="pos-header">
     <div class="pos-header-left">
-      <span class="pos-header-brand">BREWS.CO</span>
+      <span class="pos-header-brand" onclick="window.location.href='index.html'" style="cursor:pointer;" title="Go to Home">BREWS.CO</span>
       <div class="pos-header-meta">
         <span>Active Shift</span><span>·</span>
         <span class="pos-clock" id="posClock"></span>
