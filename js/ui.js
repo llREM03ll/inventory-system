@@ -240,12 +240,12 @@ function printReceipt() {
     const neg = item.usedCups < 0;
     return `
       <tr>
-        <td style="text-align:left;padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"}">${item.name}</td>
-        <td style="padding:5px 8px;color:#7a5c3e">${beg === null ? "—" : beg}</td>
-        <td style="padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:${neg?700:400}">${item.usedCups}${neg?" ⚠":""}</td>
-        <td style="padding:5px 8px;color:#9a7a5e">${fmtR(item.price)}</td>
-        <td style="padding:5px 8px">${endTxt}</td>
-        <td style="text-align:right;padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:600">${fmtR(item.total)}</td>
+        <td style="text-align:left;padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"};border-bottom:1px solid #f0e4d8;">${item.name}</td>
+        <td style="text-align:center;padding:5px 8px;color:#7a5c3e;border-bottom:1px solid #f0e4d8;">${beg === null ? "—" : beg}</td>
+        <td style="text-align:center;padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:${neg?700:400};border-bottom:1px solid #f0e4d8;">${item.usedCups}${neg?" ⚠":""}</td>
+        <td style="text-align:center;padding:5px 8px;color:#9a7a5e;border-bottom:1px solid #f0e4d8;">${fmtR(item.price)}</td>
+        <td style="text-align:center;padding:5px 8px;border-bottom:1px solid #f0e4d8;">${endTxt}</td>
+        <td style="text-align:right;padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:600;border-bottom:1px solid #f0e4d8;">${fmtR(item.total)}</td>
       </tr>`;
   }).join("");
 
@@ -294,16 +294,16 @@ function printReceipt() {
     <div style="border-top:1.5px dashed #d4b89e;margin:0 0 14px;"></div>
 
     <!-- Cup Sales table -->
-    <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#b08060;margin-bottom:6px;">Cup Sales</div>
+    <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#b08060;margin-bottom:6px;text-align:center;">Cup Sales</div>
     <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
       <thead>
         <tr style="background:#f5ede5;">
-          <th style="text-align:left;padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600;letter-spacing:.05em">Item</th>
-          <th style="padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600">Beg</th>
-          <th style="padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600">Cups</th>
-          <th style="padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600">Price</th>
-          <th style="padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600">End</th>
-          <th style="text-align:right;padding:5px 8px;color:#9a7a5e;font-size:.7rem;font-weight:600">Amount</th>
+          <th style="text-align:left;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">Item</th>
+          <th style="text-align:center;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;text-transform:uppercase;">Beg</th>
+          <th style="text-align:center;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;text-transform:uppercase;">Cups</th>
+          <th style="text-align:center;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;text-transform:uppercase;">Price</th>
+          <th style="text-align:center;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;text-transform:uppercase;">End</th>
+          <th style="text-align:right;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;text-transform:uppercase;">Amount</th>
         </tr>
       </thead>
       <tbody>${cupRows}</tbody>
@@ -321,7 +321,7 @@ function printReceipt() {
     <div style="border-top:1.5px dashed #d4b89e;margin:14px 0;"></div>
 
     <!-- Expenses breakdown -->
-    <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#b08060;margin-bottom:6px;">Breakdown</div>
+    <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#b08060;margin-bottom:6px;text-align:center;">Breakdown</div>
     <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
       <tr>
         <td colspan="2" style="padding:4px 8px;color:#5c4631;font-weight:600;">Total Cup Sales</td>
