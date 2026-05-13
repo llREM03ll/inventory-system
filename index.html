@@ -14,9 +14,18 @@
       justify-content: center; text-align: center;
       min-height: calc(100vh - 70px); padding: 28px 24px 16px;
     }
-    .home-logo { text-decoration: none; display: block; margin-bottom: 32px; }
+    .home-logo { text-decoration: none; display: block; margin-bottom: 28px; }
     .home-logo .brand { font-size: 2.1rem; color: #7a5c3e; }
     .home-logo .brand-sub { font-size: 0.7rem; color: #b08060; margin-bottom: 0; }
+    .settings-fab {
+      position: fixed; top: 16px; right: 16px; z-index: 200;
+      background: rgba(255,250,245,0.92); border: 1.5px solid #e8d5c4;
+      border-radius: 12px; padding: 9px 13px; font-size: 0.82rem; font-weight: 700;
+      color: #7a5c3e; font-family: inherit; cursor: pointer;
+      backdrop-filter: blur(8px); transition: all .18s;
+      box-shadow: 0 2px 10px rgba(122,92,62,0.12);
+    }
+    .settings-fab:hover { background: #f5ede5; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(122,92,62,0.18); }
     .home-card {
       width: 100%; max-width: 400px;
       background: linear-gradient(145deg, #fdf5eb, #f5ede5);
@@ -43,9 +52,93 @@
       transition: all .18s; white-space: nowrap;
     }
     .home-resume-btn:hover { background: linear-gradient(135deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
+
+    /* ── Settings modal ── */
+    .smodal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(50,30,12,0.52); backdrop-filter: blur(4px);
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .22s;
+    }
+    .smodal-overlay.open { opacity: 1; pointer-events: all; }
+    .smodal {
+      background: #fffaf5; width: 100%; max-width: 720px;
+      border-radius: 22px 22px 0 0; max-height: 92vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 -6px 40px rgba(90,56,24,0.22);
+      border-top: 1.5px solid #e8d5c4;
+      transform: translateY(24px); transition: transform .24s;
+    }
+    .smodal-overlay.open .smodal { transform: translateY(0); }
+    .smodal-handle { width: 36px; height: 4px; background: #d4b89e; border-radius: 2px; margin: 10px auto 0; flex-shrink: 0; }
+    .smodal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px 12px; border-bottom: 1px solid #e8d5c4; flex-shrink: 0;
+    }
+    .smodal-title { font-size: 1rem; font-weight: 800; color: #5c4631; }
+    .smodal-actions { display: flex; gap: 8px; }
+    .smodal-reset {
+      background: #fdf0f0; border: 1.5px solid #f0c8c8; border-radius: 10px;
+      padding: 8px 13px; font-size: 0.82rem; font-weight: 700; color: #c0665a;
+      font-family: inherit; cursor: pointer; transition: all .16s;
+    }
+    .smodal-reset:hover { background: #fae0de; }
+    .smodal-done {
+      background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
+      border: none; border-radius: 10px; padding: 8px 16px;
+      font-size: 0.82rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: all .16s;
+    }
+    .smodal-done:hover { background: linear-gradient(135deg, #7a5c3e, #5c4631); }
+    .smodal-body { overflow-y: auto; padding: 16px 20px 32px; flex: 1; }
+    .smodal-section { margin-bottom: 24px; }
+    .smodal-section-title {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #b08060;
+      border-bottom: 1px solid #e8d5c4; padding-bottom: 7px; margin-bottom: 12px;
+    }
+    .smodal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .smodal-field { display: flex; flex-direction: column; gap: 4px; }
+    .smodal-label { font-size: 0.72rem; font-weight: 600; color: #9a7a5e; }
+    .smodal-input {
+      padding: 9px 11px; border: 1.5px solid #dfc9b4; border-radius: 10px;
+      font-size: 0.88rem; font-family: inherit; background: #fdf7f2; color: #3d2b1a;
+      width: 100%; box-sizing: border-box; transition: border-color .16s;
+    }
+    .smodal-input:focus { outline: none; border-color: #c7a27c; background: #fff; box-shadow: 0 0 0 3px rgba(199,162,124,0.16); }
+    .smodal-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+    /* Flavor add/remove */
+    .sflavor-cat { margin-bottom: 16px; }
+    .sflavor-cat-title { font-size: 0.72rem; font-weight: 700; color: #7a5c3e; margin-bottom: 7px; }
+    .sflavor-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 7px; }
+    .sflavor-pill {
+      display: flex; align-items: center; gap: 5px;
+      background: #f5ede5; border: 1.5px solid #e0c9b8; border-radius: 20px;
+      padding: 5px 10px; font-size: 0.76rem; font-weight: 600; color: #5c4631;
+    }
+    .sflavor-pill-del {
+      background: none; border: none; color: #c0665a; font-size: 0.82rem;
+      cursor: pointer; padding: 0 2px; line-height: 1; font-weight: 800;
+    }
+    .sflavor-add-row { display: flex; gap: 7px; }
+    .sflavor-add-input {
+      flex: 1; padding: 8px 11px; border: 1.5px solid #dfc9b4; border-radius: 10px;
+      font-size: 0.84rem; font-family: inherit; background: #fdf7f2; color: #3d2b1a;
+    }
+    .sflavor-add-input:focus { outline: none; border-color: #c7a27c; }
+    .sflavor-add-btn {
+      background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
+      border: none; border-radius: 10px; padding: 8px 14px;
+      font-size: 0.82rem; font-weight: 700; font-family: inherit; cursor: pointer;
+    }
+    @media (max-width: 480px) {
+      .smodal-grid, .smodal-grid-3 { grid-template-columns: repeat(2, 1fr); }
+    }
   </style>
 </head>
 <body class="has-bottom-nav">
+
+  <button class="settings-fab" onclick="openSettings()">⚙️ Settings</button>
 
   <div class="home-view">
     <a href="index.html" class="home-logo">
@@ -69,6 +162,21 @@
     </div>
   </div>
 
+  <!-- ═══════════ SETTINGS MODAL ═══════════ -->
+  <div class="smodal-overlay" id="settingsModal" onclick="handleSettingsOverlay(event)">
+    <div class="smodal">
+      <div class="smodal-handle"></div>
+      <div class="smodal-head">
+        <span class="smodal-title">⚙️ Settings</span>
+        <div class="smodal-actions">
+          <button class="smodal-reset" onclick="confirmResetSettings()">↺ Reset Defaults</button>
+          <button class="smodal-done"  onclick="saveAndCloseSettings()">Save ✓</button>
+        </div>
+      </div>
+      <div class="smodal-body" id="settingsBody"></div>
+    </div>
+  </div>
+
   <nav class="bottom-nav">
     <a href="calculate.html" class="bottom-nav-item">
       <span class="bottom-nav-icon">🧮</span>
@@ -83,10 +191,143 @@
       <span class="bottom-nav-label">History</span>
     </a>
   </nav>
+  <script src="js/settings.js"></script>
   <script>
     if (localStorage.getItem("brewsShiftActive")) {
       document.getElementById("shiftNavLabel").textContent = "↩ Shift";
       document.getElementById("shiftNavBtn").title = "Return to active shift";
+    }
+  </script>
+
+  <script>
+    // ── Settings modal ────────────────────────────────────────────────────────
+    const CAT_LABELS = { milktea:"Milk Tea", fruittea:"Fruit Tea", icedcoffee:"Iced Coffee", hotcoffee:"Hot Coffee" };
+    let _ws = null; // working settings clone
+
+    function openSettings() {
+      _ws = JSON.parse(JSON.stringify(getSettings()));
+      renderSettingsModal();
+      document.getElementById("settingsModal").classList.add("open");
+    }
+    function closeSettings() { document.getElementById("settingsModal").classList.remove("open"); }
+    function handleSettingsOverlay(e) { if (e.target === document.getElementById("settingsModal")) closeSettings(); }
+
+    function confirmResetSettings() {
+      if (!confirm("Reset all settings to defaults? This cannot be undone.")) return;
+      resetSettings();
+      _ws = JSON.parse(JSON.stringify(getSettings()));
+      renderSettingsModal();
+    }
+
+    function saveAndCloseSettings() {
+      collectFromUI();
+      saveSettings(_ws);
+      closeSettings();
+    }
+
+    function n(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
+
+    function collectFromUI() {
+      _ws.prices = { M:n("sp_M"), L:n("sp_L"), S:n("sp_S"), MC:n("sp_MC"), LC:n("sp_LC"), HC:n("sp_HC"), FTM:n("sp_FTM"), FTL:n("sp_FTL") };
+      _ws.addonPrices = {};
+      document.querySelectorAll(".saddon-row").forEach(r => {
+        const name  = r.querySelector(".saddon-name")?.value?.trim();
+        const price = parseFloat(r.querySelector(".saddon-price")?.value) || 0;
+        if (name) _ws.addonPrices[name] = price;
+      });
+      _ws.salaryBase           = n("sp_salaryBase");
+      _ws.salaryBonusThreshold = n("sp_bonusThreshold");
+      _ws.salaryBonusPerK      = n("sp_bonusPerK");
+      _ws.quotaStart           = n("sp_quotaStart");
+      _ws.lowStock             = n("sp_lowStock");
+    }
+
+    function addFlavorToCategory(cat) {
+      const input = document.getElementById("sfi_" + cat);
+      const val   = input?.value?.trim();
+      if (!val) return;
+      if (!_ws.flavors[cat]) _ws.flavors[cat] = [];
+      if (!_ws.flavors[cat].includes(val)) { _ws.flavors[cat].push(val); renderFlavorCat(cat); }
+      input.value = "";
+    }
+
+    function removeFlavorFromCategory(cat, flavor) {
+      _ws.flavors[cat] = (_ws.flavors[cat] || []).filter(f => f !== flavor);
+      renderFlavorCat(cat);
+    }
+
+    function renderFlavorCat(cat) {
+      const c = document.getElementById("sfcat_" + cat);
+      if (!c) return;
+      const flavors = _ws.flavors[cat] || [];
+      c.querySelector(".sflavor-pills").innerHTML = flavors.length
+        ? flavors.map(f => `<span class="sflavor-pill">${f}<button class="sflavor-pill-del" onclick="removeFlavorFromCategory('${cat}','${f.replace(/'/g,"\\'")}')">✕</button></span>`).join("")
+        : `<span style="font-size:0.76rem;color:#c4a98a;">No flavors — add below</span>`;
+    }
+
+    function fi(id, label, val) {
+      return `<div class="smodal-field"><label class="smodal-label">${label}</label><input class="smodal-input" id="${id}" type="number" value="${val}"></div>`;
+    }
+
+    function renderSettingsModal() {
+      const s = _ws;
+      const addonRows = Object.entries(s.addonPrices).map(([name, price]) => `
+        <div class="expense-row saddon-row">
+          <input class="smodal-input saddon-name"  type="text"   value="${name}"  placeholder="Add-on name">
+          <input class="smodal-input saddon-price" type="number" value="${price}" placeholder="₱0">
+          <button type="button" onclick="this.parentElement.remove();">✕</button>
+        </div>`).join("");
+
+      const flavorHTML = Object.entries(CAT_LABELS).map(([cat, label]) => `
+        <div class="sflavor-cat" id="sfcat_${cat}">
+          <div class="sflavor-cat-title">${label}</div>
+          <div class="sflavor-pills"></div>
+          <div class="sflavor-add-row" style="margin-top:6px;">
+            <input class="sflavor-add-input" id="sfi_${cat}" type="text" placeholder="Add flavor…"
+              onkeydown="if(event.key==='Enter'){addFlavorToCategory('${cat}');event.preventDefault();}">
+            <button class="sflavor-add-btn" onclick="addFlavorToCategory('${cat}')">+ Add</button>
+          </div>
+        </div>`).join("");
+
+      document.getElementById("settingsBody").innerHTML = `
+        <div class="smodal-section">
+          <div class="smodal-section-title">Drink Prices (₱)</div>
+          <div class="smodal-grid">
+            ${fi("sp_M","Milktea M",s.prices.M)}${fi("sp_L","Milktea L",s.prices.L)}
+            ${fi("sp_S","Milktea S",s.prices.S)}${fi("sp_MC","Iced Coffee M",s.prices.MC)}
+            ${fi("sp_LC","Iced Coffee L",s.prices.LC)}${fi("sp_HC","Hot Coffee",s.prices.HC)}
+            ${fi("sp_FTM","Fruit Tea M",s.prices.FTM)}${fi("sp_FTL","Fruit Tea L",s.prices.FTL)}
+          </div>
+        </div>
+        <div class="smodal-section">
+          <div class="smodal-section-title">Add-on Prices (₱)</div>
+          <div id="saddonContainer">${addonRows}</div>
+          <button class="add-expense-btn" style="margin-top:8px;" onclick="document.getElementById('saddonContainer').insertAdjacentHTML('beforeend',\`<div class='expense-row saddon-row'><input class='smodal-input saddon-name' type='text' placeholder='Add-on name'><input class='smodal-input saddon-price' type='number' placeholder='₱0'><button type='button' onclick='this.parentElement.remove();'>✕</button></div>\`);">+ Add Add-on</button>
+        </div>
+        <div class="smodal-section">
+          <div class="smodal-section-title">Salary &amp; Bonus</div>
+          <div class="smodal-grid-3">
+            ${fi("sp_salaryBase","Base Salary (₱)",s.salaryBase)}
+            ${fi("sp_bonusThreshold","Bonus Threshold (₱)",s.salaryBonusThreshold)}
+            ${fi("sp_bonusPerK","Bonus per ₱1,000 (₱)",s.salaryBonusPerK)}
+          </div>
+          <div style="font-size:0.72rem;color:#b08060;margin-top:8px;line-height:1.5;">Staff earns base salary daily. Once cup sales hit the threshold, they earn the bonus — plus that same amount per extra ₱1,000.</div>
+        </div>
+        <div class="smodal-section">
+          <div class="smodal-section-title">Quota &amp; Low Stock</div>
+          <div class="smodal-grid">
+            ${fi("sp_quotaStart","Quota Toast at (₱)",s.quotaStart)}
+            ${fi("sp_lowStock","Low Stock Warning (cups)",s.lowStock)}
+          </div>
+          <div style="font-size:0.72rem;color:#b08060;margin-top:8px;line-height:1.5;">Toast fires at the quota amount then every ₱1,000 after. Low stock warning highlights a drink button when remaining cups drop to this count.</div>
+        </div>
+        <div class="smodal-section">
+          <div class="smodal-section-title">Flavors</div>
+          <div style="font-size:0.76rem;color:#9a7a5e;margin-bottom:12px;">Add or remove flavors per drink category. Press Enter or tap + Add.</div>
+          ${flavorHTML}
+        </div>`;
+
+      Object.keys(CAT_LABELS).forEach(cat => renderFlavorCat(cat));
     }
   </script>
 
