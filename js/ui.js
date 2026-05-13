@@ -183,6 +183,18 @@ function calculate() {
     expenses:     system.expensesList,
     addons:       system.addons,
     dmg, del,
+    shiftDuration: (() => {
+      try {
+        const s = JSON.parse(localStorage.getItem("brewsPOSState") || "{}");
+        if (s.shiftStartTime) {
+          const ms = Date.now() - s.shiftStartTime;
+          const h  = Math.floor(ms / 3600000);
+          const m  = Math.floor((ms % 3600000) / 60000);
+          return h > 0 ? `${h}h ${m}m` : `${m}m`;
+        }
+      } catch {}
+      return null;
+    })(),
   };
   renderResults(html);
   saveInputs();
@@ -196,6 +208,14 @@ function saveCurrentResults() {
   const dateInput  = document.getElementById("resultDate");
   const editedDate = dateInput?.value || lastRenderDate || new Date().toISOString().split("T")[0];
   saveHistory(editedDate, lastRenderContent);
+
+  // Save ending cups for carry-over to next shift
+  const v = id => +document.getElementById(id)?.value || 0;
+  localStorage.setItem("brewsLastEndingCups", JSON.stringify({
+    endM: v("endM"), endL: v("endL"), endS: v("endS"), endHC: v("endHC"),
+    date: editedDate,
+  }));
+
   const btn = document.querySelector(".output-actions .primary");
   if (btn) {
     btn.disabled = true; btn.textContent = "Saved ✓";
@@ -287,7 +307,7 @@ function printReceipt() {
     <div style="text-align:center;margin-bottom:20px;">
       <div style="font-size:1.6rem;font-weight:800;letter-spacing:0.12em;color:#7a5c3e;">BREWS.CO</div>
       <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:#b08060;margin-top:3px;">Daily Inventory Receipt</div>
-      <div style="font-size:0.8rem;color:#9a7a5e;margin-top:7px;">${d.date}</div>
+      <div style="font-size:0.8rem;color:#9a7a5e;margin-top:7px;">${d.date}${d.shiftDuration ? `<span style="color:#c4a98a;margin-left:10px;font-size:0.72rem;">⏱ ${d.shiftDuration}</span>` : ""}</div>
     </div>
 
     <!-- Dashed divider -->
