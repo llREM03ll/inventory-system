@@ -52,7 +52,8 @@ function addExpenseRow(name = "", price = "") {
 function calculate() {
   const v = id => +document.getElementById(id).value || 0;
 
-  const system = new InventorySystem();
+  const cfg    = (typeof getSettings === "function") ? getSettings() : {};
+  const system = new InventorySystem(cfg);
   system.setCupsM( v("beginM"),  v("endM"),  v("tallyMC"));
   system.setCupsL( v("beginL"),  v("endL"),  v("tallyLC"));
   system.setCupsS( v("beginS"),  v("endS"));
