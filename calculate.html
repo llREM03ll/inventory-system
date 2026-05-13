@@ -95,8 +95,11 @@
   </nav>
 
   <script>
-    // Reload → index redirect
-    if (!sessionStorage.getItem('brewsSession')) { window.location.replace('index.html'); }
+    // On reload → go to index (unless a shift is active)
+    const _nav = performance.getEntriesByType('navigation')[0];
+    if (_nav && _nav.type === 'reload' && !localStorage.getItem('brewsShiftActive')) {
+      window.location.replace('index.html');
+    }
     if (localStorage.getItem("brewsShiftActive")) {
       document.getElementById("shiftNavLabel").textContent = "↩ Shift";
     }
