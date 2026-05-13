@@ -132,6 +132,9 @@
     if (localStorage.getItem("brewsResumeShift"))
       document.getElementById("resumeBanner").style.display = "flex";
 
+    // Mark session so other pages don't redirect back here on direct load
+    sessionStorage.setItem('brewsSession', '1');
+
     if ("serviceWorker" in navigator)
       navigator.serviceWorker.register("service-worker.js");
   </script>
