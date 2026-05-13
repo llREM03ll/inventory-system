@@ -1346,6 +1346,7 @@ document.addEventListener("keydown", e => {
 // ════════════════════════════════════════════════════
 loadState();
 cleanupOrderLogs();
+sessionStorage.setItem('brewsSession', '1'); // mark session so other pages don't redirect
 const hasShift = !!localStorage.getItem(SHIFT_ACTIVE_KEY) ||
                  state.orders.length > 0 || state.currentItems.length > 0 ||
                  state.begM || state.begL || state.begS || state.begHC;
