@@ -203,8 +203,10 @@
     <button class="delete-all-btn" onclick="deleteAllHistory()">🗑 Delete All</button>
   </div>
 
-  <div class="brand">BREWS.CO</div>
-  <div class="brand-sub">History</div>
+  <a href="index.html" style="text-decoration:none;display:block;text-align:center;">
+    <div class="brand">BREWS.CO</div>
+    <div class="brand-sub">History</div>
+  </a>
 
   <div class="month-nav">
     <button onclick="changeMonth(-1)">&#8592;</button>
@@ -640,7 +642,10 @@
   </a>
 </nav>
 <script>
-  if (!sessionStorage.getItem('brewsSession')) { window.location.replace('index.html'); }
+  const _nav = performance.getEntriesByType('navigation')[0];
+  if (_nav && _nav.type === 'reload' && !localStorage.getItem('brewsShiftActive')) {
+    window.location.replace('index.html');
+  }
   if (localStorage.getItem("brewsShiftActive")) {
     document.getElementById("shiftNavLabel").textContent = "↩ Shift";
     document.getElementById("shiftNavBtn").title = "Return to active shift";
