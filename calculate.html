@@ -19,6 +19,14 @@
       letter-spacing: 0.07em; text-transform: uppercase; text-align: center;
     }
     .del-dmg-header span:first-child { text-align: left; }
+    .carryover-btn {
+      display: flex; align-items: center; gap: 7px; width: 100%;
+      background: #f0f7f0; border: 1.5px solid #b8ddb8; border-radius: 11px;
+      padding: 11px 14px; font-size: 0.84rem; font-weight: 700; color: #3a7a3a;
+      font-family: inherit; cursor: pointer; margin-bottom: 10px; transition: all .18s;
+    }
+    .carryover-btn:hover { background: #e0f0e0; border-color: #8aba8a; transform: translateY(-1px); }
+    .carryover-meta { font-size: 0.7rem; color: #7ab87a; font-weight: 500; margin-left: auto; }
     @media (max-width: 600px) {
       .del-dmg-header { display: none; }
     }
@@ -30,6 +38,13 @@
       <div class="brand">BREWS.CO</div>
       <div class="brand-sub">Calculate</div>
     </a>
+
+    <div id="carryoverWrap" style="display:none;">
+      <button class="carryover-btn" onclick="useYesterdaysEnding()">
+        📋 Use Yesterday's Ending Cups
+        <span class="carryover-meta" id="carryoverMeta"></span>
+      </button>
+    </div>
 
     <div class="section">
       <h3>Input Cups</h3>
@@ -103,6 +118,31 @@
     if (localStorage.getItem("brewsShiftActive")) {
       document.getElementById("shiftNavLabel").textContent = "↩ Shift";
     }
+
+    // Carry-over button
+    (function initCarryover() {
+      const raw = localStorage.getItem("brewsLastEndingCups");
+      if (!raw) return;
+      try {
+        const d = JSON.parse(raw);
+        const wrap = document.getElementById("carryoverWrap");
+        const meta = document.getElementById("carryoverMeta");
+        wrap.style.display = "block";
+        meta.textContent = d.date ? `from ${d.date}` : "";
+        window.useYesterdaysEnding = function() {
+          const fields = { beginM: d.endM, beginL: d.endL, beginS: d.endS, beginHC: d.endHC };
+          Object.entries(fields).forEach(([id, val]) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.value = val;
+            el.style.transition = "background .4s";
+            el.style.background = "#e6f5e6";
+            setTimeout(() => el.style.background = "", 900);
+          });
+          if (typeof saveInputs === "function") saveInputs();
+        };
+      } catch {}
+    })();
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="js/InventorySystem.js"></script>
