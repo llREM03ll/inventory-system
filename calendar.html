@@ -7,25 +7,18 @@
   <link rel="stylesheet" href="css/styles.css" />
   <style>
     body { align-items: flex-start; }
-    .container { max-width: 780px; }
+    .container { max-width: 720px; }
 
     /* ── Top bar ── */
     .top-bar {
       display: flex; align-items: center;
-      justify-content: space-between; margin-bottom: 20px;
+      justify-content: space-between; margin-bottom: 18px;
     }
-    .back-btn {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 10px;
-      padding: 8px 14px; font-weight: 600; font-size: 0.85rem;
-      color: #7a5c3e; cursor: pointer; font-family: inherit; transition: all .2s;
-    }
-    .back-btn:hover { background: #e4d0bf; transform: translateY(-1px); }
     .delete-all-btn {
       display: inline-flex; align-items: center; gap: 5px;
       background: #fdf0f0; border: 1.5px solid #f0d5d5; border-radius: 10px;
-      padding: 8px 14px; font-weight: 600; font-size: 0.85rem;
-      color: #c0665a; cursor: pointer; font-family: inherit; transition: all .2s;
+      padding: 8px 14px; font-weight: 700; font-size: 0.84rem;
+      color: #c0665a; cursor: pointer; font-family: inherit; transition: all .18s;
     }
     .delete-all-btn:hover { background: #fae0de; transform: translateY(-1px); }
 
@@ -34,34 +27,29 @@
       display: flex; align-items: center;
       justify-content: space-between; margin-bottom: 14px;
     }
-    .month-nav h2 { margin: 0; font-size: 1.15rem; font-weight: 700; color: #7a5c3e; }
+    .month-nav h2 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #7a5c3e; }
     .month-nav button {
       background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 10px;
-      padding: 7px 14px; font-weight: 700; font-size: 1rem;
-      cursor: pointer; color: #7a5c3e; font-family: inherit; transition: all .2s;
+      padding: 7px 13px; font-weight: 700; font-size: 0.88rem;
+      cursor: pointer; color: #7a5c3e; font-family: inherit; transition: all .18s;
     }
     .month-nav button:hover { background: #e4d0bf; transform: translateY(-1px); }
 
     /* ── Calendar ── */
     .cal-wrapper { overflow-x: auto; }
-
     .calendar {
       width: 100%; border-collapse: separate; border-spacing: 3px;
-      margin-bottom: 8px; min-width: 420px;
+      margin-bottom: 6px; min-width: 380px;
     }
-
     .calendar th {
       background: transparent; color: #9a7a5e; font-weight: 700;
-      font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+      font-size: 0.68rem; letter-spacing: 0.09em; text-transform: uppercase;
       padding: 5px 4px; text-align: center; border: none;
     }
-    /* Week total column header */
-    .calendar th.week-col { color: #c4a98a; font-size: 0.65rem; text-align: right; padding-right: 4px; }
-
+    .calendar th.week-col { color: #c4a98a; font-size: 0.64rem; text-align: right; padding-right: 4px; }
     .calendar td {
       border: 1.5px solid #e8d5c4; border-radius: 10px; vertical-align: top;
-      height: 70px; padding: 6px; cursor: default; background: #fdf7f2;
-      transition: all .14s;
+      height: 66px; padding: 6px; cursor: default; background: #fdf7f2; transition: all .14s;
     }
     .calendar td.empty   { background: transparent; border-color: transparent; }
     .calendar td.has-entry {
@@ -72,120 +60,94 @@
       background: #f5ede5; border-color: #c7a27c;
       box-shadow: 0 3px 10px rgba(122,92,62,0.14); transform: translateY(-1px);
     }
-    .calendar td.today { border-color: #c7a27c; box-shadow: 0 0 0 2px rgba(199,162,124,0.3); }
-
-    /* Week total cell */
+    .calendar td.today { border-color: #c7a27c; box-shadow: 0 0 0 2px rgba(199,162,124,0.28); }
     .calendar td.week-total-cell {
       background: transparent; border-color: transparent;
-      text-align: right; vertical-align: middle; cursor: default;
-      height: auto; padding: 0 4px;
+      text-align: right; vertical-align: middle; cursor: default; height: auto; padding: 0 4px;
     }
-    .week-total-val {
-      font-size: 0.7rem; font-weight: 700; color: #b08060;
-      font-variant-numeric: tabular-nums; white-space: nowrap;
-    }
+    .week-total-val { font-size: 0.68rem; font-weight: 700; color: #b08060; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .week-total-val.zero { color: #ddd0c4; }
-
-    .day-num { font-size: 0.76rem; font-weight: 600; color: #c4a98a; display: block; margin-bottom: 3px; }
+    .day-num { font-size: 0.72rem; font-weight: 600; color: #c4a98a; display: block; margin-bottom: 2px; }
     .calendar td.has-entry .day-num { color: #7a5c3e; }
     .calendar td.today .day-num { color: #5c4631; font-weight: 800; }
-    .day-total { font-size: 0.74rem; font-weight: 700; color: #9a6e52; line-height: 1.3; }
-    .day-badge { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: linear-gradient(135deg,#d4a97c,#9a6e52); margin-top: 5px; }
-
-    /* POS order-log dot on calendar cell */
-    .log-dot {
-      display: inline-block; width: 5px; height: 5px; border-radius: 50%;
-      background: #7ab87a; margin-top: 5px; margin-left: 3px;
-      vertical-align: top; flex-shrink: 0;
-    }
-    .calendar td .dots-row { display: flex; align-items: center; gap: 2px; margin-top: 4px; }
-
-    /* ── Monthly Expenses ── */
-    .monthly-exp-section { margin-top: 8px; }
+    .day-total { font-size: 0.72rem; font-weight: 700; color: #9a6e52; line-height: 1.3; }
+    .day-badge { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: linear-gradient(135deg,#d4a97c,#9a6e52); margin-top: 4px; }
+    .log-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #7ab87a; margin-top: 4px; margin-left: 3px; vertical-align: top; }
+    .calendar td .dots-row { display: flex; align-items: center; gap: 2px; margin-top: 3px; }
 
     /* ── Monthly Summary ── */
     .monthly-summary {
-      margin-top: 16px; background: linear-gradient(135deg, #f9f2eb, #f5ede5);
-      border-radius: 16px; padding: 18px 20px; border: 1px solid #e8d5c4;
+      margin-top: 14px; background: linear-gradient(135deg, #f9f2eb, #f5ede5);
+      border-radius: 16px; padding: 16px 18px; border: 1.5px solid #e8d5c4;
     }
-    .monthly-summary h3 { margin: 0 0 12px; }
+    .monthly-summary h3 { margin: 0 0 10px; }
     .summary-row {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 6px 0; font-size: 0.9rem; color: #5c4631; border-bottom: 1px solid #eddcc9;
+      padding: 5px 0; font-size: 0.88rem; color: #5c4631; border-bottom: 1px solid #eddcc9;
     }
     .summary-row:last-child { border-bottom: none; }
-    .summary-row.sub { padding-left: 16px; color: #b08060; font-size: 0.84rem; }
-    .summary-row.net { font-weight: 700; font-size: 1rem; color: #7a5c3e; border-top: 2px solid #d4b89e; margin-top: 6px; padding-top: 10px; }
+    .summary-row.sub { padding-left: 14px; color: #b08060; font-size: 0.82rem; }
+    .summary-row.net { font-weight: 700; font-size: 0.96rem; color: #7a5c3e; border-top: 2px solid #d4b89e; margin-top: 6px; padding-top: 9px; }
     .summary-row span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
-    .empty-month { text-align: center; padding: 16px 0 8px; color: #b08060; font-size: 0.9rem; }
+    .empty-month { text-align: center; padding: 14px 0 6px; color: #b08060; font-size: 0.88rem; }
 
-    /* ── Modal ── */
+    /* ── Calendar modal ── */
     .modal-overlay {
       position: fixed; inset: 0;
       background: rgba(60,38,20,0.42); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
       display: flex; align-items: center; justify-content: center;
       z-index: 1000; padding: 20px;
-      opacity: 0; pointer-events: none; transition: opacity .22s;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
     }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
     .modal {
-      background: #fffaf5; border-radius: 20px; padding: 24px;
-      max-width: 560px; width: 100%; max-height: 82vh; overflow-y: auto;
-      box-shadow: 0 8px 40px rgba(122,92,62,0.22); border: 1px solid #e8d5c4;
-      transform: translateY(16px) scale(0.98); transition: transform .22s;
+      background: #fffaf5; border-radius: 16px; padding: 22px;
+      max-width: 520px; width: 100%; max-height: 82vh; overflow-y: auto;
+      box-shadow: 0 8px 40px rgba(122,92,62,0.2); border: 1.5px solid #e8d5c4;
+      transform: translateY(14px) scale(0.98); transition: transform .2s;
     }
     .modal-overlay.open .modal { transform: translateY(0) scale(1); }
     .modal-header {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e8d5c4;
+      margin-bottom: 14px; padding-bottom: 11px; border-bottom: 1px solid #e8d5c4;
     }
-    .modal-header h3 { margin: 0; color: #7a5c3e; font-size: 1rem; font-weight: 700; border: none; }
+    .modal-header h3 { margin: 0; color: #7a5c3e; font-size: 0.96rem; font-weight: 700; border: none; }
     .modal-header-actions { display: flex; gap: 8px; }
     .modal-delete-btn {
-      background: #fdf0f0; border: 1.5px solid #f0d5d5; border-radius: 9px;
-      padding: 7px 13px; font-weight: 600; font-size: 0.82rem; color: #c0665a;
-      cursor: pointer; font-family: inherit; transition: all .18s;
+      background: #fdf0f0; border: 1.5px solid #f0d5d5; border-radius: 10px;
+      padding: 8px 13px; font-weight: 700; font-size: 0.84rem; color: #c0665a;
+      cursor: pointer; font-family: inherit; transition: all .16s;
     }
     .modal-delete-btn:hover { background: #fae0de; }
     .modal-close {
-      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 9px;
-      padding: 7px 13px; font-weight: 600; font-size: 0.82rem;
-      color: #7a5c3e; cursor: pointer; font-family: inherit; transition: all .18s;
+      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 10px;
+      padding: 8px 13px; font-weight: 700; font-size: 0.84rem;
+      color: #7a5c3e; cursor: pointer; font-family: inherit; transition: all .16s;
     }
     .modal-close:hover { background: #e4d0bf; }
-    .modal-body table { font-size: 0.86rem; }
+    .modal-body table { font-size: 0.84rem; }
 
-    @media (max-width: 600px) {
-      .calendar td { height: 52px; padding: 4px; border-radius: 7px; }
-      .day-total { font-size: 0.67rem; }
-      .day-num { font-size: 0.68rem; }
-      .modal { padding: 16px; }
-    }
-
-    /* ── Retention Settings ── */
-    .retention-section { margin-top: 20px; }
-    .retention-desc { font-size: 0.84rem; color: #9a7a5e; margin: 0 0 12px; line-height: 1.5; }
+    /* ── Retention ── */
+    .retention-desc { font-size: 0.84rem; color: #9a7a5e; margin: 0 0 10px; line-height: 1.5; }
     .retention-pills { display: flex; gap: 8px; flex-wrap: wrap; }
     .retention-pill {
       background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 20px;
-      padding: 8px 18px; font-size: 0.84rem; font-weight: 600; color: #7a5c3e;
-      cursor: pointer; font-family: inherit; transition: all .18s;
+      padding: 8px 16px; font-size: 0.84rem; font-weight: 700; color: #7a5c3e;
+      cursor: pointer; font-family: inherit; transition: all .16s;
     }
     .retention-pill:hover { background: #e4d0bf; }
     .retention-pill.active {
       background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
-      border-color: transparent; box-shadow: 0 2px 8px rgba(122,92,62,0.28);
+      border-color: transparent; box-shadow: 0 2px 8px rgba(122,92,62,0.26);
     }
-    .retention-note { font-size: 0.76rem; color: #b08060; margin-top: 10px; font-style: italic; }
+    .retention-note { font-size: 0.72rem; color: #b08060; margin-top: 9px; font-style: italic; }
 
     /* ── Order Logs ── */
-    .order-logs-section { margin-top: 20px; padding-bottom: 32px; }
-    .log-empty { text-align: center; color: #c4a98a; font-size: 0.86rem; padding: 14px 0; }
-
+    .order-logs-section { padding-bottom: 28px; }
+    .log-empty { text-align: center; color: #c4a98a; font-size: 0.84rem; padding: 14px 0; }
     .log-day-item {
       background: #fffaf5; border: 1.5px solid #e8d5c4; border-radius: 14px;
-      overflow: hidden; margin-bottom: 10px;
-      box-shadow: 0 1px 4px rgba(122,92,62,0.05);
+      overflow: hidden; margin-bottom: 9px; box-shadow: 0 1px 4px rgba(122,92,62,0.05);
     }
     .log-day-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -194,46 +156,50 @@
     .log-day-header:hover { background: #f5ede5; }
     .log-day-left { display: flex; flex-direction: column; gap: 2px; }
     .log-day-date { font-size: 0.84rem; font-weight: 700; color: #5c4631; }
-    .log-day-meta { font-size: 0.72rem; color: #9a7a5e; }
-    .log-day-right { display: flex; align-items: center; gap: 10px; }
-    .log-day-total { font-size: 0.9rem; font-weight: 700; color: #7a5c3e; font-variant-numeric: tabular-nums; }
-    .log-day-chevron { font-size: 0.6rem; color: #c4a98a; transition: transform .2s; }
+    .log-day-meta { font-size: 0.7rem; color: #9a7a5e; }
+    .log-day-right { display: flex; align-items: center; gap: 9px; }
+    .log-day-total { font-size: 0.88rem; font-weight: 700; color: #7a5c3e; font-variant-numeric: tabular-nums; }
+    .log-day-chevron { font-size: 0.58rem; color: #c4a98a; transition: transform .18s; }
     .log-day-item.expanded .log-day-chevron { transform: rotate(180deg); }
-
     .log-day-body { border-top: 1px solid #f0e4d8; display: none; }
     .log-day-item.expanded .log-day-body { display: block; }
-
     .log-order-item {
       border-bottom: 1px solid #f5ede5; padding: 9px 14px;
       display: flex; align-items: flex-start; gap: 10px;
     }
     .log-order-item:last-child { border-bottom: none; }
     .log-order-num {
-      font-size: 0.7rem; font-weight: 700; color: #c4a98a;
+      font-size: 0.68rem; font-weight: 700; color: #c4a98a;
       background: #f5ede5; border-radius: 6px; padding: 2px 7px;
       white-space: nowrap; margin-top: 1px; flex-shrink: 0;
     }
     .log-order-num.done-badge { color: #3a7a3a; background: #e6f5e6; }
     .log-order-info { flex: 1; min-width: 0; }
-    .log-order-desc { font-size: 0.8rem; color: #5c4631; font-weight: 600; line-height: 1.4; }
-    .log-order-flavors { font-size: 0.72rem; color: #9a7a5e; margin-top: 1px; }
-    .log-order-addons  { font-size: 0.72rem; color: #b08060; margin-top: 1px; }
-    .log-order-payment { font-size: 0.72rem; color: #7a5c3e; margin-top: 3px; }
-    .log-order-total { font-size: 0.84rem; font-weight: 700; color: #7a5c3e; font-variant-numeric: tabular-nums; white-space: nowrap; padding-top: 1px; }
-
+    .log-order-desc    { font-size: 0.82rem; color: #5c4631; font-weight: 600; line-height: 1.4; }
+    .log-order-flavors { font-size: 0.7rem; color: #9a7a5e; margin-top: 1px; }
+    .log-order-addons  { font-size: 0.7rem; color: #b08060; margin-top: 1px; }
+    .log-order-payment { font-size: 0.7rem; color: #7a5c3e; margin-top: 2px; }
+    .log-order-total   { font-size: 0.82rem; font-weight: 700; color: #7a5c3e; font-variant-numeric: tabular-nums; white-space: nowrap; padding-top: 1px; }
     .log-delete-btn {
       background: #fdf0f0; border: 1.5px solid #f0d5d5; border-radius: 8px;
-      padding: 4px 10px; font-size: 0.72rem; font-weight: 600; color: #c0665a;
-      cursor: pointer; font-family: inherit; transition: all .15s; flex-shrink: 0;
+      padding: 5px 10px; font-size: 0.7rem; font-weight: 700; color: #c0665a;
+      cursor: pointer; font-family: inherit; transition: all .14s; flex-shrink: 0;
     }
     .log-delete-btn:hover { background: #fae0de; }
+
+    @media (max-width: 600px) {
+      .calendar td { height: 50px; padding: 4px; border-radius: 8px; }
+      .day-total { font-size: 0.65rem; }
+      .day-num   { font-size: 0.65rem; }
+      .modal { padding: 16px; }
+    }
   </style>
 </head>
 <body class="has-bottom-nav">
 <div class="container">
 
   <div class="top-bar">
-    <button class="back-btn" onclick="window.location.href='index.html'">← Back</button>
+    <a href="index.html" class="back-btn">← Back</a>
     <button class="delete-all-btn" onclick="deleteAllHistory()">🗑 Delete All</button>
   </div>
 
@@ -674,6 +640,7 @@
   </a>
 </nav>
 <script>
+  if (!sessionStorage.getItem('brewsSession')) { window.location.replace('index.html'); }
   if (localStorage.getItem("brewsShiftActive")) {
     document.getElementById("shiftNavLabel").textContent = "↩ Shift";
     document.getElementById("shiftNavBtn").title = "Return to active shift";
