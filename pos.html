@@ -885,17 +885,29 @@ function openFlavorModal(drink) {
 function refreshFlavorGrid(drink) {
   document.getElementById("flavorModalTitle").textContent = drink.name;
   document.getElementById("flavorModalSub").textContent   =
-    fmt(drink.price) + " per cup — tap a flavor to add, tap again to add more";
+    fmt(drink.price) + " per cup  ·  tap to add  ·  hold 2s to close";
 
   const cat     = DRINK_FLAVOR_CAT[drink.code] || "milktea";
   const flavors = FLAVORS[cat] || [];
   const grid    = document.getElementById("flavorGrid");
   grid.innerHTML = "";
 
-  // Helper: how many of this drink+flavor are already in the order
   const countInOrder = (flavor) =>
     state.currentItems.filter(i => i.code === drink.code && i.flavor === flavor)
                        .reduce((s, i) => s + i.qty, 0);
+
+  // Attach hold-to-close on any button
+  function attachHold(btn) {
+    let holdTimer = null;
+    const start = () => { holdTimer = setTimeout(() => { closeFlavorModal(); vibrate(40); }, 2000); };
+    const cancel = () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } };
+    btn.addEventListener("mousedown",   start);
+    btn.addEventListener("touchstart",  start, { passive: true });
+    btn.addEventListener("mouseup",     cancel);
+    btn.addEventListener("mouseleave",  cancel);
+    btn.addEventListener("touchend",    cancel);
+    btn.addEventListener("touchcancel", cancel);
+  }
 
   // No flavor option
   const noCount  = countInOrder("");
@@ -904,10 +916,8 @@ function refreshFlavorGrid(drink) {
   noFlavor.innerHTML = noCount > 0
     ? `— No Flavor — <span class="flavor-count">${noCount}</span>`
     : "— No Flavor / Skip —";
-  noFlavor.addEventListener("click", () => {
-    addItemToOrder(drink, "");
-    refreshFlavorGrid(drink);
-  });
+  noFlavor.addEventListener("click", () => addItemToOrder(drink, ""));
+  attachHold(noFlavor);
   grid.appendChild(noFlavor);
 
   flavors.forEach(f => {
@@ -917,10 +927,8 @@ function refreshFlavorGrid(drink) {
     btn.innerHTML = count > 0
       ? `${f} <span class="flavor-count">${count}</span>`
       : f;
-    btn.addEventListener("click", () => {
-      addItemToOrder(drink, f);
-      refreshFlavorGrid(drink);
-    });
+    btn.addEventListener("click", () => addItemToOrder(drink, f));
+    attachHold(btn);
     grid.appendChild(btn);
   });
 }
@@ -938,6 +946,21 @@ function handleFlavorOverlay(e) {
 //  CURRENT ORDER
 // ════════════════════════════════════════════════════
 function addItemToOrder(drink, flavor) {
+  const rem  = remainingCups();
+  const left = rem[drink.cup] ?? 0;
+  if (left <= 0) {
+    // Flash the modal title red briefly
+    const title = document.getElementById("flavorModalTitle");
+    title.style.color = "#c0665a";
+    title.textContent = "No cups left!";
+    setTimeout(() => {
+      title.style.color = "";
+      title.textContent = drink.name;
+    }, 1200);
+    vibrate([40, 30, 40]);
+    return;
+  }
+
   vibrate(25);
   const key = drink.code + "||" + flavor;
   const existing = state.currentItems.find(i => i.key === key);
@@ -950,6 +973,14 @@ function addItemToOrder(drink, flavor) {
   // Animate badge
   const badge = document.getElementById(`badge-${drink.code}`);
   if (badge) { badge.classList.remove("pop"); void badge.offsetWidth; badge.classList.add("pop"); }
+
+  // Auto-close modal if no cups remain after this addition
+  const remAfter = remainingCups();
+  if ((remAfter[drink.cup] ?? 0) <= 0) {
+    setTimeout(() => closeFlavorModal(), 300);
+  } else {
+    refreshFlavorGrid(drink);
+  }
 }
 
 function setItemQty(key, qty) {
