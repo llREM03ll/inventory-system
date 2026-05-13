@@ -420,6 +420,40 @@
     .order-log-item.order-done { opacity: 0.6; }
     .order-log-item.order-done .order-log-num { text-decoration: line-through; opacity: 0.7; }
 
+    /* ── Flavor settings modal ── */
+    .flavor-settings-btn {
+      background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.22);
+      border-radius: 10px; padding: 6px 11px; color: rgba(255,255,255,0.7);
+      font-size: 0.78rem; font-weight: 700; font-family: inherit; cursor: pointer;
+      transition: all .16s;
+    }
+    .flavor-settings-btn:hover { background: rgba(255,255,255,0.22); color: #fff; }
+
+    .fsettings-cat { margin-bottom: 16px; }
+    .fsettings-cat-title {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #b08060; margin-bottom: 8px;
+      padding-bottom: 5px; border-bottom: 1px solid #e8d5c4;
+    }
+    .fsettings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .fsettings-pill {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #f5ede5; border: 1.5px solid #e0c9b8; border-radius: 10px;
+      padding: 8px 10px; font-size: 0.76rem; font-weight: 600; color: #5c4631;
+      cursor: pointer; font-family: inherit; transition: all .14s; gap: 6px;
+    }
+    .fsettings-pill:active { transform: scale(0.95); }
+    .fsettings-pill.oos {
+      background: #fff0f0; border-color: #f0c0c0; color: #b05050;
+      text-decoration: line-through; opacity: 0.75;
+    }
+    .fsettings-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      background: #7ab87a; transition: background .14s;
+    }
+    .fsettings-pill.oos .fsettings-dot { background: #e08080; }
+    @media (max-width: 380px) { .fsettings-grid { grid-template-columns: repeat(2,1fr); } }
+
     /* ── Quota toast ── */
     .quota-toast {
       position: fixed; top: 76px; left: 50%; transform: translateX(-50%) translateY(-12px);
@@ -489,6 +523,8 @@
       <div class="pos-header-meta">
         <span>Active Shift</span><span>·</span>
         <span class="pos-clock" id="posClock"></span>
+        <span>·</span>
+        <span class="pos-clock" id="shiftTimer">0m 00s</span>
       </div>
     </div>
     <div class="pos-header-right">
@@ -500,6 +536,7 @@
         <span class="header-stat-label">Cup Sales</span>
         <span class="header-stat-val" id="shiftTotalDisplay">₱0.00</span>
       </div>
+      <button class="flavor-settings-btn" onclick="openFlavorSettings()">⚙ Flavors</button>
       <button class="end-shift-btn" onclick="openEndShift()">End Shift</button>
     </div>
   </div>
@@ -648,7 +685,76 @@
   </a>
 </nav>
 
+<!-- ═══════════ FLAVOR SETTINGS MODAL ═══════════ -->
+<div class="modal-overlay centered" id="flavorSettingsModal" onclick="handleFlavorSettingsOverlay(event)">
+  <div class="modal" style="max-width:480px;padding:20px;border-radius:18px;max-height:85vh;overflow-y:auto;">
+    <div class="modal-header-row" style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e8d5c4;">
+      <div>
+        <div class="modal-title">Flavor Availability</div>
+        <div class="modal-sub">Tap a flavor to toggle out-of-stock. Red = unavailable.</div>
+      </div>
+      <button class="modal-cancel-btn" onclick="closeFlavorSettings()">Done</button>
+    </div>
+    <div id="flavorSettingsBody"></div>
+  </div>
+</div>
+
 <script>
+const FLAVOR_OOS_KEY = "brewsFlavorOOS"; // Set of "cat||flavor" strings
+
+function getOOSFlavors() {
+  try { return new Set(JSON.parse(localStorage.getItem(FLAVOR_OOS_KEY) || "[]")); } catch { return new Set(); }
+}
+function saveOOSFlavors(set) {
+  localStorage.setItem(FLAVOR_OOS_KEY, JSON.stringify([...set]));
+}
+function isFlavorOOS(cat, flavor) {
+  return getOOSFlavors().has(cat + "||" + flavor);
+}
+function toggleFlavorOOS(cat, flavor) {
+  const set = getOOSFlavors();
+  const key = cat + "||" + flavor;
+  if (set.has(key)) set.delete(key); else set.add(key);
+  saveOOSFlavors(set);
+}
+
+function openFlavorSettings() {
+  renderFlavorSettings();
+  document.getElementById("flavorSettingsModal").classList.add("open");
+}
+function closeFlavorSettings() {
+  document.getElementById("flavorSettingsModal").classList.remove("open");
+  // Refresh drink buttons in case oos status changed
+  renderDrinkButtons();
+}
+function handleFlavorSettingsOverlay(e) {
+  if (e.target === document.getElementById("flavorSettingsModal")) closeFlavorSettings();
+}
+
+function renderFlavorSettings() {
+  const body = document.getElementById("flavorSettingsBody");
+  const CAT_LABELS = {
+    milktea:    "Milk Tea",
+    fruittea:   "Fruit Tea",
+    icedcoffee: "Iced Coffee",
+    hotcoffee:  "Hot Coffee",
+  };
+  body.innerHTML = Object.entries(FLAVORS).map(([cat, flavors]) => {
+    const pills = flavors.map(f => {
+      const oos = isFlavorOOS(cat, f);
+      return `<button class="fsettings-pill${oos?" oos":""}"
+        onclick="toggleFlavorOOS('${cat}','${f.replace(/'/g,"\\'")}');renderFlavorSettings();">
+        <span style="flex:1;text-align:left;">${f}</span>
+        <span class="fsettings-dot"></span>
+      </button>`;
+    }).join("");
+    return `<div class="fsettings-cat">
+      <div class="fsettings-cat-title">${CAT_LABELS[cat] || cat}</div>
+      <div class="fsettings-grid">${pills}</div>
+    </div>`;
+  }).join("");
+}
+
 // ════════════════════════════════════════════════════
 //  CATALOGUE
 // ════════════════════════════════════════════════════
@@ -711,11 +817,12 @@ const SHIFT_ACTIVE_KEY = "brewsShiftActive";
 // ════════════════════════════════════════════════════
 let state = {
   begM:0, begL:0, begS:0, begHC:0,
-  currentItems:  [],  // [{key,code,name,icon,flavor,qty,unitPrice,cup}]
-  currentAddons: {},  // {addonName: qty}
-  orders:        [],  // [{id,items,addons,total,time}]
+  currentItems:  [],
+  currentAddons: {},
+  orders:        [],
   shiftTotal:    0,
-  expenses:      [],  // [{name,price}]
+  expenses:      [],
+  shiftStartTime: null,  // timestamp ms
 };
 
 let flavorToastTimer = null;
@@ -808,12 +915,27 @@ function getAddonTotal() {
 function getOrderTotal() { return getItemTotal() + getAddonTotal(); }
 
 // ════════════════════════════════════════════════════
-//  CLOCK
+//  CLOCK + SHIFT TIMER
 // ════════════════════════════════════════════════════
+function fmtElapsed(ms) {
+  const total = Math.floor(ms / 1000);
+  const h     = Math.floor(total / 3600);
+  const m     = Math.floor((total % 3600) / 60);
+  const s     = total % 60;
+  if (h > 0) return `${h}h ${String(m).padStart(2,"0")}m`;
+  return `${m}m ${String(s).padStart(2,"0")}s`;
+}
+
 function startClock() {
-  const tick = () => { const el=document.getElementById("posClock"); if(el) el.textContent=timeNow(); };
+  const tick = () => {
+    const clockEl = document.getElementById("posClock");
+    if (clockEl) clockEl.textContent = timeNow();
+    const timerEl = document.getElementById("shiftTimer");
+    if (timerEl && state.shiftStartTime)
+      timerEl.textContent = fmtElapsed(Date.now() - state.shiftStartTime);
+  };
   tick();
-  clockInterval = setInterval(tick, 10000);
+  clockInterval = setInterval(tick, 1000);
 }
 
 // ════════════════════════════════════════════════════
@@ -825,6 +947,7 @@ function startShift() {
   state.begS  = +document.getElementById("setupBegS").value  || 0;
   state.begHC = +document.getElementById("setupBegHC").value || 0;
   state.currentItems=[]; state.currentAddons={}; state.orders=[]; state.shiftTotal=0; state.expenses=[];
+  state.shiftStartTime = Date.now();
   nextQuotaThreshold = 3000;
   localStorage.removeItem("brewsResumeShift");
   localStorage.setItem(SHIFT_ACTIVE_KEY, "1");
@@ -950,14 +1073,22 @@ function refreshFlavorGrid(drink) {
   grid.appendChild(noFlavor);
 
   flavors.forEach(f => {
-    const count = countInOrder(f);
-    const btn   = document.createElement("button");
-    btn.className = "flavor-btn" + (count > 0 ? " selected" : "");
+    const count  = countInOrder(f);
+    const cat    = DRINK_FLAVOR_CAT[drink.code] || "milktea";
+    const oos    = isFlavorOOS(cat, f);
+    const btn    = document.createElement("button");
+    btn.className = "flavor-btn" + (count > 0 ? " selected" : "") + (oos ? " oos-flavor" : "");
+    if (oos) {
+      btn.style.cssText = "opacity:.45;text-decoration:line-through;cursor:not-allowed;";
+      btn.disabled = true;
+    }
     btn.innerHTML = count > 0
       ? `${f} <span class="flavor-count">${count}</span>`
       : f;
-    btn.addEventListener("click", () => addItemToOrder(drink, f));
-    attachHold(btn, () => { addItemToOrder(drink, f); closeFlavorModal(); });
+    if (!oos) {
+      btn.addEventListener("click", () => addItemToOrder(drink, f));
+      attachHold(btn, () => { addItemToOrder(drink, f); closeFlavorModal(); });
+    }
     grid.appendChild(btn);
   });
 }
@@ -1388,7 +1519,7 @@ function confirmEndShift() {
 //  KEY SHORTCUTS
 // ════════════════════════════════════════════════════
 document.addEventListener("keydown", e => {
-  if (e.key==="Escape") { closeFlavorModal(); closeReceiptModal(); closeEndShift(); }
+  if (e.key==="Escape") { closeFlavorModal(); closeReceiptModal(); closeEndShift(); closeFlavorSettings(); }
 });
 
 // ════════════════════════════════════════════════════
