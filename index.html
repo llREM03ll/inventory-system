@@ -121,8 +121,8 @@
       { e:"💸", msg:"Tally up and get paid",             sub:"Numbers don't lie — let's go."   },
       { e:"✨", msg:"Another shift, another story",      sub:"Make it a good one."              },
     ];
-    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(),0,0)) / 86400000);
-    const g = GREETINGS[dayOfYear % GREETINGS.length];
+    // Random greeting on every load (not day-based)
+    const g = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
     document.getElementById("homeEmoji").textContent = g.e;
     document.getElementById("homeMsg").textContent   = g.msg;
     document.getElementById("homeSub").textContent   = g.sub;
@@ -131,9 +131,6 @@
     });
     if (localStorage.getItem("brewsResumeShift"))
       document.getElementById("resumeBanner").style.display = "flex";
-
-    // Mark session so other pages don't redirect back here on direct load
-    sessionStorage.setItem('brewsSession', '1');
 
     if ("serviceWorker" in navigator)
       navigator.serviceWorker.register("service-worker.js");
