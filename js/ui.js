@@ -235,17 +235,17 @@ function printReceipt() {
 
   const cupRows = d.rows.map(({ item, beg, end, dmg }) => {
     const endTxt = end === null ? "—"
-      : dmg > 0 ? `${end} <span style="color:#b08060;font-size:.82em">(−${dmg} dmg)</span>`
+      : dmg > 0 ? `${end}<span style="color:#b08060;font-size:.78em"> (−${dmg})</span>`
       : `${end}`;
     const neg = item.usedCups < 0;
     return `
       <tr>
-        <td style="text-align:left;padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"};border-bottom:1px solid #f0e4d8;">${item.name}</td>
-        <td style="text-align:center;padding:5px 8px;color:#7a5c3e;border-bottom:1px solid #f0e4d8;">${beg === null ? "—" : beg}</td>
-        <td style="text-align:center;padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:${neg?700:400};border-bottom:1px solid #f0e4d8;">${item.usedCups}${neg?" ⚠":""}</td>
-        <td style="text-align:center;padding:5px 8px;color:#9a7a5e;border-bottom:1px solid #f0e4d8;">${fmtR(item.price)}</td>
-        <td style="text-align:center;padding:5px 8px;border-bottom:1px solid #f0e4d8;">${endTxt}</td>
-        <td style="text-align:right;padding:5px 8px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:600;border-bottom:1px solid #f0e4d8;">${fmtR(item.total)}</td>
+        <td style="text-align:left;padding:6px 8px;color:${neg?"#c0665a":"#3d2b1a"};border-bottom:1px solid #f0e4d8;word-break:break-word;">${item.name}</td>
+        <td style="text-align:center;padding:6px 4px;color:#7a5c3e;border-bottom:1px solid #f0e4d8;">${beg === null ? "—" : beg}</td>
+        <td style="text-align:center;padding:6px 4px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:${neg?700:400};border-bottom:1px solid #f0e4d8;">${item.usedCups}${neg?" ⚠":""}</td>
+        <td style="text-align:center;padding:6px 4px;color:#9a7a5e;border-bottom:1px solid #f0e4d8;">${fmtR(item.price)}</td>
+        <td style="text-align:center;padding:6px 4px;border-bottom:1px solid #f0e4d8;">${endTxt}</td>
+        <td style="text-align:right;padding:6px 8px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:700;border-bottom:1px solid #f0e4d8;">${fmtR(item.total)}</td>
       </tr>`;
   }).join("");
 
@@ -276,34 +276,42 @@ function printReceipt() {
   const el = document.createElement("div");
   el.style.cssText = `
     position:fixed; left:-9999px; top:0;
-    width:360px; background:#fffaf5;
+    width:480px; background:#fffaf5;
     font-family:"Inter","Segoe UI",sans-serif;
-    padding:32px 28px 36px; box-sizing:border-box;
-    border-radius:0; color:#3d2b1a;
+    padding:36px 32px 40px; box-sizing:border-box;
+    color:#3d2b1a;
   `;
 
   el.innerHTML = `
     <!-- Header -->
-    <div style="text-align:center;margin-bottom:18px;">
-      <div style="font-size:1.5rem;font-weight:800;letter-spacing:0.12em;color:#7a5c3e;">BREWS.CO</div>
-      <div style="font-size:0.65rem;letter-spacing:0.18em;text-transform:uppercase;color:#b08060;margin-top:2px;">Daily Inventory Receipt</div>
-      <div style="font-size:0.78rem;color:#9a7a5e;margin-top:6px;">${d.date}</div>
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:1.6rem;font-weight:800;letter-spacing:0.12em;color:#7a5c3e;">BREWS.CO</div>
+      <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:#b08060;margin-top:3px;">Daily Inventory Receipt</div>
+      <div style="font-size:0.8rem;color:#9a7a5e;margin-top:7px;">${d.date}</div>
     </div>
 
     <!-- Dashed divider -->
-    <div style="border-top:1.5px dashed #d4b89e;margin:0 0 14px;"></div>
+    <div style="border-top:1.5px dashed #d4b89e;margin:0 0 16px;"></div>
 
     <!-- Cup Sales table -->
-    <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#b08060;margin-bottom:6px;text-align:center;">Cup Sales</div>
-    <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+    <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#b08060;margin-bottom:8px;text-align:center;">Cup Sales</div>
+    <table style="width:100%;border-collapse:collapse;font-size:0.8rem;table-layout:fixed;">
+      <colgroup>
+        <col style="width:22%">
+        <col style="width:12%">
+        <col style="width:12%">
+        <col style="width:18%">
+        <col style="width:12%">
+        <col style="width:24%">
+      </colgroup>
       <thead>
         <tr style="background:#f5ede5;">
-          <th style="text-align:left;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">Item</th>
-          <th style="text-align:center;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;text-transform:uppercase;">Beg</th>
-          <th style="text-align:center;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;text-transform:uppercase;">Cups</th>
-          <th style="text-align:center;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;text-transform:uppercase;">Price</th>
-          <th style="text-align:center;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;text-transform:uppercase;">End</th>
-          <th style="text-align:right;padding:5px 8px;color:#9a7a5e;font-size:.68rem;font-weight:700;text-transform:uppercase;">Amount</th>
+          <th style="text-align:left;padding:6px 8px;color:#9a7a5e;font-size:.66rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">Item</th>
+          <th style="text-align:center;padding:6px 4px;color:#9a7a5e;font-size:.66rem;font-weight:700;text-transform:uppercase;">Beg</th>
+          <th style="text-align:center;padding:6px 4px;color:#9a7a5e;font-size:.66rem;font-weight:700;text-transform:uppercase;">Cups</th>
+          <th style="text-align:center;padding:6px 4px;color:#9a7a5e;font-size:.66rem;font-weight:700;text-transform:uppercase;">Price</th>
+          <th style="text-align:center;padding:6px 4px;color:#9a7a5e;font-size:.66rem;font-weight:700;text-transform:uppercase;">End</th>
+          <th style="text-align:right;padding:6px 8px;color:#9a7a5e;font-size:.66rem;font-weight:700;text-transform:uppercase;">Amount</th>
         </tr>
       </thead>
       <tbody>${cupRows}</tbody>
