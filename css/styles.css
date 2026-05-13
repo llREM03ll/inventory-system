@@ -386,12 +386,18 @@ tbody tr:hover td { background: #fdf7f2; }
 .btn-delete  { background: #f0e4d8; color: #9a6e52; border: 1.5px solid #e0c9b8 !important; }
 .btn-delete:hover  { background: #e4d0bf; }
 
+/* ── Grid row variants ─────────────────────────────── */
+.row-2   { display: grid; grid-template-columns: 96px 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 9px; }
+.row-2 label { font-size: 0.84rem; color: #7a5c3e; font-weight: 600; }
+.row-addon { display: grid; grid-template-columns: 96px 1fr; gap: 8px; align-items: center; margin-bottom: 9px; }
+.row-addon label { font-size: 0.84rem; color: #7a5c3e; font-weight: 600; }
+
 /* ── Responsive ────────────────────────────────────── */
 @media (max-width: 600px) {
   body { padding: 10px 0; }
   .container { padding: 18px 14px; margin: 0 8px; }
-  .row { grid-template-columns: 1fr; }
-  .row label { margin-bottom: 2px; }
+  .row, .row-2, .row-addon { grid-template-columns: 1fr; }
+  .row label, .row-2 label, .row-addon label { margin-bottom: 2px; }
   .button-group { flex-direction: column; }
   .button-group button { max-width: 100%; }
   table, th, td { font-size: 0.8rem; }
