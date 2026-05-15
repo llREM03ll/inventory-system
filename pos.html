@@ -512,6 +512,7 @@
       </div>
     </div>
     <button class="start-btn" onclick="startShift()">▶ &nbsp;Start Shift</button>
+    <div id="setupError" style="display:none;margin-top:12px;background:#fff0f0;border:1.5px solid #f0c8c8;border-radius:11px;padding:10px 14px;font-size:0.84rem;font-weight:600;color:#c0665a;text-align:center;"></div>
   </div>
 </div>
 
@@ -932,10 +933,23 @@ function startClock() {
 //  SETUP → START SHIFT
 // ════════════════════════════════════════════════════
 function startShift() {
-  state.begM  = +document.getElementById("setupBegM").value  || 0;
-  state.begL  = +document.getElementById("setupBegL").value  || 0;
-  state.begS  = +document.getElementById("setupBegS").value  || 0;
-  state.begHC = +document.getElementById("setupBegHC").value || 0;
+  const begM  = Math.max(0, +document.getElementById("setupBegM").value  || 0);
+  const begL  = Math.max(0, +document.getElementById("setupBegL").value  || 0);
+  const begS  = Math.max(0, +document.getElementById("setupBegS").value  || 0);
+  const begHC = Math.max(0, +document.getElementById("setupBegHC").value || 0);
+
+  if (begM + begL + begS + begHC === 0) {
+    const err = document.getElementById("setupError");
+    err.textContent = "⚠ Enter at least one cup count before starting the shift.";
+    err.style.display = "block";
+    setTimeout(() => { err.style.display = "none"; }, 3500);
+    return;
+  }
+
+  state.begM  = begM;
+  state.begL  = begL;
+  state.begS  = begS;
+  state.begHC = begHC;
   state.currentItems=[]; state.currentAddons={}; state.orders=[]; state.shiftTotal=0; state.expenses=[];
   state.shiftStartTime = Date.now();
   nextQuotaThreshold = getQuotaStart();
@@ -1516,6 +1530,14 @@ document.addEventListener("keydown", e => {
 // ════════════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════════════
+// Clamp all number inputs to 0+ globally
+document.addEventListener("input", e => {
+  if (e.target.type === "number") {
+    const v = parseFloat(e.target.value);
+    if (!isNaN(v) && v < 0) e.target.value = 0;
+  }
+});
+
 buildCatalogue();
 loadState();
 cleanupOrderLogs();
