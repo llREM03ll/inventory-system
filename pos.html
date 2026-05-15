@@ -702,6 +702,24 @@
 
 <script src="js/settings.js"></script>
 <script>
+// Safety fallback — if settings.js failed to load, define a no-op
+if (typeof getSettings !== "function") {
+  const _D = {
+    prices:{ M:29,L:39,S:25,MC:35,LC:45,HC:45,FTM:29,FTL:39 },
+    addonPrices:{"Pearl":6,"Nata":6,"Coffee Jelly":6,"Oreo":6,"Cream Cheese":10,"Espresso Shot":6},
+    salaryBase:350,salaryBonusThreshold:3000,salaryBonusPerK:50,
+    quotaStart:3000,lowStock:5,
+    flavors:{
+      milktea:["Chocolate","Red Velvet","Dark Chocolate","Choco Kisses","Nutella","Black Forest","Mocha","Taro","Cheesecake","Strawberry","Mango Cheesecake","Winter Melon","Okinawa","Salted Caramel","Matcha","Cookies & Cream","Cappuccino","Avocado","Buko Pandan","Vanilla","Hokkaido"],
+      fruittea:["Lychee","Blueberry","Strawberry","Green Apple","Mango","Four Seasons","Passion Fruit","Lemon","Kiwi"],
+      icedcoffee:["Caramel Macchiato","Vanilla","Matcha","Dark Chocolate","Chocolate Espresso","Salted Caramel","Mocha","Brewsko Original","Spanish Latte"],
+      hotcoffee:["Matcha","Chocolate","Brewsko","Caramel Latte","Spanish Latte"],
+    }
+  };
+  window.getSettings  = () => JSON.parse(JSON.stringify(_D));
+  window.saveSettings = () => {};
+  window.resetSettings= () => {};
+}
 const FLAVOR_OOS_KEY = "brewsFlavorOOS"; // Set of "cat||flavor" strings
 
 function getOOSFlavors() {
