@@ -154,6 +154,20 @@
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="js/settings.js"></script>
+  <script>
+    if (typeof getSettings !== "function") {
+      const _D = {
+        prices:{ M:29,L:39,S:25,MC:35,LC:45,HC:45,FTM:29,FTL:39 },
+        addonPrices:{"Pearl":6,"Nata":6,"Coffee Jelly":6,"Oreo":6,"Cream Cheese":10,"Espresso Shot":6},
+        salaryBase:350,salaryBonusThreshold:3000,salaryBonusPerK:50,
+        quotaStart:3000,lowStock:5,
+        flavors:{milktea:[],fruittea:[],icedcoffee:[],hotcoffee:[]}
+      };
+      window.getSettings  = () => JSON.parse(JSON.stringify(_D));
+      window.saveSettings = () => {};
+      window.resetSettings= () => {};
+    }
+  </script>
   <script src="js/InventorySystem.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/history.js"></script>
