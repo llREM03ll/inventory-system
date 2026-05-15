@@ -19,7 +19,10 @@
    color-fill-lt  : #fdf7f2
 ══════════════════════════════════════════════════════ */
 
-/* ── Reset ─────────────────────────────────────────── */
+/* Prevent negative values in all number inputs */
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { opacity: 1; }
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
