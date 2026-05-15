@@ -110,6 +110,14 @@
   </nav>
 
   <script>
+    // Clamp all number inputs to 0+
+    document.addEventListener("input", e => {
+      if (e.target.type === "number") {
+        const v = parseFloat(e.target.value);
+        if (!isNaN(v) && v < 0) e.target.value = 0;
+      }
+    });
+
     // On reload → go to index (unless a shift is active)
     const _nav = performance.getEntriesByType('navigation')[0];
     if (_nav && _nav.type === 'reload' && !localStorage.getItem('brewsShiftActive')) {
