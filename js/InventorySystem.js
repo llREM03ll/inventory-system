@@ -51,6 +51,8 @@ class InventorySystem {
   }
 
   computeSalaryBonus(totalSales) {
+    // No salary if cup sales don't even cover the base wage
+    if (totalSales < this.salaryBase) return 0;
     let salary = this.salaryBase;
     if (totalSales >= this.salaryBonusThreshold) {
       salary += this.salaryBonusPerK;
