@@ -12,7 +12,6 @@ const FIELD_IDS = [
   "beginHC", "endHC",
   "deliveredM", "deliveredL", "deliveredS", "deliveredHC",
   "damageM", "damageL", "damageS", "damageHC",
-  "needM", "needL", "needS", "needHC",
   "addons"
 ];
 
