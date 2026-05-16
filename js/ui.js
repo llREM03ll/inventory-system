@@ -25,19 +25,39 @@ function addNeedRow(val = "") {
 }
 
 function getAutoCupNeeds() {
+  const low = (typeof getSettings === "function") ? (getSettings().lowStock ?? 5) : 5;
+  const map = [
+    { formId:"endM",  storeKey:"endM",  label:"Medium cups"     },
+    { formId:"endL",  storeKey:"endL",  label:"Large cups"      },
+    { formId:"endS",  storeKey:"endS",  label:"Small cups"      },
+    { formId:"endHC", storeKey:"endHC", label:"Hot Coffee cups" },
+  ];
+
+  // Prefer current form fields — they're the most accurate and always available
+  const formPresent = map.some(m => {
+    const el = document.getElementById(m.formId);
+    return el && el.value !== "" && el.value !== null;
+  });
+
+  if (formPresent) {
+    return map.filter(m => {
+      const el = document.getElementById(m.formId);
+      const val = el && el.value !== "" ? parseFloat(el.value) : 999;
+      return val <= low;
+    }).map(m => {
+      const el  = document.getElementById(m.formId);
+      const val = el && el.value !== "" ? parseFloat(el.value) : 0;
+      return { label: m.label, remaining: val };
+    });
+  }
+
+  // Fall back to POS saved data if form is empty
   const raw = localStorage.getItem("brewsLastEndingCups");
   if (!raw) return [];
   try {
-    const d   = JSON.parse(raw);
-    const low = (typeof getSettings === "function") ? (getSettings().lowStock ?? 5) : 5;
-    const map = [
-      { key:"endM",  label:"Medium cups"     },
-      { key:"endL",  label:"Large cups"      },
-      { key:"endS",  label:"Small cups"      },
-      { key:"endHC", label:"Hot Coffee cups" },
-    ];
-    return map.filter(m => (d[m.key] ?? 999) <= low)
-              .map(m => ({ label: m.label, remaining: d[m.key] ?? 0 }));
+    const d = JSON.parse(raw);
+    return map.filter(m => (d[m.storeKey] ?? 999) <= low)
+              .map(m => ({ label: m.label, remaining: d[m.storeKey] ?? 0 }));
   } catch { return []; }
 }
 
@@ -284,6 +304,7 @@ function calculate() {
     })(),
   };
   renderResults(html);
+  renderNeedsAutoPreview(); // refresh with current form values
   saveInputs();
   window.scrollTo({ top: document.getElementById("results").offsetTop - 20, behavior: "smooth" });
 }
