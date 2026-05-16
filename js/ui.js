@@ -6,7 +6,61 @@
 
 let lastRenderContent = "";
 let lastRenderDate    = "";
-let lastRenderData    = null;  // structured data for clean receipt image
+let lastRenderData    = null;
+let includeNeeds      = true;  // toggle state
+
+// ── Needs helpers ─────────────────────────────────────────────────────────────
+
+function addNeedRow(val = "") {
+  const container = document.getElementById("needsContainer");
+  if (!container) return;
+  const row = document.createElement("div");
+  row.className = "expense-row need-row";
+  row.innerHTML = `
+    <input type="text" class="need-text" placeholder="e.g. Taro syrup, straws, cups…" value="${val}" style="flex:1;">
+    <button type="button" onclick="this.parentElement.remove(); saveInputs();">✕</button>
+  `;
+  row.addEventListener("input", saveInputs);
+  container.appendChild(row);
+}
+
+function getNeedsFromUI() {
+  const cups = [];
+  const v = id => +document.getElementById(id)?.value || 0;
+  if (v("needM"))  cups.push({ label:"Medium cups",     qty:v("needM")  });
+  if (v("needL"))  cups.push({ label:"Large cups",      qty:v("needL")  });
+  if (v("needS"))  cups.push({ label:"Small cups",      qty:v("needS")  });
+  if (v("needHC")) cups.push({ label:"Hot Coffee cups", qty:v("needHC") });
+  const items = [];
+  document.querySelectorAll("#needsContainer .need-row .need-text").forEach(el => {
+    const t = el.value.trim();
+    if (t) items.push(t);
+  });
+  return { cups, items };
+}
+
+function autoFillNeeds() {
+  if (!lastRenderData) return;
+  const d = lastRenderData;
+  const CUP_MAP = [
+    { id:"needM",  label:"Medium cups",     end: d.rows.find(r=>r.item.name==="Medium")?.end     ?? null },
+    { id:"needL",  label:"Large cups",      end: d.rows.find(r=>r.item.name==="Large")?.end      ?? null },
+    { id:"needS",  label:"Small cups",      end: d.rows.find(r=>r.item.name==="Small")?.end      ?? null },
+    { id:"needHC", label:"Hot Coffee cups", end: d.rows.find(r=>r.item.name==="Hot Coffee")?.end ?? null },
+  ];
+  const LOW = (typeof getSettings === "function") ? (getSettings().lowStock ?? 5) : 5;
+  CUP_MAP.forEach(({ id, end }) => {
+    if (end !== null && end <= LOW) {
+      const el = document.getElementById(id);
+      if (el && !el.value) {
+        el.value = Math.max(0, 50 - end); // suggest enough to get to ~50
+        el.style.background = "#fffbea";
+        setTimeout(() => el.style.background = "", 1200);
+      }
+    }
+  });
+  saveInputs();
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -50,7 +104,7 @@ function addExpenseRow(name = "", price = "") {
 // ── Calculate ─────────────────────────────────────────────────────────────────
 
 function calculate() {
-  const v = id => +document.getElementById(id).value || 0;
+  const v = id => { const el = document.getElementById(id); return el ? (+el.value || 0) : 0; };
 
   const cfg    = (typeof getSettings === "function") ? getSettings() : {};
   const system = new InventorySystem(cfg);
@@ -235,6 +289,9 @@ function clearAll() {
   document.querySelectorAll("input").forEach(i => { if (!i.disabled) i.value = ""; });
   document.getElementById("results").innerHTML           = "";
   document.getElementById("expensesContainer").innerHTML = "";
+  if (document.getElementById("needsContainer")) document.getElementById("needsContainer").innerHTML = "";
+  const needsSug = document.getElementById("needsSuggestWrap");
+  if (needsSug) needsSug.style.display = "none";
   addExpenseRow();
   lastRenderContent = ""; lastRenderDate = "";
   clearInputStorage();
@@ -390,6 +447,22 @@ function printReceipt() {
     <div style="text-align:center;margin-top:20px;font-size:0.62rem;color:#c4a98a;letter-spacing:0.1em;text-transform:uppercase;">
       Generated ${new Date().toLocaleString("en-PH")}
     </div>
+
+    ${(() => {
+      if (!includeNeeds) return "";
+      const needs = getNeedsFromUI();
+      const hasCups  = needs.cups.length > 0;
+      const hasItems = needs.items.length > 0;
+      if (!hasCups && !hasItems) return "";
+      const cupRows  = needs.cups.map(c => `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.82rem;border-bottom:1px solid #f0e4d8;"><span>${c.label}</span><span style="font-weight:700;color:#3d2b1a;">${c.qty} pcs</span></div>`).join("");
+      const itemRows = needs.items.map(i => `<div style="padding:4px 0;font-size:0.82rem;color:#5c4631;border-bottom:1px solid #f0e4d8;">• ${i}</div>`).join("");
+      return `
+        <div style="margin-top:18px;border-top:1.5px dashed #d4b89e;padding-top:16px;">
+          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#c0665a;margin-bottom:10px;text-align:center;">📋 Needs / Restock</div>
+          ${hasCups  ? `<div style="margin-bottom:8px;">${cupRows}</div>`  : ""}
+          ${hasItems ? `<div>${itemRows}</div>` : ""}
+        </div>`;
+    })()}
   `;
 
   document.body.appendChild(el);
@@ -415,6 +488,17 @@ function renderResults(contentHTML) {
     <div class="output-actions">
       <button class="primary"   onclick="saveCurrentResults()">Save to History</button>
       <button class="secondary" onclick="printReceipt()">📷 Save as Image</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;">
+      <label style="display:flex;align-items:center;gap:7px;font-size:0.82rem;font-weight:600;color:#7a5c3e;cursor:pointer;">
+        <input type="checkbox" id="needsToggle" ${includeNeeds?"checked":""} onchange="includeNeeds=this.checked;"
+          style="width:16px;height:16px;accent-color:#7a5c3e;cursor:pointer;">
+        Include Needs in Receipt Image
+      </label>
     </div>`;
   delete res.dataset.view;
+
+  // Show auto-suggest button now that we have compute data
+  const sug = document.getElementById("needsSuggestWrap");
+  if (sug) sug.style.display = "block";
 }
