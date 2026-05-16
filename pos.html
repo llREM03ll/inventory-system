@@ -711,8 +711,8 @@ if (typeof getSettings !== "function") {
     quotaStart:3000,lowStock:5,
     flavors:{
       milktea:["Chocolate","Red Velvet","Dark Chocolate","Choco Kisses","Nutella","Black Forest","Mocha","Taro","Cheesecake","Strawberry","Mango Cheesecake","Winter Melon","Okinawa","Salted Caramel","Matcha","Cookies & Cream","Cappuccino","Avocado","Buko Pandan","Vanilla","Hokkaido"],
-      fruittea:["Lychee","Blueberry","Strawberry","Green Apple","Mango","Four Seasons","Passion Fruit","Lemon","Kiwi"],
-      icedcoffee:["Caramel Macchiato","Vanilla","Matcha","Dark Chocolate","Chocolate Espresso","Salted Caramel","Mocha","Brewsko Original","Spanish Latte"],
+      fruittea:["Lychee","Blueberry","Green Apple","Mango","Four Seasons","Passion Fruit","Lemon","Kiwi","Strawberry Ft"],
+      icedcoffee:["Caramel Macchiato","Vanilla","Matcha","Dark Chocolate","Salted Caramel","Mocha","Spanish Latte","Chocolate","Brewsco"],
       hotcoffee:["Matcha","Chocolate","Brewsko","Caramel Latte","Spanish Latte"],
     }
   };
@@ -720,20 +720,27 @@ if (typeof getSettings !== "function") {
   window.saveSettings = () => {};
   window.resetSettings= () => {};
 }
-const FLAVOR_OOS_KEY = "brewsFlavorOOS"; // Set of flavor names (shared across all categories)
+const FLAVOR_OOS_KEY = "brewsFlavorOOS";
+// Storage format:
+//   plain "FlavorName"   → shared across milktea, icedcoffee, hotcoffee (same physical containers)
+//   "FT:FlavorName"      → fruit tea only (separate containers)
 
+function flavorKey(cat, flavor) {
+  return cat === "fruittea" ? "FT:" + flavor : flavor;
+}
 function getOOSFlavors() {
   try { return new Set(JSON.parse(localStorage.getItem(FLAVOR_OOS_KEY) || "[]")); } catch { return new Set(); }
 }
 function saveOOSFlavors(set) {
   localStorage.setItem(FLAVOR_OOS_KEY, JSON.stringify([...set]));
 }
-function isFlavorOOS(flavor) {
-  return getOOSFlavors().has(flavor);
+function isFlavorOOS(cat, flavor) {
+  return getOOSFlavors().has(flavorKey(cat, flavor));
 }
-function toggleFlavorOOS(flavor) {
+function toggleFlavorOOS(cat, flavor) {
   const set = getOOSFlavors();
-  if (set.has(flavor)) set.delete(flavor); else set.add(flavor);
+  const key = flavorKey(cat, flavor);
+  if (set.has(key)) set.delete(key); else set.add(key);
   saveOOSFlavors(set);
 }
 
@@ -752,33 +759,28 @@ function handleFlavorSettingsOverlay(e) {
 
 function renderFlavorSettings() {
   const body = document.getElementById("flavorSettingsBody");
-  const CAT_LABELS = {
-    milktea:    "Milk Tea",
-    fruittea:   "Fruit Tea",
-    icedcoffee: "Iced Coffee",
-    hotcoffee:  "Hot Coffee",
-  };
+  const CAT_LABELS = { milktea:"Milk Tea", fruittea:"Fruit Tea", icedcoffee:"Iced Coffee", hotcoffee:"Hot Coffee" };
+  const SHARED_GROUP = ["milktea","icedcoffee","hotcoffee"];
 
-  // Build set of all unique flavor names for the "shared" indicator
-  const allFlavors = {};
-  Object.entries(FLAVORS).forEach(([cat, flavors]) => {
-    flavors.forEach(f => {
-      if (!allFlavors[f]) allFlavors[f] = [];
-      allFlavors[f].push(cat);
+  // Build shared map within the coffee/milktea group
+  const sharedMap = {};
+  SHARED_GROUP.forEach(cat => {
+    (FLAVORS[cat] || []).forEach(f => {
+      if (!sharedMap[f]) sharedMap[f] = [];
+      sharedMap[f].push(cat);
     });
   });
 
   body.innerHTML = `
     <div style="background:#fdf5eb;border:1.5px solid #e8d5c4;border-radius:11px;padding:10px 13px;font-size:0.78rem;color:#9a7a5e;margin-bottom:14px;line-height:1.55;">
-      ☕ Flavors are shared across drink types — marking one out-of-stock removes it from <em>all</em> drinks that use it.
+      ☕ Same-named flavors in Milk Tea, Iced Coffee & Hot Coffee share one container — toggling one marks it out across all three. Fruit Tea has separate containers.
     </div>` +
   Object.entries(FLAVORS).map(([cat, flavors]) => {
     const pills = flavors.map(f => {
-      const oos    = isFlavorOOS(f);
-      const shared = allFlavors[f].length > 1;
+      const oos = isFlavorOOS(cat, f);
       return `<button class="fsettings-pill${oos?" oos":""}"
-        onclick="toggleFlavorOOS('${f.replace(/'/g,"\\'")}');renderFlavorSettings();">
-        <span style="flex:1;text-align:left;">${f}${shared?`<span style="font-size:0.6rem;opacity:0.55;margin-left:4px;">shared</span>`:""}</span>
+        onclick="toggleFlavorOOS('${cat}','${f.replace(/'/g,"\\'")}');renderFlavorSettings();">
+        <span style="flex:1;text-align:left;">${f}</span>
         <span class="fsettings-dot"></span>
       </button>`;
     }).join("");
@@ -1111,7 +1113,8 @@ function refreshFlavorGrid(drink) {
 
   flavors.forEach(f => {
     const count  = countInOrder(f);
-    const oos    = isFlavorOOS(f);
+    const cat    = DRINK_FLAVOR_CAT[drink.code] || "milktea";
+    const oos    = isFlavorOOS(cat, f);
     const btn    = document.createElement("button");
     btn.className = "flavor-btn" + (count > 0 ? " selected" : "") + (oos ? " oos-flavor" : "");
     if (oos) {
