@@ -64,7 +64,8 @@ function getAutoCupNeeds() {
 function getAutoFlavorNeeds() {
   try {
     const oos = JSON.parse(localStorage.getItem("brewsFlavorOOS") || "[]");
-    return oos.map(entry => entry.split("||")[1]).filter(Boolean);
+    // Storage is now plain flavor names (no cat|| prefix)
+    return [...new Set(oos.filter(Boolean))];
   } catch { return []; }
 }
 
@@ -539,7 +540,6 @@ function printReceipt() {
             ${cupSection}${flavorSection}${otherSection}
           </table>
         </div>`;
-    })()}
     })()}
   `;
 
