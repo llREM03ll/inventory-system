@@ -7,7 +7,7 @@
 let lastRenderContent = "";
 let lastRenderDate    = "";
 let lastRenderData    = null;
-let includeNeeds      = true;  // toggle state
+let includeNeeds      = true;
 
 // ── Needs helpers ─────────────────────────────────────────────────────────────
 
@@ -17,49 +17,77 @@ function addNeedRow(val = "") {
   const row = document.createElement("div");
   row.className = "expense-row need-row";
   row.innerHTML = `
-    <input type="text" class="need-text" placeholder="e.g. Taro syrup, straws, cups…" value="${val}" style="flex:1;">
+    <input type="text" class="need-text" placeholder="e.g. Taro syrup, straws, supplies…" value="${val}" style="flex:1;">
     <button type="button" onclick="this.parentElement.remove(); saveInputs();">✕</button>
   `;
   row.addEventListener("input", saveInputs);
   container.appendChild(row);
 }
 
+function getAutoCupNeeds() {
+  const raw = localStorage.getItem("brewsLastEndingCups");
+  if (!raw) return [];
+  try {
+    const d   = JSON.parse(raw);
+    const low = (typeof getSettings === "function") ? (getSettings().lowStock ?? 5) : 5;
+    const map = [
+      { key:"endM",  label:"Medium cups"     },
+      { key:"endL",  label:"Large cups"      },
+      { key:"endS",  label:"Small cups"      },
+      { key:"endHC", label:"Hot Coffee cups" },
+    ];
+    return map.filter(m => (d[m.key] ?? 999) <= low)
+              .map(m => ({ label: m.label, remaining: d[m.key] ?? 0 }));
+  } catch { return []; }
+}
+
+function getAutoFlavorNeeds() {
+  try {
+    const oos = JSON.parse(localStorage.getItem("brewsFlavorOOS") || "[]");
+    return oos.map(entry => entry.split("||")[1]).filter(Boolean);
+  } catch { return []; }
+}
+
 function getNeedsFromUI() {
-  const cups = [];
-  const v = id => +document.getElementById(id)?.value || 0;
-  if (v("needM"))  cups.push({ label:"Medium cups",     qty:v("needM")  });
-  if (v("needL"))  cups.push({ label:"Large cups",      qty:v("needL")  });
-  if (v("needS"))  cups.push({ label:"Small cups",      qty:v("needS")  });
-  if (v("needHC")) cups.push({ label:"Hot Coffee cups", qty:v("needHC") });
-  const items = [];
+  const cups    = getAutoCupNeeds();
+  const flavors = getAutoFlavorNeeds();
+  const items   = [];
   document.querySelectorAll("#needsContainer .need-row .need-text").forEach(el => {
     const t = el.value.trim();
     if (t) items.push(t);
   });
-  return { cups, items };
+  return { cups, flavors, items };
 }
 
-function autoFillNeeds() {
-  if (!lastRenderData) return;
-  const d = lastRenderData;
-  const CUP_MAP = [
-    { id:"needM",  label:"Medium cups",     end: d.rows.find(r=>r.item.name==="Medium")?.end     ?? null },
-    { id:"needL",  label:"Large cups",      end: d.rows.find(r=>r.item.name==="Large")?.end      ?? null },
-    { id:"needS",  label:"Small cups",      end: d.rows.find(r=>r.item.name==="Small")?.end      ?? null },
-    { id:"needHC", label:"Hot Coffee cups", end: d.rows.find(r=>r.item.name==="Hot Coffee")?.end ?? null },
-  ];
-  const LOW = (typeof getSettings === "function") ? (getSettings().lowStock ?? 5) : 5;
-  CUP_MAP.forEach(({ id, end }) => {
-    if (end !== null && end <= LOW) {
-      const el = document.getElementById(id);
-      if (el && !el.value) {
-        el.value = Math.max(0, 50 - end); // suggest enough to get to ~50
-        el.style.background = "#fffbea";
-        setTimeout(() => el.style.background = "", 1200);
-      }
-    }
-  });
-  saveInputs();
+function renderNeedsAutoPreview() {
+  const preview = document.getElementById("needsAutoPreview");
+  if (!preview) return;
+  const cups    = getAutoCupNeeds();
+  const flavors = getAutoFlavorNeeds();
+  const low     = (typeof getSettings === "function") ? (getSettings().lowStock ?? 5) : 5;
+
+  if (!cups.length && !flavors.length) {
+    preview.innerHTML = `<div style="font-size:0.78rem;color:#b08060;font-style:italic;padding:4px 0 8px;">No low-stock cups or out-of-stock flavors detected from POS.</div>`;
+    return;
+  }
+  let html = "";
+  if (cups.length) {
+    html += `<div style="font-size:0.7rem;font-weight:700;color:#c0665a;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">⚠ Low / Out of Cups</div>`;
+    html += cups.map(c => `
+      <div style="display:flex;align-items:center;justify-content:space-between;
+        background:#fff4f0;border:1.5px solid #f0c8b8;border-radius:10px;
+        padding:8px 12px;margin-bottom:5px;font-size:0.84rem;">
+        <span style="font-weight:600;color:#5c4631;">${c.label}</span>
+        <span style="font-size:0.76rem;color:#c0665a;font-weight:700;">${c.remaining} left (≤${low})</span>
+      </div>`).join("");
+  }
+  if (flavors.length) {
+    html += `<div style="font-size:0.7rem;font-weight:700;color:#c0665a;text-transform:uppercase;letter-spacing:0.08em;margin:${cups.length?10:0}px 0 6px;">🔴 Out-of-Stock Flavors</div>`;
+    html += `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;">`;
+    html += flavors.map(f => `<span style="background:#fff0f0;border:1.5px solid #f0c0c0;border-radius:20px;padding:4px 10px;font-size:0.76rem;font-weight:600;color:#b05050;">${f}</span>`).join("");
+    html += `</div>`;
+  }
+  preview.innerHTML = html;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -290,8 +318,6 @@ function clearAll() {
   document.getElementById("results").innerHTML           = "";
   document.getElementById("expensesContainer").innerHTML = "";
   if (document.getElementById("needsContainer")) document.getElementById("needsContainer").innerHTML = "";
-  const needsSug = document.getElementById("needsSuggestWrap");
-  if (needsSug) needsSug.style.display = "none";
   addExpenseRow();
   lastRenderContent = ""; lastRenderDate = "";
   clearInputStorage();
@@ -451,16 +477,30 @@ function printReceipt() {
     ${(() => {
       if (!includeNeeds) return "";
       const needs = getNeedsFromUI();
-      const hasCups  = needs.cups.length > 0;
-      const hasItems = needs.items.length > 0;
-      if (!hasCups && !hasItems) return "";
-      const cupRows  = needs.cups.map(c => `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.82rem;border-bottom:1px solid #f0e4d8;"><span>${c.label}</span><span style="font-weight:700;color:#3d2b1a;">${c.qty} pcs</span></div>`).join("");
-      const itemRows = needs.items.map(i => `<div style="padding:4px 0;font-size:0.82rem;color:#5c4631;border-bottom:1px solid #f0e4d8;">• ${i}</div>`).join("");
+      const hasCups    = needs.cups.length > 0;
+      const hasFlavors = needs.flavors.length > 0;
+      const hasItems   = needs.items.length > 0;
+      if (!hasCups && !hasFlavors && !hasItems) return "";
+
+      const cupRows = needs.cups.map(c =>
+        `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.82rem;border-bottom:1px solid #f0e4d8;">
+          <span>${c.label}</span>
+          <span style="font-weight:700;color:#c0665a;">${c.remaining} left ⚠</span>
+        </div>`).join("");
+
+      const flavorPills = needs.flavors.map(f =>
+        `<span style="background:#fff0f0;border:1px solid #f0c0c0;border-radius:14px;padding:3px 9px;font-size:0.76rem;font-weight:600;color:#b05050;display:inline-block;margin:2px;">${f}</span>`
+      ).join("");
+
+      const itemRows = needs.items.map(i =>
+        `<div style="padding:4px 0;font-size:0.82rem;color:#5c4631;border-bottom:1px solid #f0e4d8;">• ${i}</div>`).join("");
+
       return `
         <div style="margin-top:18px;border-top:1.5px dashed #d4b89e;padding-top:16px;">
           <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#c0665a;margin-bottom:10px;text-align:center;">📋 Needs / Restock</div>
-          ${hasCups  ? `<div style="margin-bottom:8px;">${cupRows}</div>`  : ""}
-          ${hasItems ? `<div>${itemRows}</div>` : ""}
+          ${hasCups    ? `<div style="margin-bottom:10px;">${cupRows}</div>` : ""}
+          ${hasFlavors ? `<div style="margin-bottom:10px;"><div style="font-size:0.7rem;font-weight:700;color:#c0665a;margin-bottom:6px;">Out-of-Stock Flavors</div>${flavorPills}</div>` : ""}
+          ${hasItems   ? `<div>${itemRows}</div>` : ""}
         </div>`;
     })()}
   `;
@@ -497,8 +537,6 @@ function renderResults(contentHTML) {
       </label>
     </div>`;
   delete res.dataset.view;
-
-  // Show auto-suggest button now that we have compute data
-  const sug = document.getElementById("needsSuggestWrap");
-  if (sug) sug.style.display = "block";
+  // Refresh auto-detected needs preview
+  renderNeedsAutoPreview();
 }
