@@ -85,33 +85,16 @@
     </div>
 
     <div class="section">
-      <h3>Needs <span class="damage-note">what to restock — optionally printed on receipt</span></h3>
+      <h3>Needs <span class="damage-note">auto-detected + manual — optionally printed on receipt</span></h3>
 
-      <!-- Cup needs -->
-      <div style="margin-bottom:10px;">
-        <div style="font-size:0.7rem;font-weight:700;color:#9a7a5e;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;">Cups to Restock</div>
-        <div class="row-2" style="margin-bottom:6px;"><label>Medium</label><input type="number" id="needM" placeholder="0"></div>
-        <div class="row-2" style="margin-bottom:6px;"><label>Large</label><input type="number" id="needL" placeholder="0"></div>
-        <div class="row-2" style="margin-bottom:6px;"><label>Small</label><input type="number" id="needS" placeholder="0"></div>
-        <div class="row-2" style="margin-bottom:6px;"><label>Hot Coffee</label><input type="number" id="needHC" placeholder="0"></div>
-      </div>
+      <!-- Auto-detected preview — populated after compute or on load -->
+      <div id="needsAutoPreview" style="margin-bottom:12px;"></div>
 
-      <!-- Free-text needs -->
+      <!-- Free-text other needs -->
       <div>
         <div style="font-size:0.7rem;font-weight:700;color:#9a7a5e;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;">Other Needs</div>
         <div id="needsContainer"></div>
         <button type="button" class="add-expense-btn" onclick="addNeedRow()">+ Add Item</button>
-      </div>
-
-      <!-- Auto-suggest button (shown after compute) -->
-      <div id="needsSuggestWrap" style="display:none;margin-top:10px;">
-        <button type="button" onclick="autoFillNeeds()" style="
-          display:flex;align-items:center;gap:7px;width:100%;
-          background:#fff8ec;border:1.5px solid #f0d890;border-radius:11px;
-          padding:10px 14px;font-size:0.84rem;font-weight:700;color:#8a6a00;
-          font-family:inherit;cursor:pointer;transition:all .18s;">
-          ⚡ Auto-fill from low/empty cups
-        </button>
       </div>
     </div>
 
