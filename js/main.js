@@ -64,6 +64,9 @@ const SHIFT_KEY = "brewsShiftResult";
       document.getElementById("expensesContainer").innerHTML = "";
       saved.expenses.forEach(e => addExpenseRow(e.name, e.price));
     }
+    if (saved?.needs?.length) {
+      saved.needs.forEach(n => addNeedRow(n));
+    }
   }
 
   attachInputListeners();
