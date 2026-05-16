@@ -3,189 +3,657 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BREWS.CO – Calculate</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="theme-color" content="#6b4f36" />
+  <title>BREWS.CO – History</title>
   <link rel="stylesheet" href="css/styles.css" />
   <style>
-    .damage-note {
-      font-size: 0.68rem; color: #b08060; font-weight: 500;
-      margin-left: 6px; font-style: italic; text-transform: none; letter-spacing: 0;
+    body { align-items: flex-start; }
+    .container { max-width: 720px; }
+
+    /* ── Top bar ── */
+    .top-bar {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 18px;
     }
-    .del-dmg-header {
-      display: grid; grid-template-columns: 96px 1fr 1fr;
-      gap: 8px; margin-bottom: 4px;
+    .delete-all-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #fdf0f0; border: 1.5px solid #f0d5d5; border-radius: 10px;
+      padding: 8px 14px; font-weight: 700; font-size: 0.84rem;
+      color: #c0665a; cursor: pointer; font-family: inherit; transition: all .18s;
     }
-    .del-dmg-header span {
-      font-size: 0.68rem; font-weight: 700; color: #b08060;
-      letter-spacing: 0.07em; text-transform: uppercase; text-align: center;
+    .delete-all-btn:hover { background: #fae0de; transform: translateY(-1px); }
+
+    /* ── Month nav ── */
+    .month-nav {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 14px;
     }
-    .del-dmg-header span:first-child { text-align: left; }
-    .carryover-btn {
-      display: flex; align-items: center; gap: 7px; width: 100%;
-      background: #f0f7f0; border: 1.5px solid #b8ddb8; border-radius: 11px;
-      padding: 11px 14px; font-size: 0.84rem; font-weight: 700; color: #3a7a3a;
-      font-family: inherit; cursor: pointer; margin-bottom: 10px; transition: all .18s;
+    .month-nav h2 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #7a5c3e; }
+    .month-nav button {
+      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 10px;
+      padding: 7px 13px; font-weight: 700; font-size: 0.88rem;
+      cursor: pointer; color: #7a5c3e; font-family: inherit; transition: all .18s;
     }
-    .carryover-btn:hover { background: #e0f0e0; border-color: #8aba8a; transform: translateY(-1px); }
-    .carryover-meta { font-size: 0.7rem; color: #7ab87a; font-weight: 500; margin-left: auto; }
+    .month-nav button:hover { background: #e4d0bf; transform: translateY(-1px); }
+
+    /* ── Calendar ── */
+    .cal-wrapper { overflow-x: auto; }
+    .calendar {
+      width: 100%; border-collapse: separate; border-spacing: 3px;
+      margin-bottom: 6px; min-width: 380px;
+    }
+    .calendar th {
+      background: transparent; color: #9a7a5e; font-weight: 700;
+      font-size: 0.68rem; letter-spacing: 0.09em; text-transform: uppercase;
+      padding: 5px 4px; text-align: center; border: none;
+    }
+    .calendar th.week-col { color: #c4a98a; font-size: 0.64rem; text-align: right; padding-right: 4px; }
+    .calendar td {
+      border: 1.5px solid #e8d5c4; border-radius: 10px; vertical-align: top;
+      height: 66px; padding: 6px; cursor: default; background: #fdf7f2; transition: all .14s;
+    }
+    .calendar td.empty   { background: transparent; border-color: transparent; }
+    .calendar td.has-entry {
+      cursor: pointer; background: #fffaf5; border-color: #d4b89e;
+      box-shadow: 0 1px 4px rgba(122,92,62,0.08);
+    }
+    .calendar td.has-entry:hover {
+      background: #f5ede5; border-color: #c7a27c;
+      box-shadow: 0 3px 10px rgba(122,92,62,0.14); transform: translateY(-1px);
+    }
+    .calendar td.today { border-color: #c7a27c; box-shadow: 0 0 0 2px rgba(199,162,124,0.28); }
+    .calendar td.week-total-cell {
+      background: transparent; border-color: transparent;
+      text-align: right; vertical-align: middle; cursor: default; height: auto; padding: 0 4px;
+    }
+    .week-total-val { font-size: 0.68rem; font-weight: 700; color: #b08060; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .week-total-val.zero { color: #ddd0c4; }
+    .day-num { font-size: 0.72rem; font-weight: 600; color: #c4a98a; display: block; margin-bottom: 2px; }
+    .calendar td.has-entry .day-num { color: #7a5c3e; }
+    .calendar td.today .day-num { color: #5c4631; font-weight: 800; }
+    .day-total { font-size: 0.72rem; font-weight: 700; color: #9a6e52; line-height: 1.3; }
+    .day-badge { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: linear-gradient(135deg,#d4a97c,#9a6e52); margin-top: 4px; }
+    .log-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #7ab87a; margin-top: 4px; margin-left: 3px; vertical-align: top; }
+    .calendar td .dots-row { display: flex; align-items: center; gap: 2px; margin-top: 3px; }
+
+    /* ── Monthly Summary ── */
+    .monthly-summary {
+      margin-top: 14px; background: linear-gradient(135deg, #f9f2eb, #f5ede5);
+      border-radius: 16px; padding: 16px 18px; border: 1.5px solid #e8d5c4;
+    }
+    .monthly-summary h3 { margin: 0 0 10px; }
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 0; font-size: 0.88rem; color: #5c4631; border-bottom: 1px solid #eddcc9;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row.sub { padding-left: 14px; color: #b08060; font-size: 0.82rem; }
+    .summary-row.net { font-weight: 700; font-size: 0.96rem; color: #7a5c3e; border-top: 2px solid #d4b89e; margin-top: 6px; padding-top: 9px; }
+    .summary-row span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .empty-month { text-align: center; padding: 14px 0 6px; color: #b08060; font-size: 0.88rem; }
+
+    /* ── Calendar modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(60,38,20,0.42); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; padding: 20px;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: #fffaf5; border-radius: 16px; padding: 22px;
+      max-width: 520px; width: 100%; max-height: 82vh; overflow-y: auto;
+      box-shadow: 0 8px 40px rgba(122,92,62,0.2); border: 1.5px solid #e8d5c4;
+      transform: translateY(14px) scale(0.98); transition: transform .2s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px; padding-bottom: 11px; border-bottom: 1px solid #e8d5c4;
+    }
+    .modal-header h3 { margin: 0; color: #7a5c3e; font-size: 0.96rem; font-weight: 700; border: none; }
+    .modal-header-actions { display: flex; gap: 8px; }
+    .modal-delete-btn {
+      background: #fdf0f0; border: 1.5px solid #f0d5d5; border-radius: 10px;
+      padding: 8px 13px; font-weight: 700; font-size: 0.84rem; color: #c0665a;
+      cursor: pointer; font-family: inherit; transition: all .16s;
+    }
+    .modal-delete-btn:hover { background: #fae0de; }
+    .modal-close {
+      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 10px;
+      padding: 8px 13px; font-weight: 700; font-size: 0.84rem;
+      color: #7a5c3e; cursor: pointer; font-family: inherit; transition: all .16s;
+    }
+    .modal-close:hover { background: #e4d0bf; }
+    .modal-body table { font-size: 0.84rem; }
+
+    /* ── Retention ── */
+    .retention-desc { font-size: 0.84rem; color: #9a7a5e; margin: 0 0 10px; line-height: 1.5; }
+    .retention-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .retention-pill {
+      background: #f0e4d8; border: 1.5px solid #e0c9b8; border-radius: 20px;
+      padding: 8px 16px; font-size: 0.84rem; font-weight: 700; color: #7a5c3e;
+      cursor: pointer; font-family: inherit; transition: all .16s;
+    }
+    .retention-pill:hover { background: #e4d0bf; }
+    .retention-pill.active {
+      background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
+      border-color: transparent; box-shadow: 0 2px 8px rgba(122,92,62,0.26);
+    }
+    .retention-note { font-size: 0.72rem; color: #b08060; margin-top: 9px; font-style: italic; }
+
+    /* ── Order Logs ── */
+    .order-logs-section { padding-bottom: 28px; }
+    .log-empty { text-align: center; color: #c4a98a; font-size: 0.84rem; padding: 14px 0; }
+    .log-day-item {
+      background: #fffaf5; border: 1.5px solid #e8d5c4; border-radius: 14px;
+      overflow: hidden; margin-bottom: 9px; box-shadow: 0 1px 4px rgba(122,92,62,0.05);
+    }
+    .log-day-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 14px; cursor: pointer; transition: background .14s;
+    }
+    .log-day-header:hover { background: #f5ede5; }
+    .log-day-left { display: flex; flex-direction: column; gap: 2px; }
+    .log-day-date { font-size: 0.84rem; font-weight: 700; color: #5c4631; }
+    .log-day-meta { font-size: 0.7rem; color: #9a7a5e; }
+    .log-day-right { display: flex; align-items: center; gap: 9px; }
+    .log-day-total { font-size: 0.88rem; font-weight: 700; color: #7a5c3e; font-variant-numeric: tabular-nums; }
+    .log-day-chevron { font-size: 0.58rem; color: #c4a98a; transition: transform .18s; }
+    .log-day-item.expanded .log-day-chevron { transform: rotate(180deg); }
+    .log-day-body { border-top: 1px solid #f0e4d8; display: none; }
+    .log-day-item.expanded .log-day-body { display: block; }
+    .log-order-item {
+      border-bottom: 1px solid #f5ede5; padding: 9px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .log-order-item:last-child { border-bottom: none; }
+    .log-order-num {
+      font-size: 0.68rem; font-weight: 700; color: #c4a98a;
+      background: #f5ede5; border-radius: 6px; padding: 2px 7px;
+      white-space: nowrap; margin-top: 1px; flex-shrink: 0;
+    }
+    .log-order-num.done-badge { color: #3a7a3a; background: #e6f5e6; }
+    .log-order-info { flex: 1; min-width: 0; }
+    .log-order-desc    { font-size: 0.82rem; color: #5c4631; font-weight: 600; line-height: 1.4; }
+    .log-order-flavors { font-size: 0.7rem; color: #9a7a5e; margin-top: 1px; }
+    .log-order-addons  { font-size: 0.7rem; color: #b08060; margin-top: 1px; }
+    .log-order-payment { font-size: 0.7rem; color: #7a5c3e; margin-top: 2px; }
+    .log-order-total   { font-size: 0.82rem; font-weight: 700; color: #7a5c3e; font-variant-numeric: tabular-nums; white-space: nowrap; padding-top: 1px; }
+    .log-delete-btn {
+      background: #fdf0f0; border: 1.5px solid #f0d5d5; border-radius: 8px;
+      padding: 5px 10px; font-size: 0.7rem; font-weight: 700; color: #c0665a;
+      cursor: pointer; font-family: inherit; transition: all .14s; flex-shrink: 0;
+    }
+    .log-delete-btn:hover { background: #fae0de; }
+
     @media (max-width: 600px) {
-      .del-dmg-header { display: none; }
+      .calendar td { height: 50px; padding: 4px; border-radius: 8px; }
+      .day-total { font-size: 0.65rem; }
+      .day-num   { font-size: 0.65rem; }
+      .modal { padding: 16px; }
     }
   </style>
 </head>
 <body class="has-bottom-nav">
-  <div class="container">
-    <a href="index.html" style="text-decoration:none;">
-      <div class="brand">BREWS.CO</div>
-      <div class="brand-sub">Calculate</div>
-    </a>
+<div class="container">
 
-    <div id="carryoverWrap" style="display:none;">
-      <button class="carryover-btn" onclick="useYesterdaysEnding()">
-        📋 Use Yesterday's Ending Cups
-        <span class="carryover-meta" id="carryoverMeta"></span>
-      </button>
-    </div>
-
-    <div class="section">
-      <h3>Input Cups</h3>
-      <!-- M and L have 3 real inputs: begin, end, tally -->
-      <div class="row"><label>Medium</label><input type="number" id="beginM" placeholder="Begin"><input type="number" id="endM" placeholder="End"><input type="number" id="tallyMC" placeholder="MC Tally"></div>
-      <div class="row"><label>Large</label><input type="number" id="beginL" placeholder="Begin"><input type="number" id="endL" placeholder="End"><input type="number" id="tallyLC" placeholder="LC Tally"></div>
-      <!-- S and HC only have begin + end -->
-      <div class="row-2"><label>Small</label><input type="number" id="beginS" placeholder="Begin"><input type="number" id="endS" placeholder="End"></div>
-      <div class="row-2"><label>Hot Coffee</label><input type="number" id="beginHC" placeholder="Begin"><input type="number" id="endHC" placeholder="End"></div>
-    </div>
-
-    <div class="section">
-      <h3>Delivered &amp; Damage <span class="damage-note">optional — shown in receipt only</span></h3>
-      <div class="del-dmg-header">
-        <span>Cup</span><span>Delivered</span><span>Damage</span>
-      </div>
-      <div class="row-2"><label>Medium</label><input type="number" id="deliveredM" placeholder="0"><input type="number" id="damageM" placeholder="0"></div>
-      <div class="row-2"><label>Large</label><input type="number" id="deliveredL" placeholder="0"><input type="number" id="damageL" placeholder="0"></div>
-      <div class="row-2"><label>Small</label><input type="number" id="deliveredS" placeholder="0"><input type="number" id="damageS" placeholder="0"></div>
-      <div class="row-2"><label>Hot Coffee</label><input type="number" id="deliveredHC" placeholder="0"><input type="number" id="damageHC" placeholder="0"></div>
-    </div>
-
-    <div class="section">
-      <h3>Expenses &amp; Addons</h3>
-      <div id="expensesContainer">
-        <div class="expense-row">
-          <input type="text" class="exp-name" placeholder="Item name">
-          <input type="number" class="exp-price" placeholder="₱0">
-          <button type="button" onclick="this.parentElement.remove(); saveInputs();">✕</button>
-        </div>
-      </div>
-      <button type="button" class="add-expense-btn" onclick="addExpenseRow()">+ Add Expense</button>
-      <!-- Addons: single input, no dummy blanks -->
-      <div class="row-addon" style="margin-top:12px;">
-        <label>Addons</label>
-        <input type="number" id="addons" placeholder="₱0">
-      </div>
-    </div>
-
-    <div class="section">
-      <h3>Needs <span class="damage-note">auto-detected + manual — optionally printed on receipt</span></h3>
-
-      <!-- Auto-detected preview — populated after compute or on load -->
-      <div id="needsAutoPreview" style="margin-bottom:12px;"></div>
-
-      <!-- Free-text other needs -->
-      <div>
-        <div style="font-size:0.7rem;font-weight:700;color:#9a7a5e;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;">Other Needs</div>
-        <div id="needsContainer"></div>
-        <button type="button" class="add-expense-btn" onclick="addNeedRow()">+ Add Item</button>
-      </div>
-    </div>
-
-    <div class="button-group">
-      <button onclick="calculate()">Compute</button>
-      <button onclick="clearAll()" class="secondary">Clear All</button>
-    </div>
-
-    <div class="section">
-      <div id="results"></div>
-    </div>
+  <div class="top-bar">
+    <a href="index.html" class="back-btn">← Back</a>
+    <button class="delete-all-btn" onclick="deleteAllHistory()">🗑 Delete All</button>
   </div>
 
-  <nav class="bottom-nav">
-    <a href="calculate.html" class="bottom-nav-item active">
-      <span class="bottom-nav-icon">🧮</span>
-      <span class="bottom-nav-label">Calculate</span>
-    </a>
-    <a href="pos.html" class="bottom-nav-item bottom-nav-shift" id="shiftNavBtn">
-      <span class="bottom-nav-shift-pill">🧋</span>
-      <span class="bottom-nav-label" id="shiftNavLabel">Shift</span>
-    </a>
-    <a href="calendar.html" class="bottom-nav-item">
-      <span class="bottom-nav-icon">📅</span>
-      <span class="bottom-nav-label">History</span>
-    </a>
-  </nav>
+  <a href="index.html" style="text-decoration:none;display:block;text-align:center;">
+    <div class="brand">BREWS.CO</div>
+    <div class="brand-sub">History</div>
+  </a>
 
-  <script>
-    // Clamp all number inputs to 0+
-    document.addEventListener("input", e => {
-      if (e.target.type === "number") {
-        const v = parseFloat(e.target.value);
-        if (!isNaN(v) && v < 0) e.target.value = 0;
+  <div class="month-nav">
+    <button onclick="changeMonth(-1)">&#8592;</button>
+    <h2 id="monthTitle"></h2>
+    <button onclick="changeMonth(1)">&#8594;</button>
+  </div>
+
+  <div class="cal-wrapper">
+    <table class="calendar" id="calendarTable">
+      <thead>
+        <tr>
+          <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th>
+          <th>Thu</th><th>Fri</th><th>Sat</th>
+          <th class="week-col">Week</th>
+        </tr>
+      </thead>
+      <tbody id="calendarBody"></tbody>
+    </table>
+  </div>
+  <div style="display:flex;gap:14px;padding:4px 2px 2px;font-size:0.72rem;color:#9a7a5e;">
+    <span style="display:flex;align-items:center;gap:5px;">
+      <span style="width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#d4a97c,#9a6e52);display:inline-block;"></span> Inventory saved
+    </span>
+    <span style="display:flex;align-items:center;gap:5px;">
+      <span style="width:7px;height:7px;border-radius:50%;background:#7ab87a;display:inline-block;"></span> Order log saved
+    </span>
+  </div>
+
+  <div class="section monthly-exp-section">
+    <h3>Monthly Expenses</h3>
+    <div id="monthlyExpContainer"></div>
+    <button class="add-expense-btn" onclick="addMonthlyExpRow()">+ Add Monthly Expense</button>
+  </div>
+
+  <div class="monthly-summary" id="monthlySummary"></div>
+
+  <!-- Retention Settings -->
+  <div class="section retention-section">
+    <h3>Order Log Retention</h3>
+    <p class="retention-desc">Saved shift orders auto-delete after a set period. Choose how long to keep them:</p>
+    <div class="retention-pills" id="retentionPills"></div>
+    <p class="retention-note" id="retentionNote"></p>
+  </div>
+
+  <!-- Saved Order Logs -->
+  <div class="section order-logs-section">
+    <h3>Saved Order Logs</h3>
+    <div id="orderLogsContainer"></div>
+  </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalDate"></h3>
+      <div class="modal-header-actions">
+        <button class="modal-delete-btn" onclick="deleteCurrentEntry()">🗑 Delete</button>
+        <button class="modal-close" onclick="closeModal()">✕ Close</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="js/history.js"></script>
+<script>
+  const today    = new Date();
+  let curYear    = today.getFullYear();
+  let curMonth   = today.getMonth();
+  let currentModalDate = "";
+
+  const MONTH_NAMES = ["January","February","March","April","May","June",
+                       "July","August","September","October","November","December"];
+
+  function formatMoney(value) {
+    return "₱" + Number(value||0).toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
+  function extractFinalTotal(html) {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    for (const row of div.querySelectorAll("tr")) {
+      const cells = row.querySelectorAll("td");
+      if (cells.length >= 2 && cells[0].textContent.includes("Final Total"))
+        return cells[1].textContent.trim();
+    }
+    return null;
+  }
+
+  function parseMoney(str) {
+    return parseFloat((str||"").replace(/[₱,]/g,"")) || 0;
+  }
+
+  // ── Monthly Expenses ─────────────────────────────────────────────────────
+  function monthKey() {
+    return `brewsMonthlyExp_${curYear}-${String(curMonth+1).padStart(2,"0")}`;
+  }
+
+  function saveMonthlyExpenses() {
+    const rows = document.querySelectorAll("#monthlyExpContainer .expense-row");
+    const list = [];
+    rows.forEach(r => {
+      const name  = r.querySelector(".exp-name").value.trim();
+      const price = parseFloat(r.querySelector(".exp-price").value) || 0;
+      if (name || price) list.push({name, price});
+    });
+    localStorage.setItem(monthKey(), JSON.stringify(list));
+    renderSummary();
+  }
+
+  function loadMonthlyExpenses() {
+    try { return JSON.parse(localStorage.getItem(monthKey())) || []; } catch { return []; }
+  }
+
+  function addMonthlyExpRow(name="", price="") {
+    const container = document.getElementById("monthlyExpContainer");
+    const row = document.createElement("div");
+    row.className = "expense-row";
+    row.innerHTML = `
+      <input type="text"   class="exp-name"  placeholder="Expense name" value="${name}">
+      <input type="number" class="exp-price" placeholder="₱0"           value="${price}">
+      <button type="button" onclick="this.parentElement.remove(); saveMonthlyExpenses();">x</button>
+    `;
+    row.addEventListener("input", saveMonthlyExpenses);
+    container.appendChild(row);
+  }
+
+  function renderMonthlyExpenses() {
+    const container = document.getElementById("monthlyExpContainer");
+    container.innerHTML = "";
+    const list = loadMonthlyExpenses();
+    if (list.length) list.forEach(e => addMonthlyExpRow(e.name, e.price));
+    else addMonthlyExpRow();
+  }
+
+  // ── Calendar ─────────────────────────────────────────────────────────────
+  function renderCalendar() {
+    document.getElementById("monthTitle").textContent = `${MONTH_NAMES[curMonth]} ${curYear}`;
+
+    const history     = getAllHistory();
+    const firstDay    = new Date(curYear, curMonth, 1).getDay();
+    const daysInMonth = new Date(curYear, curMonth+1, 0).getDate();
+    const todayStr    = today.toISOString().split("T")[0];
+
+    const entryMap = {};
+    history.forEach(h => { entryMap[h.date] = h; });
+
+    // Build set of dates that have saved POS order logs
+    const orderLogs  = JSON.parse(localStorage.getItem(ORDER_LOG_KEY) || "[]");
+    const logDateSet = new Set(orderLogs.map(l => l.date));
+
+    const tbody = document.getElementById("calendarBody");
+    tbody.innerHTML = "";
+
+    const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+
+    for (let i = 0; i < totalCells; i += 7) {
+      const tr = document.createElement("tr");
+      let weekTotal = 0;
+
+      for (let j = 0; j < 7; j++) {
+        const cell    = i + j;
+        const day     = cell - firstDay + 1;
+        const td      = document.createElement("td");
+
+        if (cell < firstDay || day > daysInMonth) {
+          td.classList.add("empty");
+        } else {
+          const dateStr  = `${curYear}-${String(curMonth+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+          const entry    = entryMap[dateStr];
+          const hasLog   = logDateSet.has(dateStr);
+          td.innerHTML   = `<span class="day-num">${day}</span>`;
+
+          if (entry) {
+            const totalStr = extractFinalTotal(entry.results);
+            const totalNum = parseMoney(totalStr);
+            weekTotal += totalNum;
+            td.classList.add("has-entry");
+            if (totalStr) td.innerHTML += `<div class="day-total">${totalStr}</div>`;
+          }
+
+          // Dots row — brown dot for inventory save, green dot for order log
+          if (entry || hasLog) {
+            const dots = `<div class="dots-row">
+              ${entry   ? `<span class="day-badge" title="Inventory saved"></span>` : ""}
+              ${hasLog  ? `<span class="log-dot"   title="Order log saved"></span>` : ""}
+            </div>`;
+            td.innerHTML += dots;
+            if (!td.classList.contains("has-entry")) td.classList.add("has-entry");
+          }
+
+          if (entry) td.addEventListener("click", () => openModal(dateStr, entry));
+          else if (hasLog) td.addEventListener("click", () => {
+            document.getElementById("orderLogsContainer")
+              ?.querySelector(`#logday-${dateStr}`)
+              ?.scrollIntoView({ behavior: "smooth", block: "center" });
+            // also expand it
+            document.getElementById(`logday-${dateStr}`)?.classList.add("expanded");
+          });
+
+          if (dateStr === todayStr) td.classList.add("today");
+        }
+
+        tr.appendChild(td);
       }
+
+      // Week total cell
+      const wtd = document.createElement("td");
+      wtd.className = "week-total-cell";
+      wtd.innerHTML = weekTotal > 0
+        ? `<span class="week-total-val">${formatMoney(weekTotal)}</span>`
+        : `<span class="week-total-val zero">—</span>`;
+      tr.appendChild(wtd);
+      tbody.appendChild(tr);
+    }
+
+    renderMonthlyExpenses();
+    renderSummary();
+  }
+
+  // ── Monthly Summary ───────────────────────────────────────────────────────
+  function renderSummary() {
+    const history = getAllHistory();
+    const prefix  = `${curYear}-${String(curMonth+1).padStart(2,"0")}`;
+
+    let totalRevenue = 0;
+    history.forEach(h => {
+      if (h.date.startsWith(prefix)) totalRevenue += parseMoney(extractFinalTotal(h.results));
     });
 
-    // On reload → go to index (unless a shift is active)
-    const _nav = performance.getEntriesByType('navigation')[0];
-    if (_nav && _nav.type === 'reload' && !localStorage.getItem('brewsShiftActive')) {
-      window.location.replace('index.html');
-    }
-    if (localStorage.getItem("brewsShiftActive")) {
-      document.getElementById("shiftNavLabel").textContent = "↩ Shift";
+    const expList  = loadMonthlyExpenses().filter(e => e.name && e.price > 0);
+    const totalExp = expList.reduce((s,e) => s + e.price, 0);
+    const net      = totalRevenue - totalExp;
+    const el       = document.getElementById("monthlySummary");
+
+    if (totalRevenue === 0 && expList.length === 0) {
+      el.innerHTML = `<h3>Monthly Summary</h3><p class="empty-month">No entries for ${MONTH_NAMES[curMonth]} ${curYear}.</p>`;
+      return;
     }
 
-    // Carry-over button
-    (function initCarryover() {
-      const raw = localStorage.getItem("brewsLastEndingCups");
-      if (!raw) return;
-      try {
-        const d = JSON.parse(raw);
-        const wrap = document.getElementById("carryoverWrap");
-        const meta = document.getElementById("carryoverMeta");
-        wrap.style.display = "block";
-        meta.textContent = d.date ? `from ${d.date}` : "";
-        window.useYesterdaysEnding = function() {
-          const fields = { beginM: d.endM, beginL: d.endL, beginS: d.endS, beginHC: d.endHC };
-          Object.entries(fields).forEach(([id, val]) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.value = val;
-            el.style.transition = "background .4s";
-            el.style.background = "#e6f5e6";
-            setTimeout(() => el.style.background = "", 900);
-          });
-          if (typeof saveInputs === "function") saveInputs();
-        };
-      } catch {}
-    })();
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="js/settings.js"></script>
-  <script>
-    if (typeof getSettings !== "function") {
-      const _D = {
-        prices:{ M:29,L:39,S:25,MC:35,LC:45,HC:45,FTM:29,FTL:39 },
-        addonPrices:{"Pearl":6,"Nata":6,"Coffee Jelly":6,"Oreo":6,"Cream Cheese":10,"Espresso Shot":6},
-        salaryBase:350,salaryBonusThreshold:3000,salaryBonusPerK:50,
-        quotaStart:3000,lowStock:5,
-        flavors:{milktea:[],fruittea:[],icedcoffee:[],hotcoffee:[]}
-      };
-      window.getSettings  = () => JSON.parse(JSON.stringify(_D));
-      window.saveSettings = () => {};
-      window.resetSettings= () => {};
+    let html = `<h3>Monthly Summary — ${MONTH_NAMES[curMonth]} ${curYear}</h3>
+      <div class="summary-row"><span>Total Daily Revenue</span><span>${formatMoney(totalRevenue)}</span></div>`;
+
+    if (expList.length) {
+      html += `<div class="summary-row"><span>Monthly Expenses</span><span>- ${formatMoney(totalExp)}</span></div>`;
+      expList.forEach(e => { html += `<div class="summary-row sub"><span>${e.name}</span><span>- ${formatMoney(e.price)}</span></div>`; });
     }
-  </script>
-  <script src="js/InventorySystem.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/history.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/main.js"></script>
+
+    html += `<div class="summary-row net"><span>Net Monthly Income</span><span>${formatMoney(net)}</span></div>`;
+    el.innerHTML = html;
+  }
+
+  // ── Month nav ─────────────────────────────────────────────────────────────
+  function changeMonth(dir) {
+    curMonth += dir;
+    if (curMonth > 11) { curMonth = 0;  curYear++; }
+    if (curMonth < 0)  { curMonth = 11; curYear--; }
+    renderCalendar();
+  }
+
+  // ── Modal ─────────────────────────────────────────────────────────────────
+  function openModal(dateStr, entry) {
+    currentModalDate = dateStr;
+    document.getElementById("modalDate").textContent = `Receipt — ${dateStr}`;
+    document.getElementById("modalBody").innerHTML   = entry.results;
+    document.getElementById("modalOverlay").classList.add("open");
+  }
+
+  function closeModal() {
+    document.getElementById("modalOverlay").classList.remove("open");
+    currentModalDate = "";
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById("modalOverlay")) closeModal();
+  }
+
+  function deleteCurrentEntry() {
+    if (!currentModalDate) return;
+    if (!confirm(`Delete entry for ${currentModalDate}?`)) return;
+    deleteHistoryByDate(currentModalDate);
+    closeModal();
+    renderCalendar();
+  }
+
+  function deleteAllHistory() {
+    if (!confirm("Delete ALL inventory history and order logs? This cannot be undone.")) return;
+    clearAllHistory();
+    localStorage.removeItem(ORDER_LOG_KEY);
+    renderCalendar();
+    renderOrderLogs();
+  }
+
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+  // ══════════════════════════════════════════════════════
+  //  ORDER LOG RETENTION & DISPLAY
+  // ══════════════════════════════════════════════════════
+  const ORDER_LOG_KEY  = "brewsOrderLog";
+  const RETENTION_KEY  = "brewsOrderRetention";
+  const ADDONS_PRICES  = {
+    "Pearl":6,"Nata":6,"Coffee Jelly":6,"Oreo":6,"Cream Cheese":10,"Espresso Shot":6
+  };
+
+  const RETENTION_OPTIONS = [
+    { label: "3 Days",  days: 3  },
+    { label: "1 Week",  days: 7  },
+    { label: "2 Weeks", days: 14 },
+    { label: "1 Month", days: 30 },
+  ];
+
+  function getRetentionDays() {
+    return parseInt(localStorage.getItem(RETENTION_KEY) || "7");
+  }
+
+  function setRetention(days) {
+    localStorage.setItem(RETENTION_KEY, days);
+    cleanupOrderLogs();
+    renderRetentionPills();
+    renderOrderLogs();
+  }
+
+  function cleanupOrderLogs() {
+    const days   = getRetentionDays();
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    const logs   = JSON.parse(localStorage.getItem(ORDER_LOG_KEY) || "[]");
+    const kept   = logs.filter(l => {
+      const ts = l.savedAt || new Date(l.date + "T23:59:59").getTime();
+      return ts > cutoff;
+    });
+    localStorage.setItem(ORDER_LOG_KEY, JSON.stringify(kept));
+  }
+
+  function deleteOrderLog(date) {
+    if (!confirm(`Delete order log for ${date}?`)) return;
+    const logs = JSON.parse(localStorage.getItem(ORDER_LOG_KEY) || "[]");
+    localStorage.setItem(ORDER_LOG_KEY, JSON.stringify(logs.filter(l => l.date !== date)));
+    renderOrderLogs();
+  }
+
+  function renderRetentionPills() {
+    const current = getRetentionDays();
+    const container = document.getElementById("retentionPills");
+    const note      = document.getElementById("retentionNote");
+    container.innerHTML = "";
+    RETENTION_OPTIONS.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "retention-pill" + (opt.days === current ? " active" : "");
+      btn.textContent = opt.label;
+      btn.addEventListener("click", () => setRetention(opt.days));
+      container.appendChild(btn);
+    });
+    const opt = RETENTION_OPTIONS.find(o => o.days === current) || RETENTION_OPTIONS[1];
+    note.textContent = `Currently keeping logs for ${opt.label.toLowerCase()}. Older logs are deleted automatically on page load.`;
+  }
+
+  function renderOrderLogs() {
+    const container = document.getElementById("orderLogsContainer");
+    const raw       = localStorage.getItem(ORDER_LOG_KEY);
+    const logs      = raw ? JSON.parse(raw) : [];
+
+    if (!logs.length) {
+      container.innerHTML = `<div class="log-empty">No saved order logs yet. Logs appear here after you end a shift in the POS.</div>`;
+      return;
+    }
+
+    // Sort newest first
+    const sorted = [...logs].sort((a, b) => b.date.localeCompare(a.date));
+
+    container.innerHTML = sorted.map(log => {
+      const orders    = log.orders || [];
+      const dayTotal  = orders.reduce((s, o) => s + (o.total || 0), 0);
+      const doneCount = orders.filter(o => o.done).length;
+
+      const orderRows = orders.map(order => {
+        const desc = order.items.map(i => `${i.qty}×${i.code}`).join(", ");
+        const flavors = order.items.filter(i => i.flavor).map(i => `${i.code}: ${i.flavor}`).join(" · ");
+        const addons  = Object.entries(order.addons || {})
+          .map(([n, q]) => `${q}× ${n}`).join(", ");
+        const change  = order.given > 0 ? order.given - order.total : null;
+        const isDone  = !!order.done;
+        return `
+          <div class="log-order-item">
+            <span class="log-order-num${isDone ? " done-badge" : ""}">#${order.id}${isDone ? " ✓" : ""}</span>
+            <div class="log-order-info">
+              <div class="log-order-desc">${desc} — ${formatMoney(order.total)}</div>
+              ${flavors ? `<div class="log-order-flavors">🍵 ${flavors}</div>` : ""}
+              ${addons  ? `<div class="log-order-addons">+ ${addons}</div>` : ""}
+              ${order.given > 0 ? `<div class="log-order-payment">Given ${formatMoney(order.given)} · ${change >= 0 ? "Change" : "Short"} ${formatMoney(Math.abs(change))}</div>` : ""}
+            </div>
+            <span class="log-order-total">${order.time || ""}</span>
+          </div>`;
+      }).join("");
+
+      return `
+        <div class="log-day-item" id="logday-${log.date}">
+          <div class="log-day-header" onclick="document.getElementById('logday-${log.date}').classList.toggle('expanded')">
+            <div class="log-day-left">
+              <span class="log-day-date">${log.date}</span>
+              <span class="log-day-meta">${orders.length} order${orders.length !== 1 ? "s" : ""} · ${doneCount} done</span>
+            </div>
+            <div class="log-day-right">
+              <span class="log-day-total">${formatMoney(dayTotal)}</span>
+              <button class="log-delete-btn" onclick="event.stopPropagation();deleteOrderLog('${log.date}')">🗑</button>
+              <span class="log-day-chevron">▼</span>
+            </div>
+          </div>
+          <div class="log-day-body">${orderRows}</div>
+        </div>`;
+    }).join("");
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  cleanupOrderLogs();
+  renderRetentionPills();
+  renderOrderLogs();
+  renderCalendar();
+</script>
+
+<nav class="bottom-nav">
+  <a href="calculate.html" class="bottom-nav-item">
+    <span class="bottom-nav-icon">🧮</span>
+    <span class="bottom-nav-label">Calculate</span>
+  </a>
+  <a href="pos.html" class="bottom-nav-item bottom-nav-shift" id="shiftNavBtn">
+    <span class="bottom-nav-shift-pill">🧋</span>
+    <span class="bottom-nav-label" id="shiftNavLabel">Shift</span>
+  </a>
+  <a href="calendar.html" class="bottom-nav-item active">
+    <span class="bottom-nav-icon">📅</span>
+    <span class="bottom-nav-label">History</span>
+  </a>
+</nav>
+<script>
+  const _nav = performance.getEntriesByType('navigation')[0];
+  if (_nav && _nav.type === 'reload' && !localStorage.getItem('brewsShiftActive')) {
+    window.location.replace('index.html');
+  }
+  if (localStorage.getItem("brewsShiftActive")) {
+    document.getElementById("shiftNavLabel").textContent = "↩ Shift";
+    document.getElementById("shiftNavBtn").title = "Return to active shift";
+  }
+</script>
 </body>
 </html>
