@@ -70,6 +70,7 @@ const SHIFT_KEY = "brewsShiftResult";
   }
 
   attachInputListeners();
+  renderNeedsAutoPreview();
 })();
 
 function showShiftBanner() {
