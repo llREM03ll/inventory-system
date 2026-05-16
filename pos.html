@@ -720,7 +720,7 @@ if (typeof getSettings !== "function") {
   window.saveSettings = () => {};
   window.resetSettings= () => {};
 }
-const FLAVOR_OOS_KEY = "brewsFlavorOOS"; // Set of "cat||flavor" strings
+const FLAVOR_OOS_KEY = "brewsFlavorOOS"; // Set of flavor names (shared across all categories)
 
 function getOOSFlavors() {
   try { return new Set(JSON.parse(localStorage.getItem(FLAVOR_OOS_KEY) || "[]")); } catch { return new Set(); }
@@ -728,13 +728,12 @@ function getOOSFlavors() {
 function saveOOSFlavors(set) {
   localStorage.setItem(FLAVOR_OOS_KEY, JSON.stringify([...set]));
 }
-function isFlavorOOS(cat, flavor) {
-  return getOOSFlavors().has(cat + "||" + flavor);
+function isFlavorOOS(flavor) {
+  return getOOSFlavors().has(flavor);
 }
-function toggleFlavorOOS(cat, flavor) {
+function toggleFlavorOOS(flavor) {
   const set = getOOSFlavors();
-  const key = cat + "||" + flavor;
-  if (set.has(key)) set.delete(key); else set.add(key);
+  if (set.has(flavor)) set.delete(flavor); else set.add(flavor);
   saveOOSFlavors(set);
 }
 
@@ -759,12 +758,27 @@ function renderFlavorSettings() {
     icedcoffee: "Iced Coffee",
     hotcoffee:  "Hot Coffee",
   };
-  body.innerHTML = Object.entries(FLAVORS).map(([cat, flavors]) => {
+
+  // Build set of all unique flavor names for the "shared" indicator
+  const allFlavors = {};
+  Object.entries(FLAVORS).forEach(([cat, flavors]) => {
+    flavors.forEach(f => {
+      if (!allFlavors[f]) allFlavors[f] = [];
+      allFlavors[f].push(cat);
+    });
+  });
+
+  body.innerHTML = `
+    <div style="background:#fdf5eb;border:1.5px solid #e8d5c4;border-radius:11px;padding:10px 13px;font-size:0.78rem;color:#9a7a5e;margin-bottom:14px;line-height:1.55;">
+      ☕ Flavors are shared across drink types — marking one out-of-stock removes it from <em>all</em> drinks that use it.
+    </div>` +
+  Object.entries(FLAVORS).map(([cat, flavors]) => {
     const pills = flavors.map(f => {
-      const oos = isFlavorOOS(cat, f);
+      const oos    = isFlavorOOS(f);
+      const shared = allFlavors[f].length > 1;
       return `<button class="fsettings-pill${oos?" oos":""}"
-        onclick="toggleFlavorOOS('${cat}','${f.replace(/'/g,"\\'")}');renderFlavorSettings();">
-        <span style="flex:1;text-align:left;">${f}</span>
+        onclick="toggleFlavorOOS('${f.replace(/'/g,"\\'")}');renderFlavorSettings();">
+        <span style="flex:1;text-align:left;">${f}${shared?`<span style="font-size:0.6rem;opacity:0.55;margin-left:4px;">shared</span>`:""}</span>
         <span class="fsettings-dot"></span>
       </button>`;
     }).join("");
@@ -1097,8 +1111,7 @@ function refreshFlavorGrid(drink) {
 
   flavors.forEach(f => {
     const count  = countInOrder(f);
-    const cat    = DRINK_FLAVOR_CAT[drink.code] || "milktea";
-    const oos    = isFlavorOOS(cat, f);
+    const oos    = isFlavorOOS(f);
     const btn    = document.createElement("button");
     btn.className = "flavor-btn" + (count > 0 ? " selected" : "") + (oos ? " oos-flavor" : "");
     if (oos) {
@@ -1515,6 +1528,12 @@ function confirmEndShift() {
   const endL  = state.begL  - t.L  - t.LC  - t.FTL;
   const endS  = state.begS  - t.S;
   const endHC = state.begHC - t.HC;
+
+  // Save ending cups immediately — calculate page reads this for needs detection
+  localStorage.setItem("brewsLastEndingCups", JSON.stringify({
+    endM, endL, endS, endHC,
+    date: new Date().toISOString().split("T")[0],
+  }));
 
   localStorage.setItem(SHIFT_KEY, JSON.stringify({
     begM:state.begM,   endM,
