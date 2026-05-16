@@ -36,12 +36,12 @@ const SETTINGS_DEFAULTS = {
       "Buko Pandan","Vanilla","Hokkaido"
     ],
     fruittea: [
-      "Lychee","Blueberry","Strawberry","Green Apple","Mango",
-      "Four Seasons","Passion Fruit","Lemon","Kiwi"
+      "Lychee","Blueberry","Green Apple","Mango",
+      "Four Seasons","Passion Fruit","Lemon","Kiwi","Strawberry Ft"
     ],
     icedcoffee: [
-      "Caramel Macchiato","Vanilla","Matcha","Dark Chocolate","Chocolate Espresso",
-      "Salted Caramel","Mocha","Brewsko Original","Spanish Latte"
+      "Caramel Macchiato","Vanilla","Matcha","Dark Chocolate",
+      "Salted Caramel","Mocha","Spanish Latte","Chocolate","Brewsco"
     ],
     hotcoffee: [
       "Matcha","Chocolate","Brewsko","Caramel Latte","Spanish Latte"
