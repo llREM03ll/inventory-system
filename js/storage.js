@@ -12,6 +12,7 @@ const FIELD_IDS = [
   "beginHC", "endHC",
   "deliveredM", "deliveredL", "deliveredS", "deliveredHC",
   "damageM", "damageL", "damageS", "damageHC",
+  "needM", "needL", "needS", "needHC",
   "addons"
 ];
 
@@ -29,6 +30,14 @@ function saveInputs() {
       price: row.querySelector(".exp-price").value
     });
   });
+
+  const needRows = document.querySelectorAll("#needsContainer .need-row");
+  state._needs = [];
+  needRows.forEach(row => {
+    const val = row.querySelector(".need-text")?.value?.trim();
+    if (val) state._needs.push(val);
+  });
+
   localStorage.setItem(INPUT_STORAGE_KEY, JSON.stringify(state));
 }
 
@@ -41,7 +50,7 @@ function restoreInputs() {
       const el = document.getElementById(id);
       if (el && state[id] !== undefined) el.value = state[id];
     });
-    return { expenses: state._expenses || [] };
+    return { expenses: state._expenses || [], needs: state._needs || [] };
   } catch { return null; }
 }
 
