@@ -503,26 +503,43 @@ function printReceipt() {
       const hasItems   = needs.items.length > 0;
       if (!hasCups && !hasFlavors && !hasItems) return "";
 
-      const cupRows = needs.cups.map(c =>
-        `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.82rem;border-bottom:1px solid #f0e4d8;">
-          <span>${c.label}</span>
-          <span style="font-weight:700;color:#c0665a;">${c.remaining} left ⚠</span>
-        </div>`).join("");
+      const cupRows = needs.cups.map(c => `
+        <tr style="border-bottom:1px solid #f0e4d8;">
+          <td style="padding:5px 8px;font-size:0.82rem;color:#5c4631;">${c.label}</td>
+          <td style="text-align:right;padding:5px 8px;font-size:0.82rem;font-weight:700;color:#c0665a;">${c.remaining} left ⚠</td>
+        </tr>`).join("");
 
-      const flavorPills = needs.flavors.map(f =>
-        `<span style="background:#fff0f0;border:1px solid #f0c0c0;border-radius:14px;padding:3px 9px;font-size:0.76rem;font-weight:600;color:#b05050;display:inline-block;margin:2px;">${f}</span>`
-      ).join("");
+      const flavorRows = needs.flavors.map(f => `
+        <tr style="border-bottom:1px solid #f0e4d8;">
+          <td style="padding:5px 8px;font-size:0.82rem;color:#5c4631;">${f}</td>
+          <td style="text-align:right;padding:5px 8px;font-size:0.76rem;color:#c0665a;font-weight:600;">Out of stock</td>
+        </tr>`).join("");
 
-      const itemRows = needs.items.map(i =>
-        `<div style="padding:4px 0;font-size:0.82rem;color:#5c4631;border-bottom:1px solid #f0e4d8;">• ${i}</div>`).join("");
+      const itemRows = needs.items.map(i => `
+        <tr style="border-bottom:1px solid #f0e4d8;">
+          <td colspan="2" style="padding:5px 8px;font-size:0.82rem;color:#5c4631;">• ${i}</td>
+        </tr>`).join("");
+
+      const cupSection = hasCups ? `
+        <tr><td colspan="2" style="padding:7px 8px 3px;font-size:0.66rem;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:#b08060;">Cups to Restock</td></tr>
+        ${cupRows}` : "";
+
+      const flavorSection = hasFlavors ? `
+        <tr><td colspan="2" style="padding:${hasCups?10:7}px 8px 3px;font-size:0.66rem;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:#b08060;">Out-of-Stock Flavors</td></tr>
+        ${flavorRows}` : "";
+
+      const otherSection = hasItems ? `
+        <tr><td colspan="2" style="padding:${hasCups||hasFlavors?10:7}px 8px 3px;font-size:0.66rem;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:#b08060;">Other Needs</td></tr>
+        ${itemRows}` : "";
 
       return `
-        <div style="margin-top:18px;border-top:1.5px dashed #d4b89e;padding-top:16px;">
-          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#c0665a;margin-bottom:10px;text-align:center;">📋 Needs / Restock</div>
-          ${hasCups    ? `<div style="margin-bottom:10px;">${cupRows}</div>` : ""}
-          ${hasFlavors ? `<div style="margin-bottom:10px;"><div style="font-size:0.7rem;font-weight:700;color:#c0665a;margin-bottom:6px;">Out-of-Stock Flavors</div>${flavorPills}</div>` : ""}
-          ${hasItems   ? `<div>${itemRows}</div>` : ""}
+        <div style="border-top:1.5px dashed #d4b89e;margin-top:18px;padding-top:14px;">
+          <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#b08060;text-align:center;margin-bottom:10px;">📋 Needs / Restock</div>
+          <table style="width:100%;border-collapse:collapse;">
+            ${cupSection}${flavorSection}${otherSection}
+          </table>
         </div>`;
+    })()}
     })()}
   `;
 
