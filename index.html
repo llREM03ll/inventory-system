@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <meta name="theme-color" content="#6b4f36" />
   <title>BREWS.CO</title>
@@ -133,10 +133,43 @@
       border: none; border-radius: 10px; padding: 8px 14px;
       font-size: 0.82rem; font-weight: 700; font-family: inherit; cursor: pointer;
     }
-    @media (max-width: 480px) {
-      .smodal-grid, .smodal-grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .sync-card {
+      width: 100%; max-width: 400px; margin-top: 14px;
+      background: #fffaf5; border: 1.5px solid #e8d5c4; border-radius: 16px;
+      padding: 14px 16px;
     }
-  </style>
+    .sync-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; margin-bottom: 10px;
+    }
+    .sync-status {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 0.72rem; color: #9a7a5e; font-weight: 600;
+    }
+    .sync-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #c4a98a; flex-shrink: 0; transition: background .3s;
+    }
+    .sync-dot.ok     { background: #7ab87a; }
+    .sync-dot.busy   { background: #e8c87a; animation: pulse .8s infinite; }
+    .sync-dot.error  { background: #c0665a; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .sync-btns { display: flex; gap: 8px; }
+    .sync-btn {
+      flex: 1; padding: 9px 10px; border-radius: 11px; font-size: 0.82rem;
+      font-weight: 700; font-family: inherit; cursor: pointer; border: none;
+      transition: all .18s; text-align: center;
+    }
+    .sync-btn-push {
+      background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
+      box-shadow: 0 2px 8px rgba(122,92,62,0.22);
+    }
+    .sync-btn-push:hover { background: linear-gradient(135deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
+    .sync-btn-pull {
+      background: #f0e4d8; color: #7a5c3e; border: 1.5px solid #e0c9b8;
+    }
+    .sync-btn-pull:hover { background: #e4d0bf; transform: translateY(-1px); }
+    .sync-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
 </head>
 <body class="has-bottom-nav">
 
@@ -161,6 +194,20 @@
         <div class="home-resume-sub">Your orders are safe — pick up right where you left off.</div>
       </div>
       <a href="pos.html" class="home-resume-btn">Resume →</a>
+    </div>
+
+    <!-- Sync card -->
+    <div class="sync-card">
+      <div class="sync-row">
+        <div class="sync-status">
+          <span class="sync-dot" id="syncDot"></span>
+          <span id="syncStatusText">Not synced yet</span>
+        </div>
+      </div>
+      <div class="sync-btns">
+        <button class="sync-btn sync-btn-push" id="syncPushBtn" onclick="doSync('push')">☁️ Push to Cloud</button>
+        <button class="sync-btn sync-btn-pull" id="syncPullBtn" onclick="doSync('pull')">⬇️ Pull from Cloud</button>
+      </div>
     </div>
   </div>
 
@@ -193,7 +240,48 @@
       <span class="bottom-nav-label">History</span>
     </a>
   </nav>
-  <script src="js/settings.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="js/sync.js"></script>
+  <script>
+    // Sync UI
+    function setSyncUI(state, msg) {
+      const dot  = document.getElementById("syncDot");
+      const text = document.getElementById("syncStatusText");
+      const push = document.getElementById("syncPushBtn");
+      const pull = document.getElementById("syncPullBtn");
+      dot.className  = "sync-dot " + (state || "");
+      text.textContent = msg;
+      push.disabled = pull.disabled = (state === "busy");
+    }
+
+    function initSyncDisplay() {
+      const last = getLastSyncDisplay();
+      setSyncUI(last ? "ok" : "", last ? "Synced " + last : "Not synced yet");
+    }
+
+    async function doSync(direction) {
+      setSyncUI("busy", direction === "push" ? "Pushing…" : "Pulling…");
+      try {
+        if (direction === "push") {
+          await syncPush();
+          setSyncUI("ok", "Pushed " + getLastSyncDisplay());
+        } else {
+          await syncPull();
+          setSyncUI("ok", "Pulled " + getLastSyncDisplay());
+          // Brief message then reload so new data takes effect
+          setTimeout(() => {
+            if (confirm("Data pulled from cloud. Reload to apply changes?")) location.reload();
+          }, 600);
+        }
+      } catch (e) {
+        setSyncUI("error", "⚠ " + (e.message || "Sync failed"));
+        setTimeout(() => initSyncDisplay(), 4000);
+      }
+    }
+
+    initSyncDisplay();
+  </script>
   <script>
     if (localStorage.getItem("brewsShiftActive")) {
       document.getElementById("shiftNavLabel").textContent = "↩ Shift";
@@ -402,6 +490,8 @@
     });
     if (localStorage.getItem("brewsResumeShift"))
       document.getElementById("resumeBanner").style.display = "flex";
+
+    sessionStorage.setItem('brewsNav', '1');
 
     if ("serviceWorker" in navigator)
       navigator.serviceWorker.register("service-worker.js");
