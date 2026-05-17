@@ -240,9 +240,19 @@
       <span class="bottom-nav-label">History</span>
     </a>
   </nav>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="js/sync.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
+  <script>
+    // Graceful fallback if sync.js not loaded yet
+    function _syncStub(fn) {
+      return async function() { throw new Error("Sync not available. Make sure sync.js is in your js/ folder."); };
+    }
+    window.syncPush         = _syncStub();
+    window.syncPull         = _syncStub();
+    window.getLastSyncDisplay = () => null;
+  </script>
+  <script src="js/sync.js" onerror="console.warn('sync.js not found — upload js/sync.js to your repo')"></script>
   <script>
     // Sync UI
     function setSyncUI(state, msg) {
