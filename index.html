@@ -268,10 +268,20 @@
 
     function initSyncDisplay() {
       const last = getLastSyncDisplay();
-      setSyncUI(last ? "ok" : "", last ? "Synced " + last : "Not synced yet");
+      setSyncUI(last ? "ok" : "", last ? "Last synced " + last : "Not synced yet");
     }
 
     async function doSync(direction) {
+      // ── Push: require confirmation to prevent accidental overwrites ──
+      if (direction === "push") {
+        const ok = confirm(
+          "⚠️ Push to Cloud?\n\n" +
+          "This will OVERWRITE the cloud data with this device's data.\n\n" +
+          "Only do this if you're sure this device has the correct data. Continue?"
+        );
+        if (!ok) return;
+      }
+
       setSyncUI("busy", direction === "push" ? "Pushing…" : "Pulling…");
       try {
         if (direction === "push") {
@@ -287,29 +297,30 @@
       }
     }
 
-    initSyncDisplay();
+    // ── Auto-pull on load + every 3 minutes ─────────────────────────────
+    const AUTO_PULL_MS = 3 * 60 * 1000;
 
-    // ── Auto-pull on load + every 3 minutes ──────────────────────────────
-    const AUTO_PULL_INTERVAL = 3 * 60 * 1000; // 3 minutes
-
-    async function autoPull(isOnLoad) {
-      // Don't auto-pull if a shift is currently active (avoid overwriting POS state)
+    async function autoPull() {
+      // Skip if a shift is active — don't overwrite live POS data
       if (localStorage.getItem("brewsShiftActive")) return;
-      setSyncUI("busy", isOnLoad ? "Syncing from cloud…" : "Auto-syncing…");
+      setSyncUI("busy", "Auto-syncing…");
       try {
         await syncPull();
         setSyncUI("ok", "Auto-synced " + getLastSyncDisplay());
       } catch (e) {
-        setSyncUI("error", "⚠ Auto-sync failed — " + (e.message || "check connection"));
-        setTimeout(() => initSyncDisplay(), 4000);
+        // Silently fall back — don't alarm the user on background failures
+        setSyncUI("error", "⚠ Auto-sync failed");
+        setTimeout(() => initSyncDisplay(), 3000);
       }
     }
 
-    // Pull on page load (slight delay so Firebase SDKs finish loading)
-    setTimeout(() => autoPull(true), 1200);
+    initSyncDisplay();
 
-    // Pull periodically
-    setInterval(() => autoPull(false), AUTO_PULL_INTERVAL);
+    // Wait 1.5s for Firebase SDKs to load, then pull
+    setTimeout(autoPull, 1500);
+
+    // Re-pull every 3 minutes quietly
+    setInterval(autoPull, AUTO_PULL_MS);
   </script>
   <script>
     if (localStorage.getItem("brewsShiftActive")) {
