@@ -280,10 +280,6 @@
         } else {
           await syncPull();
           setSyncUI("ok", "Pulled " + getLastSyncDisplay());
-          // Brief message then reload so new data takes effect
-          setTimeout(() => {
-            if (confirm("Data pulled from cloud. Reload to apply changes?")) location.reload();
-          }, 600);
         }
       } catch (e) {
         setSyncUI("error", "⚠ " + (e.message || "Sync failed"));
@@ -292,6 +288,28 @@
     }
 
     initSyncDisplay();
+
+    // ── Auto-pull on load + every 3 minutes ──────────────────────────────
+    const AUTO_PULL_INTERVAL = 3 * 60 * 1000; // 3 minutes
+
+    async function autoPull(isOnLoad) {
+      // Don't auto-pull if a shift is currently active (avoid overwriting POS state)
+      if (localStorage.getItem("brewsShiftActive")) return;
+      setSyncUI("busy", isOnLoad ? "Syncing from cloud…" : "Auto-syncing…");
+      try {
+        await syncPull();
+        setSyncUI("ok", "Auto-synced " + getLastSyncDisplay());
+      } catch (e) {
+        setSyncUI("error", "⚠ Auto-sync failed — " + (e.message || "check connection"));
+        setTimeout(() => initSyncDisplay(), 4000);
+      }
+    }
+
+    // Pull on page load (slight delay so Firebase SDKs finish loading)
+    setTimeout(() => autoPull(true), 1200);
+
+    // Pull periodically
+    setInterval(() => autoPull(false), AUTO_PULL_INTERVAL);
   </script>
   <script>
     if (localStorage.getItem("brewsShiftActive")) {
