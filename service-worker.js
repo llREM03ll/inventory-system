@@ -1,4 +1,4 @@
-const CACHE_NAME = "brews-inventory-v6";
+const CACHE_NAME = "brews-inventory-v7";
 const urlsToCache = [
   "./",
   "./index.html",
@@ -6,9 +6,9 @@ const urlsToCache = [
   "./pos.html",
   "./calendar.html",
   "./manifest.json",
-  "./favicon.svg",
   "./css/styles.css",
   "./js/settings.js",
+  "./js/sync.js",
   "./js/InventorySystem.js",
   "./js/storage.js",
   "./js/history.js",
@@ -21,7 +21,11 @@ const urlsToCache = [
 
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.allSettled(urlsToCache.map(url =>
+        cache.add(url).catch(err => console.warn("SW: failed to cache", url, err))
+      ))
+    )
   );
   self.skipWaiting();
 });
