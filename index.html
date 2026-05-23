@@ -109,6 +109,23 @@
     .smodal-input:focus { outline: none; border-color: #c7a27c; background: #fff; box-shadow: 0 0 0 3px rgba(199,162,124,0.16); }
     .smodal-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 
+    /* Role toggle */
+    .role-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
+    .role-btn {
+      flex: 1; padding: 10px 14px; border-radius: 10px;
+      font-size: 0.84rem; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: all .16s; text-align: center;
+    }
+    .role-btn.active { background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff; border: none; box-shadow: 0 2px 8px rgba(122,92,62,0.22); }
+    .role-btn:not(.active) { background: #f0e4d8; color: #7a5c3e; border: 1.5px solid #e0c9b8; }
+    .role-btn:not(.active):hover { background: #e4d0bf; }
+    .role-notice {
+      font-size: 0.76rem; line-height: 1.55; padding: 9px 12px;
+      border-radius: 10px; margin-bottom: 0;
+    }
+    .role-notice.worker  { background: #fdf7f2; border: 1px solid #e8d5c4; color: #9a7a5e; }
+    .role-notice.manager { background: #f0f7f0; border: 1px solid #b8ddb8; color: #3a7a3a; }
+
     /* Flavor add/remove */
     .sflavor-cat { margin-bottom: 16px; }
     .sflavor-cat-title { font-size: 0.72rem; font-weight: 700; color: #7a5c3e; margin-bottom: 7px; }
@@ -154,6 +171,12 @@
     .sync-dot.busy   { background: #e8c87a; animation: pulse .8s infinite; }
     .sync-dot.error  { background: #c0665a; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .sync-role-badge {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 20px; flex-shrink: 0;
+    }
+    .sync-role-badge.worker  { background: #f0e4d8; color: #9a6e52; }
+    .sync-role-badge.manager { background: #e0f0e0; color: #3a7a3a; }
     .sync-btns { display: flex; gap: 8px; }
     .sync-btn {
       flex: 1; padding: 9px 10px; border-radius: 11px; font-size: 0.82rem;
@@ -204,9 +227,10 @@
           <span class="sync-dot" id="syncDot"></span>
           <span id="syncStatusText">Not synced yet</span>
         </div>
+        <span class="sync-role-badge worker" id="syncRoleBadge">Worker</span>
       </div>
       <div class="sync-btns">
-        <button class="sync-btn sync-btn-push" id="syncPushBtn" onclick="doSync('push')">☁️ Push to Cloud</button>
+        <button class="sync-btn sync-btn-push" id="syncPushBtn" onclick="doSync('push')">☁️ Push Data</button>
         <button class="sync-btn sync-btn-pull" id="syncPullBtn" onclick="doSync('pull')">⬇️ Pull from Cloud</button>
       </div>
     </div>
@@ -241,21 +265,22 @@
       <span class="bottom-nav-label">History</span>
     </a>
   </nav>
+
   <script src="js/settings.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
   <script>
     // Graceful fallback if sync.js not loaded yet
-    function _syncStub(fn) {
-      return async function() { throw new Error("Sync not available. Make sure sync.js is in your js/ folder."); };
-    }
-    window.syncPush         = _syncStub();
-    window.syncPull         = _syncStub();
+    window.syncPush           = async function() { throw new Error("Sync not available. Make sure sync.js is in your js/ folder."); };
+    window.syncPull           = async function() { throw new Error("Sync not available. Make sure sync.js is in your js/ folder."); };
     window.getLastSyncDisplay = () => null;
+    window.getDeviceRole      = () => localStorage.getItem("brewsDeviceRole") || "worker";
+    window.setDeviceRole      = (r) => localStorage.setItem("brewsDeviceRole", r === "manager" ? "manager" : "worker");
   </script>
   <script src="js/sync.js" onerror="console.warn('sync.js not found — upload js/sync.js to your repo')"></script>
+
   <script>
-    // Sync UI
+    // ── Sync UI ─────────────────────────────────────────────────────────────────
     function setSyncUI(state, msg) {
       const dot  = document.getElementById("syncDot");
       const text = document.getElementById("syncStatusText");
@@ -266,18 +291,35 @@
       push.disabled = pull.disabled = (state === "busy");
     }
 
+    function updateSyncCard() {
+      const role  = getDeviceRole();
+      const badge = document.getElementById("syncRoleBadge");
+      const push  = document.getElementById("syncPushBtn");
+      if (badge) {
+        badge.textContent = role === "manager" ? "Manager" : "Worker";
+        badge.className   = "sync-role-badge " + role;
+      }
+      if (push) {
+        push.textContent = role === "manager" ? "⚙️ Push Settings" : "☁️ Push Data";
+      }
+    }
+
     function initSyncDisplay() {
       const last = getLastSyncDisplay();
       setSyncUI(last ? "ok" : "", last ? "Last synced " + last : "Not synced yet");
+      updateSyncCard();
     }
 
     async function doSync(direction) {
-      // ── Push: require confirmation to prevent accidental overwrites ──
       if (direction === "push") {
+        const role = getDeviceRole();
+        const what = role === "manager"
+          ? "settings (prices, salary, flavors)"
+          : "shift data (history, order logs)";
         const ok = confirm(
           "⚠️ Push to Cloud?\n\n" +
-          "This will OVERWRITE the cloud data with this device's data.\n\n" +
-          "Only do this if you're sure this device has the correct data. Continue?"
+          "This will update the cloud with this device's " + what + ".\n\n" +
+          "Other devices will receive this update on their next pull. Continue?"
         );
         if (!ok) return;
       }
@@ -297,31 +339,27 @@
       }
     }
 
-    // ── Auto-pull on load + every 3 minutes ─────────────────────────────
+    // ── Auto-pull on load + every 3 minutes ──────────────────────────────────
     const AUTO_PULL_MS = 3 * 60 * 1000;
 
     async function autoPull() {
-      // Skip if a shift is active — don't overwrite live POS data
       if (localStorage.getItem("brewsShiftActive")) return;
       setSyncUI("busy", "Auto-syncing…");
       try {
         await syncPull();
         setSyncUI("ok", "Auto-synced " + getLastSyncDisplay());
+        updateSyncCard(); // refresh role badge/button after pull
       } catch (e) {
-        // Silently fall back — don't alarm the user on background failures
         setSyncUI("error", "⚠ Auto-sync failed");
         setTimeout(() => initSyncDisplay(), 3000);
       }
     }
 
     initSyncDisplay();
-
-    // Wait 1.5s for Firebase SDKs to load, then pull
     setTimeout(autoPull, 1500);
-
-    // Re-pull every 3 minutes quietly
     setInterval(autoPull, AUTO_PULL_MS);
   </script>
+
   <script>
     if (localStorage.getItem("brewsShiftActive")) {
       document.getElementById("shiftNavLabel").textContent = "↩ Shift";
@@ -330,9 +368,9 @@
   </script>
 
   <script>
-    // ── Settings modal ────────────────────────────────────────────────────────
+    // ── Settings modal ──────────────────────────────────────────────────────────
     const CAT_LABELS = { milktea:"Milk Tea", fruittea:"Fruit Tea", icedcoffee:"Iced Coffee", hotcoffee:"Hot Coffee" };
-    let _ws = null; // working settings clone
+    let _ws = null;
 
     function openSettings() {
       _ws = JSON.parse(JSON.stringify(getSettings()));
@@ -353,6 +391,13 @@
       collectFromUI();
       saveSettings(_ws);
       closeSettings();
+    }
+
+    // Switch role from inside settings modal
+    function setLocalRole(role) {
+      setDeviceRole(role);
+      renderSettingsModal();   // re-render to update role section
+      updateSyncCard();        // update sync card badge + button
     }
 
     function n(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
@@ -400,7 +445,26 @@
     }
 
     function renderSettingsModal() {
-      const s = _ws;
+      const s    = _ws;
+      const role = getDeviceRole();
+      const isManager = role === "manager";
+
+      // ── Role section ──────────────────────────────────────────────────────
+      const roleSection = `
+        <div class="smodal-section">
+          <div class="smodal-section-title">Device Role</div>
+          <div class="role-toggle">
+            <button class="role-btn${!isManager?" active":""}" onclick="setLocalRole('worker')">👷 Worker</button>
+            <button class="role-btn${isManager?" active":""}"  onclick="setLocalRole('manager')">👔 Manager</button>
+          </div>
+          <div class="role-notice ${role}">
+            ${isManager
+              ? "✓ <strong>Manager mode</strong> — Push sends prices, salary, and flavors to all devices. History is untouched."
+              : "👷 <strong>Worker mode</strong> — Push sends shift data (history, orders). Settings changes are saved locally only."}
+          </div>
+        </div>`;
+
+      // ── Settings sections (same for both roles — workers save locally, just won't push) ──
       const addonRows = Object.entries(s.addonPrices).map(([name, price]) => `
         <div class="expense-row saddon-row">
           <input class="smodal-input saddon-name"  type="text"   value="${name}"  placeholder="Add-on name">
@@ -419,7 +483,7 @@
           </div>
         </div>`).join("");
 
-      document.getElementById("settingsBody").innerHTML = `
+      document.getElementById("settingsBody").innerHTML = roleSection + `
         <div class="smodal-section">
           <div class="smodal-section-title">Drink Prices (₱)</div>
           <div class="smodal-grid">
@@ -441,7 +505,7 @@
             ${fi("sp_bonusThreshold","Bonus Threshold (₱)",s.salaryBonusThreshold)}
             ${fi("sp_bonusPerK","Bonus per ₱1,000 (₱)",s.salaryBonusPerK)}
           </div>
-          <div style="font-size:0.72rem;color:#b08060;margin-top:8px;line-height:1.5;">Staff earns the base salary when cup sales meet or exceed it. If cup sales are <em>less than</em> the base salary amount, no salary is deducted. Once sales hit the bonus threshold, the bonus kicks in — plus that same amount for every extra ₱1,000.</div>
+          <div style="font-size:0.72rem;color:#b08060;margin-top:8px;line-height:1.5;">Staff earns the base salary when cup sales meet or exceed it. Once sales hit the bonus threshold, the bonus kicks in — plus that same amount for every extra ₱1,000.</div>
         </div>
         <div class="smodal-section">
           <div class="smodal-section-title">Quota &amp; Low Stock</div>
@@ -520,7 +584,6 @@
       { e:"🧩", msg:"You're the missing piece",            sub:"This shift needs you."                     },
       { e:"🎪", msg:"Show them what you've got",           sub:"The floor is yours."                       },
     ];
-    // Random greeting on every load (not day-based)
     const g = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
     document.getElementById("homeEmoji").textContent = g.e;
     document.getElementById("homeMsg").textContent   = g.msg;
