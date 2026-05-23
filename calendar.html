@@ -197,6 +197,25 @@
       .day-num   { font-size: 0.65rem; }
       .modal { padding: 16px; }
     }
+
+    /* Pull button for manager */
+    .pull-cloud-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #f0f7f0; border: 1.5px solid #b8ddb8; border-radius: 10px;
+      padding: 8px 14px; font-weight: 700; font-size: 0.84rem;
+      color: #3a7a3a; cursor: pointer; font-family: inherit; transition: all .18s;
+    }
+    .pull-cloud-btn:hover { background: #e0f0e0; transform: translateY(-1px); }
+    .pull-cloud-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+    /* Sync toast */
+    #calSyncToast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      padding: 9px 20px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+      color: #fff; z-index: 9999; opacity: 0; transition: opacity .3s;
+      white-space: nowrap; box-shadow: 0 3px 14px rgba(0,0,0,0.22);
+      pointer-events: none; background: #5c4631;
+    }
   </style>
 </head>
 <body class="has-bottom-nav">
@@ -204,8 +223,17 @@
 
   <div class="top-bar">
     <a href="index.html" class="back-btn">← Back</a>
-    <button class="delete-all-btn" onclick="deleteAllHistory()">🗑 Delete All</button>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="pull-cloud-btn" id="calPullBtn" onclick="calPullFromCloud()"
+        style="display:none;" title="Pull latest history from cloud">
+        ⬇️ Pull Cloud
+      </button>
+      <button class="delete-all-btn" onclick="deleteAllHistory()">🗑 Delete All</button>
+    </div>
   </div>
+
+  <!-- Toast -->
+  <div id="calSyncToast"></div>
 
   <a href="index.html" style="text-decoration:none;display:block;text-align:center;">
     <div class="brand">BREWS.CO</div>
@@ -277,6 +305,13 @@
 </div>
 
 <script src="js/history.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
+<script>
+  if (typeof window.syncPull      !== "function") window.syncPull      = async () => { throw new Error("Sync unavailable"); };
+  if (typeof window.getDeviceRole !== "function") window.getDeviceRole = () => localStorage.getItem("brewsDeviceRole") || "worker";
+</script>
+<script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
 <script>
   const today    = new Date();
   let curYear    = today.getFullYear();
@@ -629,6 +664,42 @@
   renderRetentionPills();
   renderOrderLogs();
   renderCalendar();
+
+  // Show pull button only for managers
+  (function initCalSync() {
+    const role = getDeviceRole();
+    const btn  = document.getElementById("calPullBtn");
+    if (btn && role === "manager") btn.style.display = "inline-flex";
+  })();
+
+  async function calPullFromCloud() {
+    const btn = document.getElementById("calPullBtn");
+    if (btn) { btn.disabled = true; btn.textContent = "⬇️ Pulling…"; }
+    _showCalToast("Pulling from cloud…", "#7a5c3e", false);
+    try {
+      await syncPull(); // manager pull = everything
+      // Re-render calendar and logs with fresh data
+      cleanupOrderLogs();
+      renderRetentionPills();
+      renderOrderLogs();
+      renderCalendar();
+      _showCalToast("✓ History updated from cloud", "#3a7a3a", true);
+    } catch (e) {
+      _showCalToast("⚠ Pull failed: " + (e.message || "check connection"), "#c0665a", true);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "⬇️ Pull Cloud"; }
+    }
+  }
+
+  function _showCalToast(msg, color, autoDismiss) {
+    const t = document.getElementById("calSyncToast");
+    if (!t) return;
+    clearTimeout(t._timer);
+    t.textContent = msg;
+    t.style.background = color;
+    t.style.opacity = "1";
+    if (autoDismiss) t._timer = setTimeout(() => { t.style.opacity = "0"; }, 3000);
+  }
 </script>
 
 <nav class="bottom-nav">
