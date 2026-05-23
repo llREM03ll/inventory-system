@@ -1,8 +1,10 @@
 /**
  * sync.js — Firebase Firestore sync for BREWS.CO
- * Role-aware: Workers push data only, Managers push settings only.
- * Both always pull everything. Uses { merge: true } so pushes
- * never overwrite each other's fields in Firestore.
+ *
+ * WORKER  → push: DATA_KEYS only   | pull: SETTINGS_KEYS only
+ * MANAGER → push: SETTINGS_KEYS only | pull: everything
+ *
+ * Uses { merge:true } so pushes never wipe the other role's fields.
  */
 
 const FIREBASE_CONFIG = {
@@ -14,12 +16,11 @@ const FIREBASE_CONFIG = {
   appId:             "1:616181567630:web:bd1d78bf8ced49f29f39df",
 };
 
-const SHOP_DOC  = "shops/brews-co-main";
-const SYNC_TS   = "brewsLastSync";
-const ROLE_KEY  = "brewsDeviceRole"; // "worker" | "manager"
+const SHOP_DOC = "shops/brews-co-main";
+const SYNC_TS  = "brewsLastSync";
+const ROLE_KEY = "brewsDeviceRole"; // "worker" | "manager"  — never synced
 
-// ── Key splits ────────────────────────────────────────────────────────────────
-// Workers push these — shift history, order logs, stock data
+// Worker pushes these (shift output) — settings are untouched in Firestore
 const DATA_KEYS = [
   "inventoryHistory",
   "brewsOrderLog",
@@ -28,23 +29,21 @@ const DATA_KEYS = [
   "brewsOrderRetention",
 ];
 
-// Managers push these — prices, salary formula, flavors
+// Manager pushes these (config) — history/orders are untouched in Firestore
 const SETTINGS_KEYS = [
   "brewsSettings",
 ];
 
-// ── Role helpers (global) ─────────────────────────────────────────────────────
+// ── Role helpers ──────────────────────────────────────────────────────────────
 function getDeviceRole() {
   return localStorage.getItem(ROLE_KEY) || "worker";
 }
-
 function setDeviceRole(role) {
   localStorage.setItem(ROLE_KEY, role === "manager" ? "manager" : "worker");
 }
 
 // ── DB init ───────────────────────────────────────────────────────────────────
 let _db = null;
-
 function _initDB() {
   if (_db) return _db;
   try {
@@ -66,13 +65,16 @@ function _collectKeys(keys) {
   return data;
 }
 
-function _restoreLocalData(data) {
-  Object.entries(data).forEach(([k, v]) => {
-    if (!k.startsWith("_") && v != null) localStorage.setItem(k, v);
+function _restoreKeys(data, keys) {
+  // Only restore the specified keys — leaves everything else untouched locally
+  keys.forEach(k => {
+    if (data[k] != null) localStorage.setItem(k, data[k]);
   });
 }
 
-// ── Push: role-aware, always uses { merge: true } ─────────────────────────────
+// ── Push ──────────────────────────────────────────────────────────────────────
+// Worker  → pushes DATA_KEYS      (history, orders, OOS flags, etc.)
+// Manager → pushes SETTINGS_KEYS  (prices, salary, flavors)
 async function syncPush() {
   const db = _initDB();
   if (!db) throw new Error("Firebase unavailable — check your connection.");
@@ -81,12 +83,11 @@ async function syncPush() {
   let data;
 
   if (role === "manager") {
-    // Managers push settings only — leaves history/orders untouched in cloud
     data = _collectKeys(SETTINGS_KEYS);
     data._settingsPushedAt = new Date().toISOString();
   } else {
-    // Workers push data + dynamic monthly expense keys — leaves settings untouched
     data = _collectKeys(DATA_KEYS);
+    // Also grab dynamic monthly expense keys
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
       if (k && k.startsWith("brewsMonthlyExp_")) data[k] = localStorage.getItem(k);
@@ -94,21 +95,36 @@ async function syncPush() {
     data._dataPushedAt = new Date().toISOString();
   }
 
-  // merge: true — fields not in this push are left untouched in Firestore
+  // merge:true — fields not in this push are left untouched in Firestore
   await db.doc(SHOP_DOC).set(data, { merge: true });
   const ts = new Date().toISOString();
   localStorage.setItem(SYNC_TS, ts);
   return ts;
 }
 
-// ── Pull: always pulls everything ─────────────────────────────────────────────
+// ── Pull ──────────────────────────────────────────────────────────────────────
+// Worker  → pulls SETTINGS_KEYS only  (prices/flavors refresh, history untouched locally)
+// Manager → pulls everything           (to see latest history from all workers)
 async function syncPull() {
   const db = _initDB();
   if (!db) throw new Error("Firebase unavailable — check your connection.");
+
   const snap = await db.doc(SHOP_DOC).get();
   if (!snap.exists) throw new Error("No cloud data found yet.\nPush from another device first.");
+
   const data = snap.data();
-  _restoreLocalData(data);
+  const role = getDeviceRole();
+
+  if (role === "manager") {
+    // Restore everything except internal Firestore timestamps
+    Object.entries(data).forEach(([k, v]) => {
+      if (!k.startsWith("_") && v != null) localStorage.setItem(k, v);
+    });
+  } else {
+    // Workers only restore settings — local history/orders are never overwritten
+    _restoreKeys(data, SETTINGS_KEYS);
+  }
+
   const ts = new Date().toISOString();
   localStorage.setItem(SYNC_TS, ts);
   return ts;
