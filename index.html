@@ -19,6 +19,7 @@
     .home-logo { text-decoration: none; display: block; margin-bottom: 28px; }
     .home-logo .brand { font-size: 2.1rem; color: #7a5c3e; }
     .home-logo .brand-sub { font-size: 0.7rem; color: #b08060; margin-bottom: 0; }
+
     .settings-fab {
       position: fixed; top: 16px; right: 16px; z-index: 200;
       background: rgba(255,250,245,0.92); border: 1.5px solid #e8d5c4;
@@ -27,7 +28,8 @@
       backdrop-filter: blur(8px); transition: all .18s;
       box-shadow: 0 2px 10px rgba(122,92,62,0.12);
     }
-    .settings-fab:hover { background: #f5ede5; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(122,92,62,0.18); }
+    .settings-fab:hover { background: #f5ede5; transform: translateY(-1px); }
+
     .home-card {
       width: 100%; max-width: 400px;
       background: linear-gradient(145deg, #fdf5eb, #f5ede5);
@@ -39,10 +41,12 @@
     .home-msg   { font-size: 1.45rem; font-weight: 800; color: #5c4631; line-height: 1.3; margin-bottom: 10px; }
     .home-sub   { font-size: 0.9rem; color: #9a7a5e; font-weight: 500; }
     .home-date  { font-size: 0.7rem; color: #c4a98a; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 18px; }
+
     .home-resume {
       width: 100%; max-width: 400px; display: flex; align-items: center;
       justify-content: space-between; gap: 12px;
       background: #fffbf0; border: 1.5px solid #e8c87a; border-radius: 16px; padding: 14px 16px;
+      margin-bottom: 14px;
     }
     .home-resume-info { flex: 1; text-align: left; }
     .home-resume-title { font-size: 0.86rem; font-weight: 700; color: #7a5c3e; }
@@ -67,8 +71,7 @@
       background: #fffaf5; width: 100%; max-width: 720px;
       border-radius: 22px 22px 0 0; max-height: 92vh;
       display: flex; flex-direction: column;
-      box-shadow: 0 -6px 40px rgba(90,56,24,0.22);
-      border-top: 1.5px solid #e8d5c4;
+      box-shadow: 0 -6px 40px rgba(90,56,24,0.22); border-top: 1.5px solid #e8d5c4;
       transform: translateY(24px); transition: transform .24s;
     }
     .smodal-overlay.open .smodal { transform: translateY(0); }
@@ -88,17 +91,17 @@
     .smodal-done {
       background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
       border: none; border-radius: 10px; padding: 8px 16px;
-      font-size: 0.82rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: all .16s;
+      font-size: 0.82rem; font-weight: 700; font-family: inherit; cursor: pointer;
     }
     .smodal-done:hover { background: linear-gradient(135deg, #7a5c3e, #5c4631); }
     .smodal-body { overflow-y: auto; padding: 16px 20px 32px; flex: 1; }
     .smodal-section { margin-bottom: 24px; }
     .smodal-section-title {
-      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: #b08060;
-      border-bottom: 1px solid #e8d5c4; padding-bottom: 7px; margin-bottom: 12px;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #b08060; border-bottom: 1px solid #e8d5c4; padding-bottom: 7px; margin-bottom: 12px;
     }
-    .smodal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .smodal-grid  { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .smodal-grid-3{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .smodal-field { display: flex; flex-direction: column; gap: 4px; }
     .smodal-label { font-size: 0.72rem; font-weight: 600; color: #9a7a5e; }
     .smodal-input {
@@ -107,24 +110,29 @@
       width: 100%; box-sizing: border-box; transition: border-color .16s;
     }
     .smodal-input:focus { outline: none; border-color: #c7a27c; background: #fff; box-shadow: 0 0 0 3px rgba(199,162,124,0.16); }
-    .smodal-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    /* Locked state for worker */
+    .smodal-input:disabled { background: #f5ede5; color: #b08060; border-color: #e8d5c4; cursor: not-allowed; }
 
     /* Role toggle */
     .role-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
     .role-btn {
-      flex: 1; padding: 10px 14px; border-radius: 10px;
-      font-size: 0.84rem; font-weight: 700; font-family: inherit;
-      cursor: pointer; transition: all .16s; text-align: center;
+      flex: 1; padding: 10px 14px; border-radius: 10px; font-size: 0.84rem;
+      font-weight: 700; font-family: inherit; cursor: pointer; transition: all .16s; text-align: center;
     }
     .role-btn.active { background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff; border: none; box-shadow: 0 2px 8px rgba(122,92,62,0.22); }
     .role-btn:not(.active) { background: #f0e4d8; color: #7a5c3e; border: 1.5px solid #e0c9b8; }
     .role-btn:not(.active):hover { background: #e4d0bf; }
     .role-notice {
-      font-size: 0.76rem; line-height: 1.55; padding: 9px 12px;
-      border-radius: 10px; margin-bottom: 0;
+      font-size: 0.76rem; line-height: 1.55; padding: 9px 12px; border-radius: 10px;
     }
     .role-notice.worker  { background: #fdf7f2; border: 1px solid #e8d5c4; color: #9a7a5e; }
     .role-notice.manager { background: #f0f7f0; border: 1px solid #b8ddb8; color: #3a7a3a; }
+    /* Locked banner inside settings modal */
+    .settings-locked-banner {
+      background: #fdf5e0; border: 1.5px solid #e8d5a0; border-radius: 12px;
+      padding: 12px 14px; margin-bottom: 18px; font-size: 0.82rem;
+      color: #8a6a20; line-height: 1.55; text-align: center;
+    }
 
     /* Flavor add/remove */
     .sflavor-cat { margin-bottom: 16px; }
@@ -150,6 +158,8 @@
       border: none; border-radius: 10px; padding: 8px 14px;
       font-size: 0.82rem; font-weight: 700; font-family: inherit; cursor: pointer;
     }
+
+    /* Sync card */
     .sync-card {
       width: 100%; max-width: 400px; margin-top: 14px;
       background: #fffaf5; border: 1.5px solid #e8d5c4; border-radius: 16px;
@@ -159,22 +169,13 @@
       display: flex; align-items: center; justify-content: space-between;
       gap: 10px; margin-bottom: 10px;
     }
-    .sync-status {
-      display: flex; align-items: center; gap: 7px;
-      font-size: 0.72rem; color: #9a7a5e; font-weight: 600;
-    }
-    .sync-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: #c4a98a; flex-shrink: 0; transition: background .3s;
-    }
-    .sync-dot.ok     { background: #7ab87a; }
-    .sync-dot.busy   { background: #e8c87a; animation: pulse .8s infinite; }
-    .sync-dot.error  { background: #c0665a; }
+    .sync-status { display: flex; align-items: center; gap: 7px; font-size: 0.72rem; color: #9a7a5e; font-weight: 600; }
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #c4a98a; flex-shrink: 0; transition: background .3s; }
+    .sync-dot.ok    { background: #7ab87a; }
+    .sync-dot.busy  { background: #e8c87a; animation: pulse .8s infinite; }
+    .sync-dot.error { background: #c0665a; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-    .sync-role-badge {
-      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-      padding: 3px 9px; border-radius: 20px; flex-shrink: 0;
-    }
+    .sync-role-badge { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; flex-shrink: 0; }
     .sync-role-badge.worker  { background: #f0e4d8; color: #9a6e52; }
     .sync-role-badge.manager { background: #e0f0e0; color: #3a7a3a; }
     .sync-btns { display: flex; gap: 8px; }
@@ -183,14 +184,9 @@
       font-weight: 700; font-family: inherit; cursor: pointer; border: none;
       transition: all .18s; text-align: center;
     }
-    .sync-btn-push {
-      background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
-      box-shadow: 0 2px 8px rgba(122,92,62,0.22);
-    }
+    .sync-btn-push { background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff; box-shadow: 0 2px 8px rgba(122,92,62,0.22); }
     .sync-btn-push:hover { background: linear-gradient(135deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
-    .sync-btn-pull {
-      background: #f0e4d8; color: #7a5c3e; border: 1.5px solid #e0c9b8;
-    }
+    .sync-btn-pull { background: #f0e4d8; color: #7a5c3e; border: 1.5px solid #e0c9b8; }
     .sync-btn-pull:hover { background: #e4d0bf; transform: translateY(-1px); }
     .sync-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
   </style>
@@ -220,7 +216,6 @@
       <a href="pos.html" class="home-resume-btn">Resume →</a>
     </div>
 
-    <!-- Sync card -->
     <div class="sync-card">
       <div class="sync-row">
         <div class="sync-status">
@@ -243,8 +238,8 @@
       <div class="smodal-head">
         <span class="smodal-title">⚙️ Settings</span>
         <div class="smodal-actions">
-          <button class="smodal-reset" onclick="confirmResetSettings()">↺ Reset Defaults</button>
-          <button class="smodal-done"  onclick="saveAndCloseSettings()">Save ✓</button>
+          <button class="smodal-reset" id="smodal-reset-btn" onclick="confirmResetSettings()">↺ Reset Defaults</button>
+          <button class="smodal-done"  id="smodal-save-btn"  onclick="saveAndCloseSettings()">Save ✓</button>
         </div>
       </div>
       <div class="smodal-body" id="settingsBody"></div>
@@ -270,38 +265,31 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
   <script>
-    // Graceful fallback if sync.js not loaded yet
-    window.syncPush           = async function() { throw new Error("Sync not available. Make sure sync.js is in your js/ folder."); };
-    window.syncPull           = async function() { throw new Error("Sync not available. Make sure sync.js is in your js/ folder."); };
+    window.syncPush           = async function() { throw new Error("Sync not available."); };
+    window.syncPull           = async function() { throw new Error("Sync not available."); };
     window.getLastSyncDisplay = () => null;
     window.getDeviceRole      = () => localStorage.getItem("brewsDeviceRole") || "worker";
     window.setDeviceRole      = (r) => localStorage.setItem("brewsDeviceRole", r === "manager" ? "manager" : "worker");
   </script>
-  <script src="js/sync.js" onerror="console.warn('sync.js not found — upload js/sync.js to your repo')"></script>
+  <script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
 
   <script>
-    // ── Sync UI ─────────────────────────────────────────────────────────────────
+    // ── Sync UI ───────────────────────────────────────────────────────────────
     function setSyncUI(state, msg) {
-      const dot  = document.getElementById("syncDot");
-      const text = document.getElementById("syncStatusText");
-      const push = document.getElementById("syncPushBtn");
-      const pull = document.getElementById("syncPullBtn");
-      dot.className  = "sync-dot " + (state || "");
-      text.textContent = msg;
-      push.disabled = pull.disabled = (state === "busy");
+      document.getElementById("syncDot").className  = "sync-dot " + (state || "");
+      document.getElementById("syncStatusText").textContent = msg;
+      const busy = state === "busy";
+      document.getElementById("syncPushBtn").disabled = busy;
+      document.getElementById("syncPullBtn").disabled = busy;
     }
 
     function updateSyncCard() {
       const role  = getDeviceRole();
       const badge = document.getElementById("syncRoleBadge");
       const push  = document.getElementById("syncPushBtn");
-      if (badge) {
-        badge.textContent = role === "manager" ? "Manager" : "Worker";
-        badge.className   = "sync-role-badge " + role;
-      }
-      if (push) {
-        push.textContent = role === "manager" ? "⚙️ Push Settings" : "☁️ Push Data";
-      }
+      badge.textContent = role === "manager" ? "Manager" : "Worker";
+      badge.className   = "sync-role-badge " + role;
+      push.textContent  = role === "manager" ? "⚙️ Push Settings" : "☁️ Push Data";
     }
 
     function initSyncDisplay() {
@@ -314,16 +302,10 @@
       if (direction === "push") {
         const role = getDeviceRole();
         const what = role === "manager"
-          ? "settings (prices, salary, flavors)"
-          : "shift data (history, order logs)";
-        const ok = confirm(
-          "⚠️ Push to Cloud?\n\n" +
-          "This will update the cloud with this device's " + what + ".\n\n" +
-          "Other devices will receive this update on their next pull. Continue?"
-        );
-        if (!ok) return;
+          ? "settings (prices, salary, flavors) — history is untouched"
+          : "shift data (history, orders) — settings are untouched";
+        if (!confirm("⚠️ Push to Cloud?\n\nThis will update the cloud with this device's " + what + ".\n\nContinue?")) return;
       }
-
       setSyncUI("busy", direction === "push" ? "Pushing…" : "Pulling…");
       try {
         if (direction === "push") {
@@ -335,23 +317,25 @@
         }
       } catch (e) {
         setSyncUI("error", "⚠ " + (e.message || "Sync failed"));
-        setTimeout(() => initSyncDisplay(), 4000);
+        setTimeout(initSyncDisplay, 4000);
       }
     }
 
-    // ── Auto-pull on load + every 3 minutes ──────────────────────────────────
+    // ── Auto-pull on load + every 3 min ──────────────────────────────────────
+    // Workers: pulls settings only (prices/flavors) — history untouched
+    // Managers: pulls everything
     const AUTO_PULL_MS = 3 * 60 * 1000;
 
     async function autoPull() {
       if (localStorage.getItem("brewsShiftActive")) return;
       setSyncUI("busy", "Auto-syncing…");
       try {
-        await syncPull();
+        await syncPull();  // role-aware inside sync.js
         setSyncUI("ok", "Auto-synced " + getLastSyncDisplay());
-        updateSyncCard(); // refresh role badge/button after pull
+        updateSyncCard();
       } catch (e) {
         setSyncUI("error", "⚠ Auto-sync failed");
-        setTimeout(() => initSyncDisplay(), 3000);
+        setTimeout(initSyncDisplay, 3000);
       }
     }
 
@@ -368,7 +352,7 @@
   </script>
 
   <script>
-    // ── Settings modal ──────────────────────────────────────────────────────────
+    // ── Settings modal ────────────────────────────────────────────────────────
     const CAT_LABELS = { milktea:"Milk Tea", fruittea:"Fruit Tea", icedcoffee:"Iced Coffee", hotcoffee:"Hot Coffee" };
     let _ws = null;
 
@@ -381,6 +365,7 @@
     function handleSettingsOverlay(e) { if (e.target === document.getElementById("settingsModal")) closeSettings(); }
 
     function confirmResetSettings() {
+      if (getDeviceRole() !== "manager") return; // workers can't reset
       if (!confirm("Reset all settings to defaults? This cannot be undone.")) return;
       resetSettings();
       _ws = JSON.parse(JSON.stringify(getSettings()));
@@ -388,16 +373,19 @@
     }
 
     function saveAndCloseSettings() {
-      collectFromUI();
-      saveSettings(_ws);
+      // Workers: only save the role change (role is not in _ws, it's separate)
+      if (getDeviceRole() === "manager") {
+        collectFromUI();
+        saveSettings(_ws);
+      }
       closeSettings();
+      updateSyncCard();
     }
 
-    // Switch role from inside settings modal
     function setLocalRole(role) {
       setDeviceRole(role);
-      renderSettingsModal();   // re-render to update role section
-      updateSyncCard();        // update sync card badge + button
+      renderSettingsModal();
+      updateSyncCard();
     }
 
     function n(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
@@ -418,6 +406,7 @@
     }
 
     function addFlavorToCategory(cat) {
+      if (getDeviceRole() !== "manager") return;
       const input = document.getElementById("sfi_" + cat);
       const val   = input?.value?.trim();
       if (!val) return;
@@ -427,6 +416,7 @@
     }
 
     function removeFlavorFromCategory(cat, flavor) {
+      if (getDeviceRole() !== "manager") return;
       _ws.flavors[cat] = (_ws.flavors[cat] || []).filter(f => f !== flavor);
       renderFlavorCat(cat);
     }
@@ -434,22 +424,33 @@
     function renderFlavorCat(cat) {
       const c = document.getElementById("sfcat_" + cat);
       if (!c) return;
-      const flavors = _ws.flavors[cat] || [];
+      const isManager = getDeviceRole() === "manager";
+      const flavors   = _ws.flavors[cat] || [];
       c.querySelector(".sflavor-pills").innerHTML = flavors.length
-        ? flavors.map(f => `<span class="sflavor-pill">${f}<button class="sflavor-pill-del" onclick="removeFlavorFromCategory('${cat}','${f.replace(/'/g,"\\'")}')">✕</button></span>`).join("")
-        : `<span style="font-size:0.76rem;color:#c4a98a;">No flavors — add below</span>`;
+        ? flavors.map(f => `<span class="sflavor-pill">${f}${isManager
+            ? `<button class="sflavor-pill-del" onclick="removeFlavorFromCategory('${cat}','${f.replace(/'/g,"\\'")}')">✕</button>`
+            : ""}</span>`).join("")
+        : `<span style="font-size:0.76rem;color:#c4a98a;">No flavors added</span>`;
     }
 
-    function fi(id, label, val) {
-      return `<div class="smodal-field"><label class="smodal-label">${label}</label><input class="smodal-input" id="${id}" type="number" value="${val}"></div>`;
+    function fi(id, label, val, locked) {
+      return `<div class="smodal-field">
+        <label class="smodal-label">${label}</label>
+        <input class="smodal-input" id="${id}" type="number" value="${val}"${locked ? " disabled" : ""}>
+      </div>`;
     }
 
     function renderSettingsModal() {
-      const s    = _ws;
-      const role = getDeviceRole();
+      const s         = _ws;
+      const role      = getDeviceRole();
       const isManager = role === "manager";
+      const locked    = !isManager; // workers see read-only fields
 
-      // ── Role section ──────────────────────────────────────────────────────
+      // Show/hide Save & Reset buttons for workers
+      document.getElementById("smodal-save-btn").style.display  = isManager ? "" : "none";
+      document.getElementById("smodal-reset-btn").style.display = isManager ? "" : "none";
+
+      // ── Role section ───────────────────────────────────────────────────────
       const roleSection = `
         <div class="smodal-section">
           <div class="smodal-section-title">Device Role</div>
@@ -459,65 +460,81 @@
           </div>
           <div class="role-notice ${role}">
             ${isManager
-              ? "✓ <strong>Manager mode</strong> — Push sends prices, salary, and flavors to all devices. History is untouched."
-              : "👷 <strong>Worker mode</strong> — Push sends shift data (history, orders). Settings changes are saved locally only."}
+              ? "✓ <strong>Manager mode</strong> — you can edit all settings. Push sends prices, salary & flavors to all devices."
+              : "👷 <strong>Worker mode</strong> — settings are view-only. Push sends shift data (history, orders) to the cloud."}
           </div>
         </div>`;
 
-      // ── Settings sections (same for both roles — workers save locally, just won't push) ──
+      // ── Locked banner (workers only) ───────────────────────────────────────
+      const lockedBanner = locked ? `
+        <div class="settings-locked-banner">
+          🔒 Settings are managed by the Manager device.<br>
+          Switch to Manager mode above to make changes.
+        </div>` : "";
+
       const addonRows = Object.entries(s.addonPrices).map(([name, price]) => `
         <div class="expense-row saddon-row">
-          <input class="smodal-input saddon-name"  type="text"   value="${name}"  placeholder="Add-on name">
-          <input class="smodal-input saddon-price" type="number" value="${price}" placeholder="₱0">
-          <button type="button" onclick="this.parentElement.remove();">✕</button>
+          <input class="smodal-input saddon-name"  type="text"   value="${name}"  placeholder="Add-on name"${locked?" disabled":""}>
+          <input class="smodal-input saddon-price" type="number" value="${price}" placeholder="₱0"${locked?" disabled":""}>
+          ${!locked?`<button type="button" onclick="this.parentElement.remove();">✕</button>`:""}
         </div>`).join("");
 
       const flavorHTML = Object.entries(CAT_LABELS).map(([cat, label]) => `
         <div class="sflavor-cat" id="sfcat_${cat}">
           <div class="sflavor-cat-title">${label}</div>
           <div class="sflavor-pills"></div>
+          ${!locked ? `
           <div class="sflavor-add-row" style="margin-top:6px;">
             <input class="sflavor-add-input" id="sfi_${cat}" type="text" placeholder="Add flavor…"
               onkeydown="if(event.key==='Enter'){addFlavorToCategory('${cat}');event.preventDefault();}">
             <button class="sflavor-add-btn" onclick="addFlavorToCategory('${cat}')">+ Add</button>
-          </div>
+          </div>` : ""}
         </div>`).join("");
 
-      document.getElementById("settingsBody").innerHTML = roleSection + `
+      const addAddonBtn = !locked
+        ? `<button class="add-expense-btn" style="margin-top:8px;"
+             onclick="document.getElementById('saddonContainer').insertAdjacentHTML('beforeend',
+               \`<div class='expense-row saddon-row'>
+                 <input class='smodal-input saddon-name' type='text' placeholder='Add-on name'>
+                 <input class='smodal-input saddon-price' type='number' placeholder='₱0'>
+                 <button type='button' onclick='this.parentElement.remove();'>✕</button>
+               </div>\`);">+ Add Add-on</button>`
+        : "";
+
+      document.getElementById("settingsBody").innerHTML = roleSection + lockedBanner + `
         <div class="smodal-section">
           <div class="smodal-section-title">Drink Prices (₱)</div>
           <div class="smodal-grid">
-            ${fi("sp_M","Milktea M",s.prices.M)}${fi("sp_L","Milktea L",s.prices.L)}
-            ${fi("sp_S","Milktea S",s.prices.S)}${fi("sp_MC","Iced Coffee M",s.prices.MC)}
-            ${fi("sp_LC","Iced Coffee L",s.prices.LC)}${fi("sp_HC","Hot Coffee",s.prices.HC)}
-            ${fi("sp_FTM","Fruit Tea M",s.prices.FTM)}${fi("sp_FTL","Fruit Tea L",s.prices.FTL)}
+            ${fi("sp_M","Milktea M",s.prices.M,locked)}${fi("sp_L","Milktea L",s.prices.L,locked)}
+            ${fi("sp_S","Milktea S",s.prices.S,locked)}${fi("sp_MC","Iced Coffee M",s.prices.MC,locked)}
+            ${fi("sp_LC","Iced Coffee L",s.prices.LC,locked)}${fi("sp_HC","Hot Coffee",s.prices.HC,locked)}
+            ${fi("sp_FTM","Fruit Tea M",s.prices.FTM,locked)}${fi("sp_FTL","Fruit Tea L",s.prices.FTL,locked)}
           </div>
         </div>
         <div class="smodal-section">
           <div class="smodal-section-title">Add-on Prices (₱)</div>
           <div id="saddonContainer">${addonRows}</div>
-          <button class="add-expense-btn" style="margin-top:8px;" onclick="document.getElementById('saddonContainer').insertAdjacentHTML('beforeend',\`<div class='expense-row saddon-row'><input class='smodal-input saddon-name' type='text' placeholder='Add-on name'><input class='smodal-input saddon-price' type='number' placeholder='₱0'><button type='button' onclick='this.parentElement.remove();'>✕</button></div>\`);">+ Add Add-on</button>
+          ${addAddonBtn}
         </div>
         <div class="smodal-section">
           <div class="smodal-section-title">Salary &amp; Bonus</div>
           <div class="smodal-grid-3">
-            ${fi("sp_salaryBase","Base Salary (₱)",s.salaryBase)}
-            ${fi("sp_bonusThreshold","Bonus Threshold (₱)",s.salaryBonusThreshold)}
-            ${fi("sp_bonusPerK","Bonus per ₱1,000 (₱)",s.salaryBonusPerK)}
+            ${fi("sp_salaryBase","Base Salary (₱)",s.salaryBase,locked)}
+            ${fi("sp_bonusThreshold","Bonus Threshold (₱)",s.salaryBonusThreshold,locked)}
+            ${fi("sp_bonusPerK","Bonus per ₱1,000 (₱)",s.salaryBonusPerK,locked)}
           </div>
-          <div style="font-size:0.72rem;color:#b08060;margin-top:8px;line-height:1.5;">Staff earns the base salary when cup sales meet or exceed it. Once sales hit the bonus threshold, the bonus kicks in — plus that same amount for every extra ₱1,000.</div>
         </div>
         <div class="smodal-section">
           <div class="smodal-section-title">Quota &amp; Low Stock</div>
           <div class="smodal-grid">
-            ${fi("sp_quotaStart","Quota Toast at (₱)",s.quotaStart)}
-            ${fi("sp_lowStock","Low Stock Warning (cups)",s.lowStock)}
+            ${fi("sp_quotaStart","Quota Toast at (₱)",s.quotaStart,locked)}
+            ${fi("sp_lowStock","Low Stock Warning (cups)",s.lowStock,locked)}
           </div>
-          <div style="font-size:0.72rem;color:#b08060;margin-top:8px;line-height:1.5;">Toast fires at the quota amount then every ₱1,000 after. Low stock warning highlights a drink button when remaining cups drop to this count.</div>
         </div>
         <div class="smodal-section">
           <div class="smodal-section-title">Flavors</div>
-          <div style="font-size:0.76rem;color:#9a7a5e;margin-bottom:12px;">Add or remove flavors per drink category. Press Enter or tap + Add.</div>
+          ${locked?`<div style="font-size:0.76rem;color:#b08060;margin-bottom:12px;">Flavor list is managed by the Manager device.</div>`
+                  :`<div style="font-size:0.76rem;color:#9a7a5e;margin-bottom:12px;">Add or remove flavors per drink category.</div>`}
           ${flavorHTML}
         </div>`;
 
@@ -527,62 +544,35 @@
 
   <script>
     const GREETINGS = [
-      { e:"☕", msg:"Ready to brew?",                      sub:"Let's make today count."                   },
-      { e:"🌅", msg:"Good shift starts here",              sub:"You got this."                             },
-      { e:"💪", msg:"Brew hard, count harder",             sub:"Every cup adds up."                        },
-      { e:"🧋", msg:"Let's get brewing!",                  sub:"Track it. Own it."                         },
-      { e:"✨", msg:"Another day, another sip",            sub:"Make it a great one."                      },
-      { e:"☕", msg:"Rise & brew",                         sub:"Time to make it happen."                   },
-      { e:"😄", msg:"Cups don't count themselves",         sub:"Good thing you do."                        },
-      { e:"🎯", msg:"Today's a good day to sell out",      sub:"Let's get to work."                        },
-      { e:"🧋", msg:"Milk tea season, always",             sub:"Ready when you are."                       },
-      { e:"🚀", msg:"Let's hit that quota!",               sub:"₱3,000 won't earn itself."                 },
-      { e:"✅", msg:"Freshly brewed and ready",            sub:"Start when you're set."                    },
-      { e:"🌟", msg:"One shift at a time",                 sub:"Make it count."                            },
-      { e:"🎶", msg:"Shake it, brew it, count it",         sub:"Let's go!"                                 },
-      { e:"☕", msg:"The best cup is the next one",        sub:"Keep going."                               },
-      { e:"💼", msg:"Grind first, chill later",            sub:"Let's have a great shift."                 },
-      { e:"🧋", msg:"Small cups, big dreams",              sub:"You're building something real."           },
-      { e:"✨", msg:"Consistency hits different",          sub:"Show up and show out."                     },
-      { e:"☕", msg:"Brew goals loading…",                 sub:"Almost there, let's go."                   },
-      { e:"🏆", msg:"New shift, new wins",                 sub:"Yesterday doesn't count now."              },
-      { e:"🚀", msg:"Keep the cups moving",                sub:"Revenue doesn't lie."                      },
-      { e:"🍵", msg:"Flavor by flavor, shift by shift",    sub:"You're doing great."                       },
-      { e:"😄", msg:"The line won't serve itself",         sub:"Let's brew something amazing."             },
-      { e:"💰", msg:"Every peso counts",                   sub:"Track it carefully today."                 },
-      { e:"☕", msg:"BREWS.CO is open for business",       sub:"Have an amazing shift!"                    },
-      { e:"👑", msg:"You're the barista and the boss",     sub:"Act like it."                              },
-      { e:"🧋", msg:"Stir things up today",                sub:"In the best way possible."                 },
-      { e:"💸", msg:"Tally up and get paid",               sub:"Numbers don't lie — let's go."            },
-      { e:"✨", msg:"Another shift, another story",        sub:"Make it a good one."                       },
-      { e:"🔥", msg:"You're on fire today",                sub:"Don't stop now."                           },
-      { e:"💡", msg:"Work smart, brew smarter",            sub:"Every detail matters."                     },
-      { e:"🌈", msg:"Great things take great effort",      sub:"And you've got plenty of it."              },
-      { e:"⚡", msg:"Charged up and ready",                sub:"Let's make this shift legendary."          },
-      { e:"🎉", msg:"Another chance to be great",          sub:"Don't waste it."                           },
-      { e:"🏅", msg:"Champions show up every day",         sub:"Even on slow days."                        },
-      { e:"💎", msg:"Quality over quantity",               sub:"But hey, both would be nice."              },
-      { e:"🌙", msg:"Every late shift counts",             sub:"Rest comes after."                         },
-      { e:"🤝", msg:"You and your team got this",          sub:"Brew together, win together."              },
-      { e:"📈", msg:"Yesterday was good",                  sub:"Today will be better."                     },
-      { e:"🎯", msg:"Eyes on the goal",                    sub:"₱3,000 is just the beginning."             },
-      { e:"🌊", msg:"Go with the flow",                    sub:"Orders in, revenue up."                    },
-      { e:"🦁", msg:"Own the shift",                       sub:"Like the boss you are."                    },
-      { e:"🍀", msg:"Feeling lucky today?",                sub:"Make your own luck."                       },
-      { e:"🧠", msg:"Track smart, earn more",              sub:"Every number tells a story."               },
-      { e:"☀️", msg:"A new day, a fresh start",            sub:"Let's brew something beautiful."           },
-      { e:"🎸", msg:"Hit the right notes today",           sub:"Flavor, service, revenue."                 },
-      { e:"🏃", msg:"Don't look back",                     sub:"The cups won't wait."                      },
-      { e:"💬", msg:"Every order is a win",                sub:"Stack them up."                            },
-      { e:"🌺", msg:"Keep things fresh",                   sub:"Just like the drinks."                     },
-      { e:"🛸", msg:"To the moon and beyond",              sub:"Starting with ₱3,000."                     },
-      { e:"🍃", msg:"Stay cool, brew hot",                 sub:"That's the BREWS.CO way."                  },
-      { e:"👊", msg:"Hit that target",                     sub:"One cup at a time."                        },
-      { e:"🎁", msg:"Today is a gift",                     sub:"Unwrap it with a great shift."             },
-      { e:"🌻", msg:"Bloom where you're brewed",           sub:"You're exactly where you need to be."      },
-      { e:"⭐", msg:"Be someone's favorite part of the day", sub:"Start with their order."                 },
-      { e:"🧩", msg:"You're the missing piece",            sub:"This shift needs you."                     },
-      { e:"🎪", msg:"Show them what you've got",           sub:"The floor is yours."                       },
+      { e:"☕", msg:"Ready to brew?",                sub:"Let's make today count."          },
+      { e:"🌅", msg:"Good shift starts here",        sub:"You got this."                    },
+      { e:"💪", msg:"Brew hard, count harder",       sub:"Every cup adds up."               },
+      { e:"🧋", msg:"Let's get brewing!",            sub:"Track it. Own it."                },
+      { e:"✨", msg:"Another day, another sip",      sub:"Make it a great one."             },
+      { e:"☕", msg:"Rise & brew",                   sub:"Time to make it happen."          },
+      { e:"😄", msg:"Cups don't count themselves",   sub:"Good thing you do."               },
+      { e:"🎯", msg:"Today's a good day to sell out",sub:"Let's get to work."              },
+      { e:"🧋", msg:"Milk tea season, always",       sub:"Ready when you are."              },
+      { e:"🚀", msg:"Let's hit that quota!",         sub:"₱3,000 won't earn itself."        },
+      { e:"✅", msg:"Freshly brewed and ready",      sub:"Start when you're set."           },
+      { e:"🌟", msg:"One shift at a time",           sub:"Make it count."                   },
+      { e:"🎶", msg:"Shake it, brew it, count it",   sub:"Let's go!"                        },
+      { e:"☕", msg:"The best cup is the next one",  sub:"Keep going."                      },
+      { e:"💼", msg:"Grind first, chill later",      sub:"Let's have a great shift."        },
+      { e:"🧋", msg:"Small cups, big dreams",        sub:"You're building something real."  },
+      { e:"✨", msg:"Consistency hits different",    sub:"Show up and show out."            },
+      { e:"🏆", msg:"New shift, new wins",           sub:"Yesterday doesn't count now."     },
+      { e:"🚀", msg:"Keep the cups moving",          sub:"Revenue doesn't lie."             },
+      { e:"💰", msg:"Every peso counts",             sub:"Track it carefully today."        },
+      { e:"☕", msg:"BREWS.CO is open for business", sub:"Have an amazing shift!"           },
+      { e:"👑", msg:"You're the barista and the boss",sub:"Act like it."                   },
+      { e:"🔥", msg:"You're on fire today",          sub:"Don't stop now."                  },
+      { e:"⚡", msg:"Charged up and ready",          sub:"Let's make this shift legendary." },
+      { e:"🎉", msg:"Another chance to be great",   sub:"Don't waste it."                  },
+      { e:"🏅", msg:"Champions show up every day",  sub:"Even on slow days."               },
+      { e:"🌻", msg:"Bloom where you're brewed",    sub:"You're exactly where you need to be." },
+      { e:"⭐", msg:"Be someone's favorite part of the day",sub:"Start with their order."  },
+      { e:"🧩", msg:"You're the missing piece",     sub:"This shift needs you."             },
     ];
     const g = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
     document.getElementById("homeEmoji").textContent = g.e;
@@ -594,10 +584,8 @@
     if (localStorage.getItem("brewsResumeShift"))
       document.getElementById("resumeBanner").style.display = "flex";
 
-    sessionStorage.setItem('brewsNav', '1');
-
-    if ("serviceWorker" in navigator)
-      navigator.serviceWorker.register("service-worker.js");
+    sessionStorage.setItem("brewsNav", "1");
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js");
   </script>
 </body>
 </html>
