@@ -483,14 +483,14 @@
       <div class="brand-sub">Point of Sale</div>
     </a>
 
-    <!-- Auto-sync status pill -->
+    <!-- Auto-sync status pill shown while pulling settings on setup screen -->
     <div id="setupSyncPill" style="display:flex;align-items:center;justify-content:center;gap:6px;
       margin:-4px auto 14px;padding:7px 14px;background:#fdf7f2;border:1.5px solid #e8d5c4;
       border-radius:20px;font-size:0.75rem;color:#b08060;font-weight:600;
-      width:fit-content;transition:opacity .5s;">
+      width:fit-content;transition:opacity .6s;">
       <span id="setupSyncDot" style="width:7px;height:7px;border-radius:50%;background:#e8c87a;
-        flex-shrink:0;transition:background .3s;animation:pulse .8s infinite;"></span>
-      <span id="setupSyncText">Pulling latest data…</span>
+        flex-shrink:0;animation:pulse .8s infinite;"></span>
+      <span id="setupSyncText">Pulling latest settings…</span>
     </div>
 
     <div class="setup-note">
@@ -719,8 +719,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
 <script>
-  // Fallback stubs so the POS never crashes if Firebase is offline
-  if (typeof window.syncPull  !== "function") window.syncPull  = async () => { throw new Error("Sync unavailable"); };
+  // Stubs in case Firebase or sync.js is unavailable
+  if (typeof window.syncPull      !== "function") window.syncPull      = async () => { throw new Error("Sync unavailable"); };
   if (typeof window.getDeviceRole !== "function") window.getDeviceRole = () => localStorage.getItem("brewsDeviceRole") || "worker";
 </script>
 <script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
@@ -1610,39 +1610,34 @@ const hasShift = !!localStorage.getItem(SHIFT_ACTIVE_KEY) ||
                  state.begM || state.begL || state.begS || state.begHC;
 if (hasShift) showPOS(); else showSetup();
 
-// ── Auto-pull on setup screen load ───────────────────────────────────────────
-// Fires only when no active shift — pulls latest settings + history before
-// the worker enters cup counts, so prices and flavors are always fresh.
+// ── Auto-pull on setup screen ─────────────────────────────────────────────────
+// Pulls SETTINGS_KEYS only for workers (prices, flavors) so local history is
+// never overwritten. Managers would pull everything via their own home screen.
 setTimeout(async function setupAutoPull() {
-  // Skip if a shift is already running
-  if (localStorage.getItem(SHIFT_ACTIVE_KEY)) return;
+  if (localStorage.getItem(SHIFT_ACTIVE_KEY)) return; // skip if shift already running
   if (typeof syncPull !== "function") {
-    const t = document.getElementById("setupSyncText");
-    const d = document.getElementById("setupSyncDot");
-    if (t) t.textContent = "Offline mode — using local data";
-    if (d) { d.style.background = "#c4a98a"; d.style.animation = "none"; }
+    _setSetupPill("#c4a98a", "none", "Offline mode — using local data");
     return;
   }
   try {
-    await syncPull();
-    // Rebuild catalogue so fresh prices/settings take effect immediately
-    buildCatalogue();
-    const d = document.getElementById("setupSyncDot");
-    const t = document.getElementById("setupSyncText");
-    if (d) { d.style.background = "#7ab87a"; d.style.animation = "none"; }
-    if (t) t.textContent = "Up to date ✓";
-    // Fade out the pill after 2.5s
+    await syncPull(); // role-aware: workers get settings only, managers get everything
+    buildCatalogue(); // rebuild so fresh prices/flavors take effect immediately
+    _setSetupPill("#7ab87a", "none", "Settings up to date ✓");
     setTimeout(() => {
       const pill = document.getElementById("setupSyncPill");
       if (pill) pill.style.opacity = "0";
     }, 2500);
   } catch (e) {
-    const d = document.getElementById("setupSyncDot");
-    const t = document.getElementById("setupSyncText");
-    if (d) { d.style.background = "#c0665a"; d.style.animation = "none"; }
-    if (t) t.textContent = "Offline — using local data";
+    _setSetupPill("#c0665a", "none", "Offline — using local data");
   }
-}, 1500); // 1.5s gives Firebase SDKs time to initialise
+}, 1500);
+
+function _setSetupPill(color, anim, text) {
+  const d = document.getElementById("setupSyncDot");
+  const t = document.getElementById("setupSyncText");
+  if (d) { d.style.background = color; d.style.animation = anim; }
+  if (t) t.textContent = text;
+}
 </script>
 </body>
 </html>
