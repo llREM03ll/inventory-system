@@ -335,6 +335,47 @@ function saveCurrentResults() {
     btn.disabled = true; btn.textContent = "Saved ✓";
     btn.style.opacity = "0.65"; btn.style.cursor = "default";
   }
+
+  // Auto-push to cloud immediately after saving (workers only)
+  _autoPushAfterSave();
+}
+
+// ── Auto-push toast helpers ───────────────────────────────────────────────────
+async function _autoPushAfterSave() {
+  // Skip if sync functions are not available or this is a manager device
+  if (typeof syncPush !== "function") return;
+  if (typeof getDeviceRole === "function" && getDeviceRole() === "manager") return;
+
+  _showSyncToast("☁️ Syncing to cloud…", "#7a5c3e", false);
+  try {
+    await syncPush();
+    _showSyncToast("✓ Saved & synced to cloud", "#3a7a3a", true);
+  } catch (e) {
+    _showSyncToast("⚠ Saved locally — sync failed", "#c0665a", true);
+  }
+}
+
+function _showSyncToast(msg, color, autoDismiss) {
+  let toast = document.getElementById("_brewsSyncToast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "_brewsSyncToast";
+    toast.style.cssText = [
+      "position:fixed","bottom:80px","left:50%","transform:translateX(-50%)",
+      "padding:9px 20px","border-radius:20px","font-size:0.82rem","font-weight:600",
+      "color:#fff","z-index:9999","opacity:0","transition:opacity .3s",
+      "white-space:nowrap","box-shadow:0 3px 14px rgba(0,0,0,0.22)",
+      "pointer-events:none"
+    ].join(";");
+    document.body.appendChild(toast);
+  }
+  clearTimeout(toast._timer);
+  toast.textContent   = msg;
+  toast.style.background = color;
+  toast.style.opacity = "1";
+  if (autoDismiss) {
+    toast._timer = setTimeout(() => { toast.style.opacity = "0"; }, 3000);
+  }
 }
 
 // ── Clear all ─────────────────────────────────────────────────────────────────
