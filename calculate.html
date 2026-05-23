@@ -171,6 +171,8 @@
     })();
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
   <script src="js/settings.js"></script>
   <script>
     if (typeof getSettings !== "function") {
@@ -186,6 +188,12 @@
       window.resetSettings= () => {};
     }
   </script>
+  <script>
+    // Stubs so calculate.html never crashes if Firebase is offline
+    if (typeof window.syncPush      !== "function") window.syncPush      = async () => { throw new Error("Sync unavailable"); };
+    if (typeof window.getDeviceRole !== "function") window.getDeviceRole = () => localStorage.getItem("brewsDeviceRole") || "worker";
+  </script>
+  <script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
   <script src="js/InventorySystem.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/history.js"></script>
