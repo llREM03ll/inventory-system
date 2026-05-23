@@ -11,13 +11,18 @@
   <link rel="stylesheet" href="css/styles.css" />
   <style>
     body { padding: 0; }
+
+    /* ── Home view ── */
     .home-view {
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; text-align: center;
-      min-height: calc(100vh - 70px); padding: 28px 24px 16px;
+      min-height: 100vh; padding: 28px 24px 24px;
     }
+    /* When bottom nav is present, shrink min-height */
+    body.has-bottom-nav .home-view { min-height: calc(100vh - 70px); }
+
     .home-logo { text-decoration: none; display: block; margin-bottom: 28px; }
-    .home-logo .brand { font-size: 2.1rem; color: #7a5c3e; }
+    .home-logo .brand     { font-size: 2.1rem; color: #7a5c3e; }
     .home-logo .brand-sub { font-size: 0.7rem; color: #b08060; margin-bottom: 0; }
 
     .settings-fab {
@@ -33,8 +38,7 @@
     .home-card {
       width: 100%; max-width: 400px;
       background: linear-gradient(145deg, #fdf5eb, #f5ede5);
-      border: 1.5px solid #e8d5c4; border-radius: 26px;
-      padding: 44px 32px 40px;
+      border: 1.5px solid #e8d5c4; border-radius: 26px; padding: 44px 32px 40px;
       box-shadow: 0 6px 32px rgba(122,92,62,0.12); margin-bottom: 14px;
     }
     .home-emoji { font-size: 3.4rem; line-height: 1; margin-bottom: 20px; }
@@ -45,10 +49,10 @@
     .home-resume {
       width: 100%; max-width: 400px; display: flex; align-items: center;
       justify-content: space-between; gap: 12px;
-      background: #fffbf0; border: 1.5px solid #e8c87a; border-radius: 16px; padding: 14px 16px;
-      margin-bottom: 14px;
+      background: #fffbf0; border: 1.5px solid #e8c87a; border-radius: 16px;
+      padding: 14px 16px; margin-bottom: 14px;
     }
-    .home-resume-info { flex: 1; text-align: left; }
+    .home-resume-info  { flex: 1; text-align: left; }
     .home-resume-title { font-size: 0.86rem; font-weight: 700; color: #7a5c3e; }
     .home-resume-sub   { font-size: 0.73rem; color: #b08060; margin-top: 2px; }
     .home-resume-btn {
@@ -58,6 +62,41 @@
       transition: all .18s; white-space: nowrap;
     }
     .home-resume-btn:hover { background: linear-gradient(135deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
+
+    /* Manager-only "View History" button */
+    .view-history-btn {
+      width: 100%; max-width: 400px; display: flex; align-items: center;
+      justify-content: center; gap: 8px; margin-top: 14px;
+      background: linear-gradient(145deg, #d4a97c, #7a5c3e); color: #fff;
+      border: none; border-radius: 16px; padding: 15px 20px;
+      font-size: 0.92rem; font-weight: 700; font-family: inherit;
+      cursor: pointer; text-decoration: none; transition: all .18s;
+      box-shadow: 0 3px 12px rgba(122,92,62,0.26);
+    }
+    .view-history-btn:hover { background: linear-gradient(145deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
+
+    /* ── Sync card ── */
+    .sync-card {
+      width: 100%; max-width: 400px; margin-top: 14px;
+      background: #fffaf5; border: 1.5px solid #e8d5c4; border-radius: 16px; padding: 14px 16px;
+    }
+    .sync-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .sync-status { display: flex; align-items: center; gap: 7px; font-size: 0.72rem; color: #9a7a5e; font-weight: 600; }
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #c4a98a; flex-shrink: 0; transition: background .3s; }
+    .sync-dot.ok    { background: #7ab87a; }
+    .sync-dot.busy  { background: #e8c87a; animation: pulse .8s infinite; }
+    .sync-dot.error { background: #c0665a; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .sync-role-badge { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; flex-shrink: 0; }
+    .sync-role-badge.worker  { background: #f0e4d8; color: #9a6e52; }
+    .sync-role-badge.manager { background: #e0f0e0; color: #3a7a3a; }
+    .sync-btns { display: flex; gap: 8px; }
+    .sync-btn { flex: 1; padding: 9px 10px; border-radius: 11px; font-size: 0.82rem; font-weight: 700; font-family: inherit; cursor: pointer; border: none; transition: all .18s; text-align: center; }
+    .sync-btn-push { background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff; box-shadow: 0 2px 8px rgba(122,92,62,0.22); }
+    .sync-btn-push:hover { background: linear-gradient(135deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
+    .sync-btn-pull { background: #f0e4d8; color: #7a5c3e; border: 1.5px solid #e0c9b8; }
+    .sync-btn-pull:hover { background: #e4d0bf; transform: translateY(-1px); }
+    .sync-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
 
     /* ── Settings modal ── */
     .smodal-overlay {
@@ -69,126 +108,51 @@
     .smodal-overlay.open { opacity: 1; pointer-events: all; }
     .smodal {
       background: #fffaf5; width: 100%; max-width: 720px;
-      border-radius: 22px 22px 0 0; max-height: 92vh;
-      display: flex; flex-direction: column;
+      border-radius: 22px 22px 0 0; max-height: 92vh; display: flex; flex-direction: column;
       box-shadow: 0 -6px 40px rgba(90,56,24,0.22); border-top: 1.5px solid #e8d5c4;
       transform: translateY(24px); transition: transform .24s;
     }
     .smodal-overlay.open .smodal { transform: translateY(0); }
     .smodal-handle { width: 36px; height: 4px; background: #d4b89e; border-radius: 2px; margin: 10px auto 0; flex-shrink: 0; }
-    .smodal-head {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 20px 12px; border-bottom: 1px solid #e8d5c4; flex-shrink: 0;
-    }
+    .smodal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 12px; border-bottom: 1px solid #e8d5c4; flex-shrink: 0; }
     .smodal-title { font-size: 1rem; font-weight: 800; color: #5c4631; }
     .smodal-actions { display: flex; gap: 8px; }
-    .smodal-reset {
-      background: #fdf0f0; border: 1.5px solid #f0c8c8; border-radius: 10px;
-      padding: 8px 13px; font-size: 0.82rem; font-weight: 700; color: #c0665a;
-      font-family: inherit; cursor: pointer; transition: all .16s;
-    }
+    .smodal-reset { background: #fdf0f0; border: 1.5px solid #f0c8c8; border-radius: 10px; padding: 8px 13px; font-size: 0.82rem; font-weight: 700; color: #c0665a; font-family: inherit; cursor: pointer; }
     .smodal-reset:hover { background: #fae0de; }
-    .smodal-done {
-      background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
-      border: none; border-radius: 10px; padding: 8px 16px;
-      font-size: 0.82rem; font-weight: 700; font-family: inherit; cursor: pointer;
-    }
+    .smodal-done { background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff; border: none; border-radius: 10px; padding: 8px 16px; font-size: 0.82rem; font-weight: 700; font-family: inherit; cursor: pointer; }
     .smodal-done:hover { background: linear-gradient(135deg, #7a5c3e, #5c4631); }
     .smodal-body { overflow-y: auto; padding: 16px 20px 32px; flex: 1; }
     .smodal-section { margin-bottom: 24px; }
-    .smodal-section-title {
-      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      color: #b08060; border-bottom: 1px solid #e8d5c4; padding-bottom: 7px; margin-bottom: 12px;
-    }
+    .smodal-section-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #b08060; border-bottom: 1px solid #e8d5c4; padding-bottom: 7px; margin-bottom: 12px; }
     .smodal-grid  { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .smodal-grid-3{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .smodal-field { display: flex; flex-direction: column; gap: 4px; }
     .smodal-label { font-size: 0.72rem; font-weight: 600; color: #9a7a5e; }
-    .smodal-input {
-      padding: 9px 11px; border: 1.5px solid #dfc9b4; border-radius: 10px;
-      font-size: 0.88rem; font-family: inherit; background: #fdf7f2; color: #3d2b1a;
-      width: 100%; box-sizing: border-box; transition: border-color .16s;
-    }
+    .smodal-input { padding: 9px 11px; border: 1.5px solid #dfc9b4; border-radius: 10px; font-size: 0.88rem; font-family: inherit; background: #fdf7f2; color: #3d2b1a; width: 100%; box-sizing: border-box; transition: border-color .16s; }
     .smodal-input:focus { outline: none; border-color: #c7a27c; background: #fff; box-shadow: 0 0 0 3px rgba(199,162,124,0.16); }
-    /* Locked state for worker */
     .smodal-input:disabled { background: #f5ede5; color: #b08060; border-color: #e8d5c4; cursor: not-allowed; }
+    .settings-locked-banner { background: #fdf5e0; border: 1.5px solid #e8d5a0; border-radius: 12px; padding: 12px 14px; margin-bottom: 18px; font-size: 0.82rem; color: #8a6a20; line-height: 1.55; text-align: center; }
 
     /* Role toggle */
     .role-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
-    .role-btn {
-      flex: 1; padding: 10px 14px; border-radius: 10px; font-size: 0.84rem;
-      font-weight: 700; font-family: inherit; cursor: pointer; transition: all .16s; text-align: center;
-    }
+    .role-btn { flex: 1; padding: 10px 14px; border-radius: 10px; font-size: 0.84rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: all .16s; text-align: center; }
     .role-btn.active { background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff; border: none; box-shadow: 0 2px 8px rgba(122,92,62,0.22); }
     .role-btn:not(.active) { background: #f0e4d8; color: #7a5c3e; border: 1.5px solid #e0c9b8; }
     .role-btn:not(.active):hover { background: #e4d0bf; }
-    .role-notice {
-      font-size: 0.76rem; line-height: 1.55; padding: 9px 12px; border-radius: 10px;
-    }
+    .role-notice { font-size: 0.76rem; line-height: 1.55; padding: 9px 12px; border-radius: 10px; }
     .role-notice.worker  { background: #fdf7f2; border: 1px solid #e8d5c4; color: #9a7a5e; }
     .role-notice.manager { background: #f0f7f0; border: 1px solid #b8ddb8; color: #3a7a3a; }
-    /* Locked banner inside settings modal */
-    .settings-locked-banner {
-      background: #fdf5e0; border: 1.5px solid #e8d5a0; border-radius: 12px;
-      padding: 12px 14px; margin-bottom: 18px; font-size: 0.82rem;
-      color: #8a6a20; line-height: 1.55; text-align: center;
-    }
 
-    /* Flavor add/remove */
+    /* Flavors */
     .sflavor-cat { margin-bottom: 16px; }
     .sflavor-cat-title { font-size: 0.72rem; font-weight: 700; color: #7a5c3e; margin-bottom: 7px; }
     .sflavor-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 7px; }
-    .sflavor-pill {
-      display: flex; align-items: center; gap: 5px;
-      background: #f5ede5; border: 1.5px solid #e0c9b8; border-radius: 20px;
-      padding: 5px 10px; font-size: 0.76rem; font-weight: 600; color: #5c4631;
-    }
-    .sflavor-pill-del {
-      background: none; border: none; color: #c0665a; font-size: 0.82rem;
-      cursor: pointer; padding: 0 2px; line-height: 1; font-weight: 800;
-    }
+    .sflavor-pill { display: flex; align-items: center; gap: 5px; background: #f5ede5; border: 1.5px solid #e0c9b8; border-radius: 20px; padding: 5px 10px; font-size: 0.76rem; font-weight: 600; color: #5c4631; }
+    .sflavor-pill-del { background: none; border: none; color: #c0665a; font-size: 0.82rem; cursor: pointer; padding: 0 2px; line-height: 1; font-weight: 800; }
     .sflavor-add-row { display: flex; gap: 7px; }
-    .sflavor-add-input {
-      flex: 1; padding: 8px 11px; border: 1.5px solid #dfc9b4; border-radius: 10px;
-      font-size: 0.84rem; font-family: inherit; background: #fdf7f2; color: #3d2b1a;
-    }
+    .sflavor-add-input { flex: 1; padding: 8px 11px; border: 1.5px solid #dfc9b4; border-radius: 10px; font-size: 0.84rem; font-family: inherit; background: #fdf7f2; color: #3d2b1a; }
     .sflavor-add-input:focus { outline: none; border-color: #c7a27c; }
-    .sflavor-add-btn {
-      background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff;
-      border: none; border-radius: 10px; padding: 8px 14px;
-      font-size: 0.82rem; font-weight: 700; font-family: inherit; cursor: pointer;
-    }
-
-    /* Sync card */
-    .sync-card {
-      width: 100%; max-width: 400px; margin-top: 14px;
-      background: #fffaf5; border: 1.5px solid #e8d5c4; border-radius: 16px;
-      padding: 14px 16px;
-    }
-    .sync-row {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; margin-bottom: 10px;
-    }
-    .sync-status { display: flex; align-items: center; gap: 7px; font-size: 0.72rem; color: #9a7a5e; font-weight: 600; }
-    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #c4a98a; flex-shrink: 0; transition: background .3s; }
-    .sync-dot.ok    { background: #7ab87a; }
-    .sync-dot.busy  { background: #e8c87a; animation: pulse .8s infinite; }
-    .sync-dot.error { background: #c0665a; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-    .sync-role-badge { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; flex-shrink: 0; }
-    .sync-role-badge.worker  { background: #f0e4d8; color: #9a6e52; }
-    .sync-role-badge.manager { background: #e0f0e0; color: #3a7a3a; }
-    .sync-btns { display: flex; gap: 8px; }
-    .sync-btn {
-      flex: 1; padding: 9px 10px; border-radius: 11px; font-size: 0.82rem;
-      font-weight: 700; font-family: inherit; cursor: pointer; border: none;
-      transition: all .18s; text-align: center;
-    }
-    .sync-btn-push { background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff; box-shadow: 0 2px 8px rgba(122,92,62,0.22); }
-    .sync-btn-push:hover { background: linear-gradient(135deg, #7a5c3e, #5c4631); transform: translateY(-1px); }
-    .sync-btn-pull { background: #f0e4d8; color: #7a5c3e; border: 1.5px solid #e0c9b8; }
-    .sync-btn-pull:hover { background: #e4d0bf; transform: translateY(-1px); }
-    .sync-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+    .sflavor-add-btn { background: linear-gradient(135deg, #d4a97c, #7a5c3e); color: #fff; border: none; border-radius: 10px; padding: 8px 14px; font-size: 0.82rem; font-weight: 700; font-family: inherit; cursor: pointer; }
   </style>
 </head>
 <body class="has-bottom-nav">
@@ -198,7 +162,7 @@
   <div class="home-view">
     <a href="index.html" class="home-logo">
       <div class="brand">BREWS.CO</div>
-      <div class="brand-sub">Inventory System</div>
+      <div class="brand-sub" id="homeRoleSub">Inventory System</div>
     </a>
 
     <div class="home-card">
@@ -208,6 +172,7 @@
     </div>
     <div class="home-date" id="homeDate"></div>
 
+    <!-- Worker only: resume banner -->
     <div class="home-resume" id="resumeBanner" style="display:none;">
       <div class="home-resume-info">
         <div class="home-resume-title">↩ Unfinished shift saved</div>
@@ -216,6 +181,12 @@
       <a href="pos.html" class="home-resume-btn">Resume →</a>
     </div>
 
+    <!-- Manager only: View History button -->
+    <a href="calendar.html" class="view-history-btn" id="viewHistoryBtn" style="display:none;">
+      📅 View History &amp; Reports →
+    </a>
+
+    <!-- Sync card -->
     <div class="sync-card">
       <div class="sync-row">
         <div class="sync-status">
@@ -238,7 +209,7 @@
       <div class="smodal-head">
         <span class="smodal-title">⚙️ Settings</span>
         <div class="smodal-actions">
-          <button class="smodal-reset" id="smodal-reset-btn" onclick="confirmResetSettings()">↺ Reset Defaults</button>
+          <button class="smodal-reset" id="smodal-reset-btn" onclick="confirmResetSettings()">↺ Reset</button>
           <button class="smodal-done"  id="smodal-save-btn"  onclick="saveAndCloseSettings()">Save ✓</button>
         </div>
       </div>
@@ -246,7 +217,8 @@
     </div>
   </div>
 
-  <nav class="bottom-nav">
+  <!-- Worker bottom nav (hidden for managers via JS) -->
+  <nav class="bottom-nav" id="bottomNav">
     <a href="calculate.html" class="bottom-nav-item">
       <span class="bottom-nav-icon">🧮</span>
       <span class="bottom-nav-label">Calculate</span>
@@ -274,9 +246,33 @@
   <script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
 
   <script>
-    // ── Sync UI ───────────────────────────────────────────────────────────────
+    // ── Role-based UI on load ──────────────────────────────────────────────────
+    (function applyRole() {
+      const role      = getDeviceRole();
+      const isManager = role === "manager";
+      const nav       = document.getElementById("bottomNav");
+      const resume    = document.getElementById("resumeBanner");
+      const viewHist  = document.getElementById("viewHistoryBtn");
+      const roleSub   = document.getElementById("homeRoleSub");
+
+      if (isManager) {
+        // Hide worker nav + resume banner; show history button
+        if (nav)    { nav.style.display = "none"; document.body.classList.remove("has-bottom-nav"); }
+        if (resume) resume.style.display = "none";
+        if (viewHist) viewHist.style.display = "flex";
+        if (roleSub)  roleSub.textContent = "Manager View";
+      } else {
+        // Worker
+        if (resume && localStorage.getItem("brewsResumeShift")) resume.style.display = "flex";
+        if (localStorage.getItem("brewsShiftActive")) {
+          document.getElementById("shiftNavLabel").textContent = "↩ Shift";
+        }
+      }
+    })();
+
+    // ── Sync UI ────────────────────────────────────────────────────────────────
     function setSyncUI(state, msg) {
-      document.getElementById("syncDot").className  = "sync-dot " + (state || "");
+      document.getElementById("syncDot").className = "sync-dot " + (state || "");
       document.getElementById("syncStatusText").textContent = msg;
       const busy = state === "busy";
       document.getElementById("syncPushBtn").disabled = busy;
@@ -304,39 +300,25 @@
         const what = role === "manager"
           ? "settings (prices, salary, flavors) — history is untouched"
           : "shift data (history, orders) — settings are untouched";
-        if (!confirm("⚠️ Push to Cloud?\n\nThis will update the cloud with this device's " + what + ".\n\nContinue?")) return;
+        if (!confirm("⚠️ Push to Cloud?\n\nThis updates the cloud with this device's " + what + ".\n\nContinue?")) return;
       }
       setSyncUI("busy", direction === "push" ? "Pushing…" : "Pulling…");
       try {
-        if (direction === "push") {
-          await syncPush();
-          setSyncUI("ok", "Pushed " + getLastSyncDisplay());
-        } else {
-          await syncPull();
-          setSyncUI("ok", "Pulled " + getLastSyncDisplay());
-        }
+        if (direction === "push") { await syncPush(); setSyncUI("ok", "Pushed " + getLastSyncDisplay()); }
+        else                      { await syncPull(); setSyncUI("ok", "Pulled " + getLastSyncDisplay()); }
       } catch (e) {
         setSyncUI("error", "⚠ " + (e.message || "Sync failed"));
         setTimeout(initSyncDisplay, 4000);
       }
     }
 
-    // ── Auto-pull on load + every 3 min ──────────────────────────────────────
-    // Workers: pulls settings only (prices/flavors) — history untouched
-    // Managers: pulls everything
+    // Auto-pull (role-aware inside syncPull)
     const AUTO_PULL_MS = 3 * 60 * 1000;
-
     async function autoPull() {
       if (localStorage.getItem("brewsShiftActive")) return;
       setSyncUI("busy", "Auto-syncing…");
-      try {
-        await syncPull();  // role-aware inside sync.js
-        setSyncUI("ok", "Auto-synced " + getLastSyncDisplay());
-        updateSyncCard();
-      } catch (e) {
-        setSyncUI("error", "⚠ Auto-sync failed");
-        setTimeout(initSyncDisplay, 3000);
-      }
+      try { await syncPull(); setSyncUI("ok", "Auto-synced " + getLastSyncDisplay()); updateSyncCard(); }
+      catch (e) { setSyncUI("error", "⚠ Auto-sync failed"); setTimeout(initSyncDisplay, 3000); }
     }
 
     initSyncDisplay();
@@ -345,14 +327,7 @@
   </script>
 
   <script>
-    if (localStorage.getItem("brewsShiftActive")) {
-      document.getElementById("shiftNavLabel").textContent = "↩ Shift";
-      document.getElementById("shiftNavBtn").title = "Return to active shift";
-    }
-  </script>
-
-  <script>
-    // ── Settings modal ────────────────────────────────────────────────────────
+    // ── Settings modal ─────────────────────────────────────────────────────────
     const CAT_LABELS = { milktea:"Milk Tea", fruittea:"Fruit Tea", icedcoffee:"Iced Coffee", hotcoffee:"Hot Coffee" };
     let _ws = null;
 
@@ -365,36 +340,44 @@
     function handleSettingsOverlay(e) { if (e.target === document.getElementById("settingsModal")) closeSettings(); }
 
     function confirmResetSettings() {
-      if (getDeviceRole() !== "manager") return; // workers can't reset
+      if (getDeviceRole() !== "manager") return;
       if (!confirm("Reset all settings to defaults? This cannot be undone.")) return;
-      resetSettings();
-      _ws = JSON.parse(JSON.stringify(getSettings()));
-      renderSettingsModal();
+      resetSettings(); _ws = JSON.parse(JSON.stringify(getSettings())); renderSettingsModal();
     }
 
     function saveAndCloseSettings() {
-      // Workers: only save the role change (role is not in _ws, it's separate)
-      if (getDeviceRole() === "manager") {
-        collectFromUI();
-        saveSettings(_ws);
-      }
-      closeSettings();
-      updateSyncCard();
+      if (getDeviceRole() === "manager") { collectFromUI(); saveSettings(_ws); }
+      closeSettings(); updateSyncCard();
     }
 
     function setLocalRole(role) {
-      setDeviceRole(role);
-      renderSettingsModal();
-      updateSyncCard();
+      setDeviceRole(role); renderSettingsModal(); updateSyncCard();
+      // Re-apply role UI without full reload
+      const isManager = role === "manager";
+      const nav     = document.getElementById("bottomNav");
+      const resume  = document.getElementById("resumeBanner");
+      const viewHist= document.getElementById("viewHistoryBtn");
+      const roleSub = document.getElementById("homeRoleSub");
+      if (isManager) {
+        if (nav) { nav.style.display = "none"; document.body.classList.remove("has-bottom-nav"); }
+        if (resume)   resume.style.display = "none";
+        if (viewHist) viewHist.style.display = "flex";
+        if (roleSub)  roleSub.textContent = "Manager View";
+      } else {
+        if (nav) { nav.style.display = "flex"; document.body.classList.add("has-bottom-nav"); }
+        if (resume && localStorage.getItem("brewsResumeShift")) resume.style.display = "flex";
+        if (viewHist) viewHist.style.display = "none";
+        if (roleSub)  roleSub.textContent = "Inventory System";
+      }
     }
 
     function n(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
 
     function collectFromUI() {
-      _ws.prices = { M:n("sp_M"), L:n("sp_L"), S:n("sp_S"), MC:n("sp_MC"), LC:n("sp_LC"), HC:n("sp_HC"), FTM:n("sp_FTM"), FTL:n("sp_FTL") };
+      _ws.prices = { M:n("sp_M"),L:n("sp_L"),S:n("sp_S"),MC:n("sp_MC"),LC:n("sp_LC"),HC:n("sp_HC"),FTM:n("sp_FTM"),FTL:n("sp_FTL") };
       _ws.addonPrices = {};
       document.querySelectorAll(".saddon-row").forEach(r => {
-        const name  = r.querySelector(".saddon-name")?.value?.trim();
+        const name = r.querySelector(".saddon-name")?.value?.trim();
         const price = parseFloat(r.querySelector(".saddon-price")?.value) || 0;
         if (name) _ws.addonPrices[name] = price;
       });
@@ -425,7 +408,7 @@
       const c = document.getElementById("sfcat_" + cat);
       if (!c) return;
       const isManager = getDeviceRole() === "manager";
-      const flavors   = _ws.flavors[cat] || [];
+      const flavors = _ws.flavors[cat] || [];
       c.querySelector(".sflavor-pills").innerHTML = flavors.length
         ? flavors.map(f => `<span class="sflavor-pill">${f}${isManager
             ? `<button class="sflavor-pill-del" onclick="removeFlavorFromCategory('${cat}','${f.replace(/'/g,"\\'")}')">✕</button>`
@@ -434,23 +417,16 @@
     }
 
     function fi(id, label, val, locked) {
-      return `<div class="smodal-field">
-        <label class="smodal-label">${label}</label>
-        <input class="smodal-input" id="${id}" type="number" value="${val}"${locked ? " disabled" : ""}>
-      </div>`;
+      return `<div class="smodal-field"><label class="smodal-label">${label}</label>
+        <input class="smodal-input" id="${id}" type="number" value="${val}"${locked?" disabled":""}></div>`;
     }
 
     function renderSettingsModal() {
-      const s         = _ws;
-      const role      = getDeviceRole();
-      const isManager = role === "manager";
-      const locked    = !isManager; // workers see read-only fields
+      const s = _ws, role = getDeviceRole(), isManager = role === "manager", locked = !isManager;
 
-      // Show/hide Save & Reset buttons for workers
       document.getElementById("smodal-save-btn").style.display  = isManager ? "" : "none";
       document.getElementById("smodal-reset-btn").style.display = isManager ? "" : "none";
 
-      // ── Role section ───────────────────────────────────────────────────────
       const roleSection = `
         <div class="smodal-section">
           <div class="smodal-section-title">Device Role</div>
@@ -460,17 +436,12 @@
           </div>
           <div class="role-notice ${role}">
             ${isManager
-              ? "✓ <strong>Manager mode</strong> — you can edit all settings. Push sends prices, salary & flavors to all devices."
-              : "👷 <strong>Worker mode</strong> — settings are view-only. Push sends shift data (history, orders) to the cloud."}
+              ? "✓ <strong>Manager mode</strong> — You can edit all settings. Push sends prices, salary &amp; flavors to all devices. You only see Calendar &amp; History."
+              : "👷 <strong>Worker mode</strong> — Settings are view-only. Push sends shift data (history &amp; orders) to the cloud."}
           </div>
         </div>`;
 
-      // ── Locked banner (workers only) ───────────────────────────────────────
-      const lockedBanner = locked ? `
-        <div class="settings-locked-banner">
-          🔒 Settings are managed by the Manager device.<br>
-          Switch to Manager mode above to make changes.
-        </div>` : "";
+      const lockedBanner = locked ? `<div class="settings-locked-banner">🔒 Settings are managed by the Manager device.<br>Switch to Manager mode above to make changes.</div>` : "";
 
       const addonRows = Object.entries(s.addonPrices).map(([name, price]) => `
         <div class="expense-row saddon-row">
@@ -479,27 +450,24 @@
           ${!locked?`<button type="button" onclick="this.parentElement.remove();">✕</button>`:""}
         </div>`).join("");
 
+      const addAddonBtn = !locked ? `<button class="add-expense-btn" style="margin-top:8px;"
+        onclick="document.getElementById('saddonContainer').insertAdjacentHTML('beforeend',
+          \`<div class='expense-row saddon-row'>
+            <input class='smodal-input saddon-name' type='text' placeholder='Add-on name'>
+            <input class='smodal-input saddon-price' type='number' placeholder='₱0'>
+            <button type='button' onclick='this.parentElement.remove();'>✕</button>
+          </div>\`);">+ Add Add-on</button>` : "";
+
       const flavorHTML = Object.entries(CAT_LABELS).map(([cat, label]) => `
         <div class="sflavor-cat" id="sfcat_${cat}">
           <div class="sflavor-cat-title">${label}</div>
           <div class="sflavor-pills"></div>
-          ${!locked ? `
-          <div class="sflavor-add-row" style="margin-top:6px;">
+          ${!locked?`<div class="sflavor-add-row" style="margin-top:6px;">
             <input class="sflavor-add-input" id="sfi_${cat}" type="text" placeholder="Add flavor…"
               onkeydown="if(event.key==='Enter'){addFlavorToCategory('${cat}');event.preventDefault();}">
             <button class="sflavor-add-btn" onclick="addFlavorToCategory('${cat}')">+ Add</button>
-          </div>` : ""}
+          </div>`:""}
         </div>`).join("");
-
-      const addAddonBtn = !locked
-        ? `<button class="add-expense-btn" style="margin-top:8px;"
-             onclick="document.getElementById('saddonContainer').insertAdjacentHTML('beforeend',
-               \`<div class='expense-row saddon-row'>
-                 <input class='smodal-input saddon-name' type='text' placeholder='Add-on name'>
-                 <input class='smodal-input saddon-price' type='number' placeholder='₱0'>
-                 <button type='button' onclick='this.parentElement.remove();'>✕</button>
-               </div>\`);">+ Add Add-on</button>`
-        : "";
 
       document.getElementById("settingsBody").innerHTML = roleSection + lockedBanner + `
         <div class="smodal-section">
@@ -513,8 +481,7 @@
         </div>
         <div class="smodal-section">
           <div class="smodal-section-title">Add-on Prices (₱)</div>
-          <div id="saddonContainer">${addonRows}</div>
-          ${addAddonBtn}
+          <div id="saddonContainer">${addonRows}</div>${addAddonBtn}
         </div>
         <div class="smodal-section">
           <div class="smodal-section-title">Salary &amp; Bonus</div>
@@ -523,6 +490,7 @@
             ${fi("sp_bonusThreshold","Bonus Threshold (₱)",s.salaryBonusThreshold,locked)}
             ${fi("sp_bonusPerK","Bonus per ₱1,000 (₱)",s.salaryBonusPerK,locked)}
           </div>
+          <div style="font-size:0.72rem;color:#b08060;margin-top:8px;line-height:1.5;">Staff earns the base salary when cup sales meet or exceed it. Once sales hit the bonus threshold, the bonus kicks in — plus that same amount for every extra ₱1,000.</div>
         </div>
         <div class="smodal-section">
           <div class="smodal-section-title">Quota &amp; Low Stock</div>
@@ -533,7 +501,7 @@
         </div>
         <div class="smodal-section">
           <div class="smodal-section-title">Flavors</div>
-          ${locked?`<div style="font-size:0.76rem;color:#b08060;margin-bottom:12px;">Flavor list is managed by the Manager device.</div>`
+          ${locked?`<div style="font-size:0.76rem;color:#b08060;margin-bottom:12px;">Managed by the Manager device.</div>`
                   :`<div style="font-size:0.76rem;color:#9a7a5e;margin-bottom:12px;">Add or remove flavors per drink category.</div>`}
           ${flavorHTML}
         </div>`;
@@ -544,45 +512,49 @@
 
   <script>
     const GREETINGS = [
-      { e:"☕", msg:"Ready to brew?",                sub:"Let's make today count."          },
-      { e:"🌅", msg:"Good shift starts here",        sub:"You got this."                    },
-      { e:"💪", msg:"Brew hard, count harder",       sub:"Every cup adds up."               },
-      { e:"🧋", msg:"Let's get brewing!",            sub:"Track it. Own it."                },
-      { e:"✨", msg:"Another day, another sip",      sub:"Make it a great one."             },
-      { e:"☕", msg:"Rise & brew",                   sub:"Time to make it happen."          },
-      { e:"😄", msg:"Cups don't count themselves",   sub:"Good thing you do."               },
-      { e:"🎯", msg:"Today's a good day to sell out",sub:"Let's get to work."              },
-      { e:"🧋", msg:"Milk tea season, always",       sub:"Ready when you are."              },
-      { e:"🚀", msg:"Let's hit that quota!",         sub:"₱3,000 won't earn itself."        },
-      { e:"✅", msg:"Freshly brewed and ready",      sub:"Start when you're set."           },
-      { e:"🌟", msg:"One shift at a time",           sub:"Make it count."                   },
-      { e:"🎶", msg:"Shake it, brew it, count it",   sub:"Let's go!"                        },
-      { e:"☕", msg:"The best cup is the next one",  sub:"Keep going."                      },
-      { e:"💼", msg:"Grind first, chill later",      sub:"Let's have a great shift."        },
-      { e:"🧋", msg:"Small cups, big dreams",        sub:"You're building something real."  },
-      { e:"✨", msg:"Consistency hits different",    sub:"Show up and show out."            },
-      { e:"🏆", msg:"New shift, new wins",           sub:"Yesterday doesn't count now."     },
-      { e:"🚀", msg:"Keep the cups moving",          sub:"Revenue doesn't lie."             },
-      { e:"💰", msg:"Every peso counts",             sub:"Track it carefully today."        },
-      { e:"☕", msg:"BREWS.CO is open for business", sub:"Have an amazing shift!"           },
-      { e:"👑", msg:"You're the barista and the boss",sub:"Act like it."                   },
-      { e:"🔥", msg:"You're on fire today",          sub:"Don't stop now."                  },
-      { e:"⚡", msg:"Charged up and ready",          sub:"Let's make this shift legendary." },
-      { e:"🎉", msg:"Another chance to be great",   sub:"Don't waste it."                  },
-      { e:"🏅", msg:"Champions show up every day",  sub:"Even on slow days."               },
-      { e:"🌻", msg:"Bloom where you're brewed",    sub:"You're exactly where you need to be." },
-      { e:"⭐", msg:"Be someone's favorite part of the day",sub:"Start with their order."  },
-      { e:"🧩", msg:"You're the missing piece",     sub:"This shift needs you."             },
+      {e:"☕",msg:"Ready to brew?",sub:"Let's make today count."},
+      {e:"🌅",msg:"Good shift starts here",sub:"You got this."},
+      {e:"💪",msg:"Brew hard, count harder",sub:"Every cup adds up."},
+      {e:"🧋",msg:"Let's get brewing!",sub:"Track it. Own it."},
+      {e:"✨",msg:"Another day, another sip",sub:"Make it a great one."},
+      {e:"☕",msg:"Rise & brew",sub:"Time to make it happen."},
+      {e:"😄",msg:"Cups don't count themselves",sub:"Good thing you do."},
+      {e:"🎯",msg:"Today's a good day to sell out",sub:"Let's get to work."},
+      {e:"🧋",msg:"Milk tea season, always",sub:"Ready when you are."},
+      {e:"🚀",msg:"Let's hit that quota!",sub:"₱3,000 won't earn itself."},
+      {e:"✅",msg:"Freshly brewed and ready",sub:"Start when you're set."},
+      {e:"🌟",msg:"One shift at a time",sub:"Make it count."},
+      {e:"🎶",msg:"Shake it, brew it, count it",sub:"Let's go!"},
+      {e:"☕",msg:"The best cup is the next one",sub:"Keep going."},
+      {e:"💼",msg:"Grind first, chill later",sub:"Let's have a great shift."},
+      {e:"🧋",msg:"Small cups, big dreams",sub:"You're building something real."},
+      {e:"🔥",msg:"You're on fire today",sub:"Don't stop now."},
+      {e:"⚡",msg:"Charged up and ready",sub:"Let's make this shift legendary."},
+      {e:"🎉",msg:"Another chance to be great",sub:"Don't waste it."},
+      {e:"🏅",msg:"Champions show up every day",sub:"Even on slow days."},
+      {e:"💰",msg:"Every peso counts",sub:"Track it carefully today."},
+      {e:"☕",msg:"BREWS.CO is open for business",sub:"Have an amazing shift!"},
+      {e:"👑",msg:"You're the barista and the boss",sub:"Act like it."},
+      {e:"🌻",msg:"Bloom where you're brewed",sub:"You're exactly where you need to be."},
+      {e:"⭐",msg:"Be someone's favorite part of the day",sub:"Start with their order."},
     ];
-    const g = GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
+    const MANAGER_GREETINGS = [
+      {e:"👔",msg:"Welcome back, Manager",sub:"Pull the latest and check the numbers."},
+      {e:"📊",msg:"How's the shop doing?",sub:"Pull to see the latest from your team."},
+      {e:"📋",msg:"Reports are ready",sub:"Pull from cloud to see today's shift."},
+      {e:"👀",msg:"Keeping an eye on things?",sub:"Smart. Pull the latest data."},
+      {e:"💼",msg:"Manager on duty",sub:"Check the history, update settings."},
+    ];
+
+    const role = getDeviceRole();
+    const list = role === "manager" ? MANAGER_GREETINGS : GREETINGS;
+    const g    = list[Math.floor(Math.random() * list.length)];
     document.getElementById("homeEmoji").textContent = g.e;
     document.getElementById("homeMsg").textContent   = g.msg;
     document.getElementById("homeSub").textContent   = g.sub;
     document.getElementById("homeDate").textContent  = new Date().toLocaleDateString("en-PH", {
       weekday:"long", year:"numeric", month:"long", day:"numeric"
     });
-    if (localStorage.getItem("brewsResumeShift"))
-      document.getElementById("resumeBanner").style.display = "flex";
 
     sessionStorage.setItem("brewsNav", "1");
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js");
