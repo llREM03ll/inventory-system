@@ -215,21 +215,21 @@ function calculate() {
     if (item.usedCups === 0 && beg === null) return;
     if (item.usedCups < 0) hasNegative = true;
 
-    // Damage annotation — red, below number
+    // Damage annotation — red below, label-free (block below table explains)
     let displayEnd = dash(end);
     if (end !== null) {
       displayEnd = dmg > 0
-        ? `${end - dmg}<br><span style="font-size:.70em;color:#c0665a;font-weight:600">−${dmg} dmg</span>`
+        ? `${end - dmg}<br><span style="font-size:.70em;color:#c0665a;font-weight:700">−${dmg}</span>`
         : `${end}`;
     }
 
-    // Delivery annotation in BEG column — green, below number
+    // Delivery annotation — green below, label-free
     const ck     = _tblCupKeyMap[item.name];
     const delQty = ck ? (del[ck] || 0) : 0;
     const origB  = (beg !== null && delQty > 0) ? beg - delQty : beg;
     const displayBeg = beg === null ? "—"
       : delQty > 0
-        ? `${origB}<br><span style="font-size:.70em;color:#3a7a3a;font-weight:600">+${delQty} del</span>`
+        ? `${origB}<br><span style="font-size:.70em;color:#3a7a3a;font-weight:700">+${delQty}</span>`
         : `${beg}`;
 
     html += `<tr>
@@ -434,17 +434,17 @@ function printReceipt() {
 
   const cupRows = d.rows.map(({ item, beg, end, dmg }) => {
     const endTxt = end === null ? "—"
-      : dmg > 0 ? `${end}<br><span style="color:#c0665a;font-weight:600;font-size:.7em">−${dmg} dmg</span>`
+      : dmg > 0 ? `${end}<br><span style="color:#c0665a;font-weight:700;font-size:.7em">−${dmg}</span>`
       : `${end}`;
     const neg = item.usedCups < 0;
 
-    // Delivery annotation — below number, green
+    // Delivery annotation — below number, green, no label (block below explains)
     const cupKey  = _cupKeyMap[item.name];
     const delQty  = (d.deliveries || {})[cupKey] || 0;
     const origBeg = beg === null ? null : ((d.origBegs || {})[cupKey] ?? beg);
     const begDisplay = beg === null ? "—"
       : delQty > 0
-        ? `${origBeg}<br><span style="font-size:.7em;color:#3a7a3a;font-weight:600">+${delQty} del</span>`
+        ? `${origBeg}<br><span style="font-size:.7em;color:#3a7a3a;font-weight:700">+${delQty}</span>`
         : `${beg}`;
 
     return `
