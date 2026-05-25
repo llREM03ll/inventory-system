@@ -55,15 +55,16 @@
     /* ── Header ── */
     .pos-header {
       background: linear-gradient(135deg, #6b4f36, #4a3320);
-      padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px 8px; display: flex; flex-direction: column; gap: 5px;
       position: sticky; top: 0; z-index: 100;
       box-shadow: 0 2px 12px rgba(30,18,8,0.28);
     }
+    .pos-header-row1 { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    .pos-header-row2 { display: flex; align-items: center; gap: 6px; width: 100%; }
     .pos-header-left { display: flex; flex-direction: column; }
     .pos-header-brand { font-size: 1rem; font-weight: 800; color: #fff; letter-spacing: 0.1em; }
-    .pos-header-meta  { font-size: 0.68rem; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; margin-top: 1px; display: flex; gap: 8px; }
+    .pos-header-meta  { font-size: 0.68rem; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; margin-top: 1px; display: flex; gap: 6px; }
     .pos-clock        { font-variant-numeric: tabular-nums; }
-    .pos-header-right { display: flex; align-items: center; gap: 8px; }
     .header-stat {
       background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18);
       border-radius: 10px; padding: 6px 11px; text-align: right;
@@ -71,11 +72,12 @@
     .header-stat-label { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; display: block; }
     .header-stat-val   { font-size: 0.92rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
     .end-shift-btn {
-      background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.28);
-      border-radius: 10px; padding: 8px 12px; color: #fff; font-weight: 700;
-      font-size: 0.78rem; font-family: inherit; cursor: pointer; transition: all .2s;
+      background: rgba(210,70,70,0.24); border: 1.5px solid rgba(255,120,120,0.5);
+      border-radius: 10px; padding: 8px 16px; color: #fff; font-weight: 700;
+      font-size: 0.82rem; font-family: inherit; cursor: pointer; transition: all .2s;
+      white-space: nowrap;
     }
-    .end-shift-btn:hover { background: rgba(255,255,255,0.22); }
+    .end-shift-btn:hover { background: rgba(210,70,70,0.42); }
 
     /* ── POS Body ── */
     .pos-body {
@@ -458,6 +460,36 @@
     .fsettings-pill.oos .fsettings-dot { background: #e08080; }
     @media (max-width: 380px) { .fsettings-grid { grid-template-columns: repeat(2,1fr); } }
 
+    /* ── Mid-Shift Stock panel ── */
+    .pos-stock-panel {
+      background: #fffaf5; border: 1.5px solid #e8d5c4; border-radius: 16px; overflow: hidden;
+    }
+    .pos-stock-header {
+      background: #f5ede5; padding: 9px 14px; display: flex; align-items: center;
+      justify-content: space-between; border-bottom: 1px solid #e8d5c4; cursor: pointer;
+    }
+    .pos-stock-title { font-size: 0.75rem; font-weight: 700; color: #9a7a5e; letter-spacing: 0.09em; text-transform: uppercase; }
+    .pos-stock-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: #f0e4d8; color: #7a5c3e; margin-left: auto; margin-right: 8px; }
+    .pos-stock-toggle { font-size: 0.7rem; color: #b08060; transition: transform .2s; }
+    .pos-stock-toggle.open { transform: rotate(180deg); }
+    .pos-stock-body { padding: 12px 14px 14px; display: none; }
+    .pos-stock-body.open { display: block; }
+    .stock-sub-label { font-size: 0.67rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; margin: 10px 0 6px; }
+    .stock-sub-label:first-child { margin-top: 0; }
+    .stock-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+    .stock-cell { display: flex; flex-direction: column; gap: 3px; }
+    .stock-cell-label { font-size: 0.66rem; font-weight: 700; color: #9a7a5e; text-align: center; }
+    .stock-cell-input {
+      padding: 8px 4px; border: 1.5px solid #dfc9b4; border-radius: 9px;
+      font-size: 0.9rem; font-family: inherit; background: #fdf7f2; color: #3d2b1a;
+      text-align: center; width: 100%; box-sizing: border-box;
+    }
+    .stock-cell-input:focus { outline: none; border-color: #c7a27c; background: #fff; }
+    .stock-del-input { border-color: #b8ddb8 !important; background: #f0f7f0 !important; }
+    .stock-del-input:focus { border-color: #7ab87a !important; }
+    .stock-dmg-input { border-color: #f0c8b8 !important; background: #fdf4f2 !important; }
+    .stock-dmg-input:focus { border-color: #e08060 !important; }
+
     /* ── Quota toast ── */
     .quota-toast {
       position: fixed; top: 76px; left: 50%; transform: translateX(-50%) translateY(-12px);
@@ -471,13 +503,6 @@
 </head>
 <body class="has-bottom-nav">
 
-<!-- Manager redirect — managers have no business in the POS -->
-<script>
-  if ((localStorage.getItem("brewsDeviceRole") || "worker") === "manager") {
-    window.location.replace("index.html");
-  }
-</script>
-
 <!-- ═══════════ SETUP SCREEN ═══════════ -->
 <div id="setupScreen">
   <div class="container">
@@ -489,16 +514,6 @@
       <div class="brand">BREWS.CO</div>
       <div class="brand-sub">Point of Sale</div>
     </a>
-
-    <div id="setupSyncPill" style="display:flex;align-items:center;justify-content:center;gap:6px;
-      margin:-4px auto 14px;padding:7px 14px;background:#fdf7f2;border:1.5px solid #e8d5c4;
-      border-radius:20px;font-size:0.75rem;color:#b08060;font-weight:600;
-      width:fit-content;transition:opacity .6s;">
-      <span id="setupSyncDot" style="width:7px;height:7px;border-radius:50%;background:#e8c87a;
-        flex-shrink:0;animation:pulse .8s infinite;"></span>
-      <span id="setupSyncText">Pulling latest settings…</span>
-    </div>
-
     <div class="setup-note">
       Enter beginning cup counts before starting the shift. The POS will track stock, flavors, add-ons, and auto-fill the inventory form when you end the shift.
     </div>
@@ -540,26 +555,30 @@
 <!-- ═══════════ POS SCREEN ═══════════ -->
 <div id="posScreen">
   <div class="pos-header">
-    <div class="pos-header-left">
-      <span class="pos-header-brand">BREWS.CO</span>
-      <div class="pos-header-meta">
-        <span>Active Shift</span><span>·</span>
-        <span class="pos-clock" id="posClock"></span>
-        <span>·</span>
-        <span class="pos-clock" id="shiftTimer">0m 00s</span>
+    <!-- Row 1: Brand + End Shift (always fully visible) -->
+    <div class="pos-header-row1">
+      <div class="pos-header-left">
+        <span class="pos-header-brand">BREWS.CO</span>
+        <div class="pos-header-meta">
+          <span>Active Shift</span><span>·</span>
+          <span class="pos-clock" id="posClock"></span>
+          <span>·</span>
+          <span class="pos-clock" id="shiftTimer">0m 00s</span>
+        </div>
       </div>
+      <button class="end-shift-btn" onclick="openEndShift()">⏹ End Shift</button>
     </div>
-    <div class="pos-header-right">
-      <div class="header-stat">
+    <!-- Row 2: Stats + Flavors -->
+    <div class="pos-header-row2">
+      <div class="header-stat" style="flex:1;">
         <span class="header-stat-label">Orders</span>
         <span class="header-stat-val" id="headerOrderCount">0</span>
       </div>
-      <div class="header-stat">
+      <div class="header-stat" style="flex:2;">
         <span class="header-stat-label">Cup Sales</span>
         <span class="header-stat-val" id="shiftTotalDisplay">₱0.00</span>
       </div>
       <button class="flavor-settings-btn" onclick="openFlavorSettings()">⚙ Flavors</button>
-      <button class="end-shift-btn" onclick="openEndShift()">End Shift</button>
     </div>
   </div>
 
@@ -620,6 +639,31 @@
       <div class="pos-expenses-body" id="posExpensesBody">
         <div id="posExpensesContainer" style="margin-bottom:8px;"></div>
         <button class="add-expense-btn" style="margin-top:0;" onclick="addPosExpenseRow()">+ Add Expense</button>
+      </div>
+    </div>
+
+    <!-- Mid-Shift Stock: Deliveries & Damages -->
+    <div class="pos-stock-panel">
+      <div class="pos-stock-header" onclick="toggleStockPanel()">
+        <span class="pos-stock-title">Mid-Shift Stock</span>
+        <span class="pos-stock-badge" id="stockBadge" style="display:none;"></span>
+        <span class="pos-stock-toggle" id="stockToggle">▼</span>
+      </div>
+      <div class="pos-stock-body" id="posStockBody">
+        <div class="stock-sub-label" style="color:#3a7a3a;">📦 Delivered Cups</div>
+        <div class="stock-grid">
+          <div class="stock-cell"><div class="stock-cell-label">Medium</div>  <input class="stock-cell-input stock-del-input" type="number" id="sDelM"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
+          <div class="stock-cell"><div class="stock-cell-label">Large</div>   <input class="stock-cell-input stock-del-input" type="number" id="sDelL"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
+          <div class="stock-cell"><div class="stock-cell-label">Small</div>   <input class="stock-cell-input stock-del-input" type="number" id="sDelS"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
+          <div class="stock-cell"><div class="stock-cell-label">Hot ☕</div>   <input class="stock-cell-input stock-del-input" type="number" id="sDelHC" min="0" placeholder="0" oninput="saveStockInputs()"></div>
+        </div>
+        <div class="stock-sub-label" style="color:#c0665a;">💔 Damaged Cups</div>
+        <div class="stock-grid">
+          <div class="stock-cell"><div class="stock-cell-label">Medium</div>  <input class="stock-cell-input stock-dmg-input" type="number" id="sDmgM"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
+          <div class="stock-cell"><div class="stock-cell-label">Large</div>   <input class="stock-cell-input stock-dmg-input" type="number" id="sDmgL"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
+          <div class="stock-cell"><div class="stock-cell-label">Small</div>   <input class="stock-cell-input stock-dmg-input" type="number" id="sDmgS"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
+          <div class="stock-cell"><div class="stock-cell-label">Hot ☕</div>   <input class="stock-cell-input stock-dmg-input" type="number" id="sDmgHC" min="0" placeholder="0" oninput="saveStockInputs()"></div>
+        </div>
       </div>
     </div>
 
@@ -722,13 +766,6 @@
 </div>
 
 <script src="js/settings.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
-<script>
-  if (typeof window.syncPull      !== "function") window.syncPull      = async () => { throw new Error("Sync unavailable"); };
-  if (typeof window.getDeviceRole !== "function") window.getDeviceRole = () => localStorage.getItem("brewsDeviceRole") || "worker";
-</script>
-<script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
 <script>
 // Safety fallback — if settings.js failed to load, define a no-op
 if (typeof getSettings !== "function") {
@@ -947,7 +984,14 @@ function remainingCups() {
     if (d) used[d.cup] = (used[d.cup]||0) + i.qty;
   }));
   state.currentItems.forEach(i => { used[i.cup] = (used[i.cup]||0) + i.qty; });
-  return { M:state.begM-(used.M||0), L:state.begL-(used.L||0), S:state.begS-(used.S||0), HC:state.begHC-(used.HC||0) };
+  const del = state.deliveries || {M:0,L:0,S:0,HC:0};
+  const dmg = state.damages    || {M:0,L:0,S:0,HC:0};
+  return {
+    M:  state.begM  + (del.M||0)  - (dmg.M||0)  - (used.M||0),
+    L:  state.begL  + (del.L||0)  - (dmg.L||0)  - (used.L||0),
+    S:  state.begS  + (del.S||0)  - (dmg.S||0)  - (used.S||0),
+    HC: state.begHC + (del.HC||0) - (dmg.HC||0) - (used.HC||0),
+  };
 }
 
 function getQtyForCode(code) {
@@ -1013,6 +1057,8 @@ function startShift() {
   state.begS  = begS;
   state.begHC = begHC;
   state.currentItems=[]; state.currentAddons={}; state.orders=[]; state.shiftTotal=0; state.expenses=[];
+  state.deliveries = {M:0,L:0,S:0,HC:0};
+  state.damages    = {M:0,L:0,S:0,HC:0};
   state.shiftStartTime = Date.now();
   nextQuotaThreshold = getQuotaStart();
   localStorage.removeItem("brewsResumeShift");
@@ -1034,6 +1080,7 @@ function showPOS() {
   renderDrinkButtons(); renderCurrentOrder(); renderAddonPills();
   renderOrdersLog(); updateHeaderStats(); startClock();
   renderPosExpenses();
+  renderStockInputs();
 }
 
 function resumeShift() {
@@ -1046,6 +1093,8 @@ function resumeShift() {
     state.orders      = s.orders      || [];
     state.shiftTotal  = s.shiftTotal  || 0;
     state.expenses    = s.expenses    || [];
+    state.deliveries = s.deliveries || {M:0,L:0,S:0,HC:0};
+    state.damages    = s.damages    || {M:0,L:0,S:0,HC:0};
     state.currentItems  = [];
     state.currentAddons = {};
     // Restore correct next quota milestone
@@ -1332,6 +1381,48 @@ function placeOrder() {
 }
 
 // ════════════════════════════════════════════════════
+//  MID-SHIFT STOCK (DELIVERIES & DAMAGES)
+// ════════════════════════════════════════════════════
+function toggleStockPanel() {
+  const body   = document.getElementById("posStockBody");
+  const toggle = document.getElementById("stockToggle");
+  const isOpen = body.classList.toggle("open");
+  toggle.classList.toggle("open", isOpen);
+}
+
+function saveStockInputs() {
+  const g = id => Math.max(0, parseInt(document.getElementById(id)?.value) || 0);
+  state.deliveries = { M:g("sDelM"), L:g("sDelL"), S:g("sDelS"), HC:g("sDelHC") };
+  state.damages    = { M:g("sDmgM"), L:g("sDmgL"), S:g("sDmgS"), HC:g("sDmgHC") };
+  saveState();
+  renderDrinkButtons(); // refresh stock counts on drink buttons immediately
+  // Update badge in panel header
+  const totalDel = Object.values(state.deliveries).reduce((a,b)=>a+b,0);
+  const totalDmg = Object.values(state.damages).reduce((a,b)=>a+b,0);
+  const badge = document.getElementById("stockBadge");
+  if (badge) {
+    if (totalDel > 0 || totalDmg > 0) {
+      const parts = [];
+      if (totalDel > 0) parts.push(`+${totalDel} del`);
+      if (totalDmg > 0) parts.push(`−${totalDmg} dmg`);
+      badge.textContent = parts.join(" · ");
+      badge.style.display = "inline";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+}
+
+function renderStockInputs() {
+  const del = state.deliveries || {M:0,L:0,S:0,HC:0};
+  const dmg = state.damages    || {M:0,L:0,S:0,HC:0};
+  const sv = (id, val) => { const el=document.getElementById(id); if(el) el.value = val||""; };
+  sv("sDelM",del.M); sv("sDelL",del.L); sv("sDelS",del.S); sv("sDelHC",del.HC);
+  sv("sDmgM",dmg.M); sv("sDmgL",dmg.L); sv("sDmgS",dmg.S); sv("sDmgHC",dmg.HC);
+  saveStockInputs(); // refresh badge
+}
+
+// ════════════════════════════════════════════════════
 //  UNDO LAST ORDER
 // ════════════════════════════════════════════════════
 function undoLastOrder() {
@@ -1522,16 +1613,22 @@ function computeAddonRevenue() {
 }
 
 function openEndShift() {
-  const t=computeCupTotals();
-  const endM  = state.begM  - t.M  - t.MC  - t.FTM;
-  const endL  = state.begL  - t.L  - t.LC  - t.FTL;
-  const endS  = state.begS  - t.S;
-  const endHC = state.begHC - t.HC;
+  const t   = computeCupTotals();
+  const del = state.deliveries || {M:0,L:0,S:0,HC:0};
+  const dmg = state.damages    || {M:0,L:0,S:0,HC:0};
+  // Physical remaining = beg + delivered - damaged - used_in_orders
+  const endM  = state.begM  + (del.M||0)  - (dmg.M||0)  - t.M  - t.MC  - t.FTM;
+  const endL  = state.begL  + (del.L||0)  - (dmg.L||0)  - t.L  - t.LC  - t.FTL;
+  const endS  = state.begS  + (del.S||0)  - (dmg.S||0)  - t.S;
+  const endHC = state.begHC + (del.HC||0) - (dmg.HC||0) - t.HC;
   const warn  = v => v<0 ? `<span style="color:#c0665a;font-weight:700">${v} ⚠</span>` : v;
   const addonRev = computeAddonRevenue();
   const cupSales = computeShiftCupTotal();
   const expTotal = state.expenses.reduce((s,e)=>s+e.price,0);
-
+  const totalDel = (del.M||0)+(del.L||0)+(del.S||0)+(del.HC||0);
+  const totalDmg = (dmg.M||0)+(dmg.L||0)+(dmg.S||0)+(dmg.HC||0);
+  const delRow = totalDel>0 ? `<div class="end-shift-row" style="color:#3a7a3a;"><span>📦 Delivered</span><span>M+${del.M||0} L+${del.L||0} S+${del.S||0} HC+${del.HC||0}</span></div>` : "";
+  const dmgRow = totalDmg>0 ? `<div class="end-shift-row" style="color:#c0665a;"><span>💔 Damaged</span><span>M−${dmg.M||0} L−${dmg.L||0} S−${dmg.S||0} HC−${dmg.HC||0}</span></div>` : "";
   document.getElementById("endShiftSummary").innerHTML=`
     <div class="end-shift-row bold"><span>Orders Placed</span><span>${state.orders.length}</span></div>
     <div class="end-shift-row bold"><span>Cup Sales</span><span>${fmt(cupSales)}</span></div>
@@ -1539,6 +1636,7 @@ function openEndShift() {
     <div class="end-shift-row" style="font-weight:700;border-top:1.5px solid #d4b89e;padding-top:8px;margin-top:4px;"><span>Total Revenue</span><span>${fmt(state.shiftTotal)}</span></div>
     ${expTotal?`<div class="end-shift-row"><span>Expenses</span><span>− ${fmt(expTotal)}</span></div>`:""}
     <div class="end-shift-row section-head"><span>Cup Counts → Auto-filled</span><span></span></div>
+    ${delRow}${dmgRow}
     <div class="end-shift-row"><span>Medium (M)</span><span>${state.begM} → ${warn(endM)}</span></div>
     <div class="end-shift-row"><span>Large (L)</span><span>${state.begL} → ${warn(endL)}</span></div>
     <div class="end-shift-row"><span>Small (S)</span><span>${state.begS} → ${warn(endS)}</span></div>
@@ -1554,32 +1652,45 @@ function openEndShift() {
 function closeEndShift() { document.getElementById("endShiftModal").classList.remove("open"); }
 
 function confirmEndShift() {
-  const t=computeCupTotals();
-  const endM  = state.begM  - t.M  - t.MC  - t.FTM;
-  const endL  = state.begL  - t.L  - t.LC  - t.FTL;
-  const endS  = state.begS  - t.S;
-  const endHC = state.begHC - t.HC;
+  const t   = computeCupTotals();
+  const del = state.deliveries || {M:0,L:0,S:0,HC:0};
+  const dmg = state.damages    || {M:0,L:0,S:0,HC:0};
 
-  // Save ending cups immediately — calculate page reads this for needs detection
+  // Formula end: beg + del - cups_used_in_orders (no damage — damage is annotation only)
+  // Matches how calculate.html treats damageX: shown on receipt but not in formula
+  const formulaEndM  = state.begM  + (del.M||0)  - t.M  - t.MC  - t.FTM;
+  const formulaEndL  = state.begL  + (del.L||0)  - t.L  - t.LC  - t.FTL;
+  const formulaEndS  = state.begS  + (del.S||0)  - t.S;
+  const formulaEndHC = state.begHC + (del.HC||0) - t.HC;
+
+  // Physical end for carry-over = formula end minus damaged cups
+  const physEndM  = formulaEndM  - (dmg.M||0);
+  const physEndL  = formulaEndL  - (dmg.L||0);
+  const physEndS  = formulaEndS  - (dmg.S||0);
+  const physEndHC = formulaEndHC - (dmg.HC||0);
+
   localStorage.setItem("brewsLastEndingCups", JSON.stringify({
-    endM, endL, endS, endHC,
+    endM: physEndM, endL: physEndL, endS: physEndS, endHC: physEndHC,
     date: new Date().toISOString().split("T")[0],
   }));
 
   localStorage.setItem(SHIFT_KEY, JSON.stringify({
-    begM:state.begM,   endM,
-    begL:state.begL,   endL,
-    begS:state.begS,   endS,
-    begHC:state.begHC, endHC,
+    origBegM: state.begM,  begM: state.begM  + (del.M||0),  endM: formulaEndM,
+    origBegL: state.begL,  begL: state.begL  + (del.L||0),  endL: formulaEndL,
+    origBegS: state.begS,  begS: state.begS  + (del.S||0),  endS: formulaEndS,
+    origBegHC:state.begHC, begHC:state.begHC + (del.HC||0), endHC:formulaEndHC,
     tallyMC:t.MC, tallyLC:t.LC, tallyFTM:t.FTM, tallyFTL:t.FTL,
     expenses: state.expenses,
     addonRevenue: computeAddonRevenue(),
+    deliveredM:del.M||0, deliveredL:del.L||0, deliveredS:del.S||0, deliveredHC:del.HC||0,
+    damageM:   dmg.M||0, damageL:   dmg.L||0, damageS:   dmg.S||0, damageHC:   dmg.HC||0,
   }));
 
   // Save resumable snapshot so staff can pick up again if needed
   localStorage.setItem("brewsResumeShift", JSON.stringify({
     begM:state.begM, begL:state.begL, begS:state.begS, begHC:state.begHC,
     orders:state.orders, shiftTotal:state.shiftTotal, expenses:state.expenses,
+    deliveries: state.deliveries, damages: state.damages,
     savedAt: Date.now(),
   }));
   saveOrderLog();
@@ -1614,28 +1725,6 @@ const hasShift = !!localStorage.getItem(SHIFT_ACTIVE_KEY) ||
                  state.orders.length > 0 || state.currentItems.length > 0 ||
                  state.begM || state.begL || state.begS || state.begHC;
 if (hasShift) showPOS(); else showSetup();
-
-// ── Auto-pull settings on setup screen load ──────────────────────────────────
-// Worker pull only restores SETTINGS_KEYS — local history is never touched.
-// This ensures prices and flavors are always fresh before the shift starts.
-setTimeout(async function setupAutoPull() {
-  if (localStorage.getItem(SHIFT_ACTIVE_KEY)) return;
-  try {
-    await syncPull();
-    buildCatalogue(); // apply fresh prices/flavors immediately
-    _setPill("#7ab87a", "none", "Settings up to date ✓");
-    setTimeout(() => { const p = document.getElementById("setupSyncPill"); if (p) p.style.opacity = "0"; }, 2500);
-  } catch (e) {
-    _setPill("#c0665a", "none", "Offline — using local data");
-  }
-}, 1500);
-
-function _setPill(color, anim, text) {
-  const d = document.getElementById("setupSyncDot");
-  const t = document.getElementById("setupSyncText");
-  if (d) { d.style.background = color; d.style.animation = anim; }
-  if (t) t.textContent = text;
-}
 </script>
 </body>
 </html>
