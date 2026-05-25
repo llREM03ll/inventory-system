@@ -206,21 +206,35 @@ function calculate() {
       <tr><th>Item</th><th>Beg</th><th>Cups</th><th>Price</th><th>End</th><th>Amount</th></tr>
   `;
 
+  // Cup key map for delivery lookup in table rows
+  const _tblCupKeyMap = { "Medium":"M", "Large":"L", "Small":"S", "Hot Coffee":"HC",
+                           "Iced Coffee M":"M", "Iced Coffee L":"L" };
+
   let hasNegative = false;
   orderedRows.forEach(({ item, beg, end, dmg }) => {
     if (item.usedCups === 0 && beg === null) return;
     if (item.usedCups < 0) hasNegative = true;
 
+    // Damage annotation — red
     let displayEnd = dash(end);
     if (end !== null) {
       displayEnd = dmg > 0
-        ? `${end - dmg} <span style="font-size:.75em;color:#b08060">(−${dmg} dmg)</span>`
+        ? `${end - dmg} <span style="font-size:.75em;color:#c0665a;font-weight:600">(−${dmg} dmg)</span>`
         : `${end}`;
     }
 
+    // Delivery annotation in BEG column — green, show original beg
+    const ck     = _tblCupKeyMap[item.name];
+    const delQty = ck ? (del[ck] || 0) : 0;
+    const origB  = (beg !== null && delQty > 0) ? beg - delQty : beg;
+    const displayBeg = beg === null ? "—"
+      : delQty > 0
+        ? `${origB} <span style="font-size:.75em;color:#3a7a3a;font-weight:700">(+${delQty} del)</span>`
+        : `${beg}`;
+
     html += `<tr>
       <td>${item.name}</td>
-      <td>${dash(beg)}</td>
+      <td>${displayBeg}</td>
       <td>${warnIfNeg(item.usedCups, item.usedCups)}</td>
       <td>${formatMoney(item.price)}</td>
       <td>${displayEnd}</td>
@@ -420,7 +434,7 @@ function printReceipt() {
 
   const cupRows = d.rows.map(({ item, beg, end, dmg }) => {
     const endTxt = end === null ? "—"
-      : dmg > 0 ? `${end}<span style="color:#b08060;font-size:.78em"> (−${dmg})</span>`
+      : dmg > 0 ? `${end}<span style="color:#c0665a;font-weight:700;font-size:.78em"> (−${dmg})</span>`
       : `${end}`;
     const neg = item.usedCups < 0;
 
