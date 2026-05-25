@@ -12,12 +12,21 @@ const SHIFT_KEY = "brewsShiftResult";
     try {
       const s = JSON.parse(shiftRaw);
 
-      // Cup fields — FTM/FTL are already baked into endM/endL by the POS
+      // Cup fields — begM/L/S/HC already adjusted (+delivered) by POS so formula works
       const fields = {
         beginM:  s.begM,  endM:  s.endM,  tallyMC: s.tallyMC,
         beginL:  s.begL,  endL:  s.endL,  tallyLC: s.tallyLC,
         beginS:  s.begS,  endS:  s.endS,
         beginHC: s.begHC, endHC: s.endHC,
+        // Delivery & damage annotations — fill the existing calculate.html fields
+        deliveredM:  s.deliveredM  || 0,
+        deliveredL:  s.deliveredL  || 0,
+        deliveredS:  s.deliveredS  || 0,
+        deliveredHC: s.deliveredHC || 0,
+        damageM:  s.damageM  || 0,
+        damageL:  s.damageL  || 0,
+        damageS:  s.damageS  || 0,
+        damageHC: s.damageHC || 0,
       };
 
       // Stagger fill animation
@@ -54,6 +63,15 @@ const SHIFT_KEY = "brewsShiftResult";
         }, delay);
       }
 
+      // Store original beg (pre-delivery) for receipt annotation
+      window._shiftOrigBegs = {
+        M: s.origBegM ?? s.begM, L: s.origBegL ?? s.begL,
+        S: s.origBegS ?? s.begS, HC:s.origBegHC?? s.begHC,
+      };
+      window._shiftDeliveries = {
+        M: s.deliveredM||0, L: s.deliveredL||0,
+        S: s.deliveredS||0, HC:s.deliveredHC||0,
+      };
       localStorage.removeItem(SHIFT_KEY);
       saveInputs();
       showShiftBanner();
