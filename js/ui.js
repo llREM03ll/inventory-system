@@ -289,6 +289,10 @@ function calculate() {
   </table>`;
 
   lastRenderContent = html;
+  // Capture deliveries for receipt annotation (set by main.js after shift end)
+  const origBegs    = window._shiftOrigBegs    || {};
+  const deliveries  = window._shiftDeliveries  || {M:v("deliveredM"),L:v("deliveredL"),S:v("deliveredS"),HC:v("deliveredHC")};
+
   lastRenderData = {
     date:         existingDate,
     rows:         orderedRows.filter(r => !(r.item.usedCups === 0 && r.beg === null)),
@@ -296,6 +300,7 @@ function calculate() {
     expenses:     system.expensesList,
     addons:       system.addons,
     dmg, del,
+    origBegs, deliveries,
     shiftDuration: (() => {
       try {
         const s = JSON.parse(localStorage.getItem("brewsPOSState") || "{}");
@@ -409,15 +414,29 @@ function printReceipt() {
   // ── Build receipt rows HTML ───────────────────────────────────────────────
   const fmtR = v => "₱" + Number(v||0).toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2});
 
+  // Map item name → cup key for delivery annotation lookup
+  const _cupKeyMap = { "Medium":"M", "Large":"L", "Small":"S", "Hot Coffee":"HC",
+                       "Iced Coffee M":"M", "Iced Coffee L":"L" };
+
   const cupRows = d.rows.map(({ item, beg, end, dmg }) => {
     const endTxt = end === null ? "—"
       : dmg > 0 ? `${end}<span style="color:#b08060;font-size:.78em"> (−${dmg})</span>`
       : `${end}`;
     const neg = item.usedCups < 0;
+
+    // Delivery annotation: show original beg + green "+X delivered" if any
+    const cupKey  = _cupKeyMap[item.name];
+    const delQty  = (d.deliveries || {})[cupKey] || 0;
+    const origBeg = beg === null ? null : ((d.origBegs || {})[cupKey] ?? beg);
+    const begDisplay = beg === null ? "—"
+      : delQty > 0
+        ? `${origBeg}<div style="font-size:.68em;color:#3a7a3a;font-weight:700;margin-top:1px;">+${delQty} del</div>`
+        : `${beg}`;
+
     return `
       <tr>
         <td style="text-align:left;padding:6px 8px;color:${neg?"#c0665a":"#3d2b1a"};border-bottom:1px solid #f0e4d8;word-break:break-word;">${item.name}</td>
-        <td style="text-align:center;padding:6px 4px;color:#7a5c3e;border-bottom:1px solid #f0e4d8;">${beg === null ? "—" : beg}</td>
+        <td style="text-align:center;padding:6px 4px;color:#7a5c3e;border-bottom:1px solid #f0e4d8;line-height:1.3;">${begDisplay}</td>
         <td style="text-align:center;padding:6px 4px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:${neg?700:400};border-bottom:1px solid #f0e4d8;">${item.usedCups}${neg?" ⚠":""}</td>
         <td style="text-align:center;padding:6px 4px;color:#9a7a5e;border-bottom:1px solid #f0e4d8;">${fmtR(item.price)}</td>
         <td style="text-align:center;padding:6px 4px;border-bottom:1px solid #f0e4d8;">${endTxt}</td>
