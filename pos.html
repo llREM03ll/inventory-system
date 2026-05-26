@@ -500,6 +500,92 @@
     .stock-dmg-input { border-color: #f0c8b8 !important; background: #fdf4f2 !important; }
     .stock-dmg-input:focus { border-color: #e08060 !important; }
 
+    /* ── Offline banner ── */
+    .offline-banner {
+      position: sticky; top: 0; z-index: 200;
+      background: linear-gradient(135deg, #8B2500, #C04020);
+      color: #fff; text-align: center; padding: 7px 16px;
+      font-size: 0.78rem; font-weight: 700; letter-spacing: 0.03em;
+      display: none; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 2px 8px rgba(180,60,0,0.35);
+    }
+    .offline-banner.visible { display: flex; }
+    .offline-banner .offline-retry {
+      background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 6px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700;
+      color: #fff; cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif;
+    }
+
+    /* ── Progress bar ── */
+    .quota-bar-wrap {
+      width: 100%; padding: 0 0 6px; display: flex; flex-direction: column; gap: 3px;
+    }
+    .quota-bar-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.62rem; color: rgba(255,255,255,0.55); font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+    .quota-bar-track {
+      width: 100%; height: 5px; background: rgba(255,255,255,0.12);
+      border-radius: 3px; overflow: hidden;
+    }
+    .quota-bar-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, #C4813A, #D4A55A);
+      transition: width .5s cubic-bezier(.4,0,.2,1), background .5s;
+      min-width: 4px;
+    }
+    .quota-bar-fill.near   { background: linear-gradient(90deg, #D4A55A, #E8C060); }
+    .quota-bar-fill.hit    { background: linear-gradient(90deg, #4a9e4a, #7ab87a); }
+    .quota-bar-fill.exceed { background: linear-gradient(90deg, #4a9e4a, #7ab87a); animation: barPulse 1.8s ease-in-out infinite; }
+    @keyframes barPulse { 0%,100%{opacity:1} 50%{opacity:.65} }
+
+    /* ── Order edit controls (placed orders) ── */
+    .order-edit-row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-bottom: 1px solid rgba(226,201,168,0.4);
+      animation: slideIn .15s ease;
+    }
+    .order-edit-row:last-child { border-bottom: none; }
+    .order-edit-name { flex: 1; font-size: 0.80rem; color: var(--roast); font-weight: 600; line-height: 1.3; }
+    .order-edit-flavor { font-size: 0.70rem; color: var(--bark); display: block; }
+    .order-edit-qty-wrap { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+    .order-edit-btn {
+      width: 26px; height: 26px; border-radius: 8px; border: 1.5px solid var(--latte);
+      background: var(--parchment); color: var(--mahogany); font-weight: 800; font-size: 0.95rem;
+      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .12s; -webkit-tap-highlight-color: transparent;
+    }
+    .order-edit-btn:hover  { background: var(--latte); }
+    .order-edit-btn:active { transform: scale(0.88); }
+    .order-edit-btn.remove { border-color: #f0c8c8; color: var(--danger); background: #fdf0f0; }
+    .order-edit-qty { font-size: 0.88rem; font-weight: 700; color: var(--roast); min-width: 22px; text-align: center; }
+    .order-edit-total { font-size: 0.80rem; font-weight: 600; color: var(--mahogany); min-width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
+    .order-edit-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 14px 4px; border-bottom: 1px solid rgba(226,201,168,0.4);
+    }
+    .order-edit-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--bark); }
+    .order-edit-save {
+      font-size: 0.72rem; font-weight: 700; color: var(--success);
+      background: none; border: none; cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif;
+      padding: 2px 6px;
+    }
+
+    /* ── Reorder button ── */
+    .order-reorder-btn {
+      background: var(--parchment); border: 1.5px solid var(--latte);
+      border-radius: var(--radius-sm); padding: 4px 9px;
+      font-size: 0.68rem; font-weight: 700; color: var(--mahogany);
+      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif;
+      transition: all .15s; flex-shrink: 0; white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .order-reorder-btn:hover  { background: var(--latte); }
+    .order-reorder-btn:active { transform: scale(0.93); }
+    .order-reorder-btn.flashed { background: #e0f0e0; border-color: #b8ddb8; color: var(--success); }
+
     /* ── Quota toast ── */
     .quota-toast {
       position: fixed; top: 76px; left: 50%; transform: translateX(-50%) translateY(-12px);
@@ -597,6 +683,22 @@
       </div>
       <button class="flavor-settings-btn" onclick="openFlavorSettings()">⚙ Flavors</button>
     </div>
+    <!-- Row 3: Quota progress bar -->
+    <div class="quota-bar-wrap">
+      <div class="quota-bar-row">
+        <span id="quotaBarLabel">Cup Sales</span>
+        <span id="quotaBarAmt">₱0 / ₱3,000</span>
+      </div>
+      <div class="quota-bar-track">
+        <div class="quota-bar-fill" id="quotaBarFill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offline indicator -->
+  <div class="offline-banner" id="offlineBanner">
+    <span>📡 No connection — orders save locally. Push when back online.</span>
+    <button class="offline-retry" onclick="retryConnection()">Retry</button>
   </div>
 
   <div class="pos-body">
@@ -1098,6 +1200,11 @@ function showPOS() {
   renderOrdersLog(); updateHeaderStats(); startClock();
   renderPosExpenses();
   renderStockInputs();
+  // Attach swipe-to-dismiss on all modal overlays
+  attachSwipeToDismiss("flavorModal",         closeFlavorModal);
+  attachSwipeToDismiss("receiptModal",        closeReceiptModal);
+  attachSwipeToDismiss("endShiftModal",       closeEndShift);
+  attachSwipeToDismiss("flavorSettingsModal", closeFlavorSettings);
 }
 
 function resumeShift() {
@@ -1242,7 +1349,7 @@ function addItemToOrder(drink, flavor) {
   const rem  = remainingCups();
   const left = rem[drink.cup] ?? 0;
   if (left <= 0) {
-    vibrate([30, 20, 30]);
+    vibe("error");
     showFlavorToast(`Out of ${drink.cup} cups!`);
     // Shake the flavor grid
     const grid = document.getElementById("flavorGrid");
@@ -1252,7 +1359,7 @@ function addItemToOrder(drink, flavor) {
     return;
   }
 
-  vibrate(25);
+  vibe("tap"); playSound("tap");
   const key = drink.code + "||" + flavor;
   const existing = state.currentItems.find(i => i.key === key);
   if (existing) { existing.qty++; }
@@ -1267,7 +1374,7 @@ function addItemToOrder(drink, flavor) {
 }
 
 function setItemQty(key, qty) {
-  vibrate(18);
+  vibe("tap");
   if (qty <= 0) state.currentItems = state.currentItems.filter(i => i.key !== key);
   else { const it = state.currentItems.find(i=>i.key===key); if(it) it.qty = qty; }
   saveState(); renderDrinkButtons(); renderCurrentOrder();
@@ -1328,12 +1435,12 @@ function renderAddonPills() {
       ? `${a.name} <span class="addon-pill-qty">×${qty}</span> <span style="opacity:.6;font-size:.7em">+${fmt(a.price)}</span>`
       : `${a.name} <span style="opacity:.5;font-size:.7em">+${fmt(a.price)}</span>`;
     pill.addEventListener("click", () => {
-      vibrate(18);
+      vibe("tap");
       state.currentAddons[a.name] = (state.currentAddons[a.name] || 0) + 1;
       saveState(); renderAddonPills(); renderCurrentOrder();
     });
     pill.addEventListener("contextmenu", e => {
-      e.preventDefault(); vibrate(18);
+      e.preventDefault(); vibe('tap');
       if (state.currentAddons[a.name]) {
         state.currentAddons[a.name]--;
         if (!state.currentAddons[a.name]) delete state.currentAddons[a.name];
@@ -1362,7 +1469,8 @@ function updateChange() {
 // ════════════════════════════════════════════════════
 function placeOrder() {
   if (!state.currentItems.length) return;
-  vibrate([30,20,30]);
+  vibe("place");
+  playSound("place");
 
   const given      = parseFloat(document.getElementById("givenInput").value) || 0;
   const addonTotal = getAddonTotal();
@@ -1444,7 +1552,7 @@ function renderStockInputs() {
 // ════════════════════════════════════════════════════
 function undoLastOrder() {
   if (!state.orders.length) return;
-  vibrate(40);
+  vibe("undo");
   const last = state.orders.pop();
   state.shiftTotal -= last.total;
   saveState(); renderDrinkButtons(); renderCurrentOrder(); renderOrdersLog(); updateHeaderStats();
@@ -1466,35 +1574,141 @@ function renderOrdersLog() {
 
   list.innerHTML = [...state.orders].reverse().map(order => {
     const desc = order.items.map(i=>`${i.qty}×${i.code}${i.flavor?" ("+i.flavor+")":""}`).join(", ");
-    const itemRows = order.items.map(i =>
-      `<div class="order-log-detail-row"><span>${i.qty}× ${i.name}</span><span>${fmt(i.unitPrice*i.qty)}</span></div>
-       ${i.flavor?`<div class="order-log-detail-row sub"><span>${i.flavor}</span></div>`:""}`
-    ).join("");
+
+    // Editable item rows
+    const editRows = order.items.map(i => `
+      <div class="order-edit-row">
+        <div class="order-edit-name">
+          ${i.name} <span style="opacity:.5;font-size:.75em">(${i.code})</span>
+          ${i.flavor?`<span class="order-edit-flavor">${i.flavor}</span>`:""}
+        </div>
+        <div class="order-edit-qty-wrap">
+          <button class="order-edit-btn remove"
+            onclick="event.stopPropagation();editOrderItem(${order.id},'${i.key.replace(/'/g,"\'")}','dec')">−</button>
+          <span class="order-edit-qty">${i.qty}</span>
+          <button class="order-edit-btn"
+            onclick="event.stopPropagation();editOrderItem(${order.id},'${i.key.replace(/'/g,"\'")}','inc')">+</button>
+        </div>
+        <span class="order-edit-total">${fmt(i.unitPrice*i.qty)}</span>
+      </div>`).join("");
+
     const addonRows = Object.entries(order.addons||{}).map(([name,qty])=>{
       const a=ADDONS.find(a=>a.name===name);
       return `<div class="order-log-detail-row"><span>${qty}× ${name}</span><span>${fmt((a?.price||0)*qty)}</span></div>`;
     }).join("");
+
     const totalRow = `<div class="order-log-detail-row" style="font-weight:700;color:var(--mahogany);border-top:1px solid var(--latte);margin-top:6px;padding-top:6px;"><span>Total</span><span>${fmt(order.total)}</span></div>`;
+
     const paymentRows = order.given > 0
       ? `<div class="order-log-detail-row" style="color:var(--bark)"><span>Given</span><span>${fmt(order.given)}</span></div>
          <div class="order-log-detail-row" style="color:${order.given>=order.total?"#3a7a3a":"#c0665a"};font-weight:600"><span>${order.given>=order.total?"Change":"Short"}</span><span>${fmt(Math.abs(order.given-order.total))}</span></div>`
       : "";
+
     const doneLabel = order.done ? "✓ Done" : "Mark Done";
-    return `<div class="order-log-item${order.done?" order-done":""}" onclick="this.classList.toggle('expanded')">
+    return `<div class="order-log-item${order.done?" order-done":""}" id="ordercard-${order.id}" onclick="this.classList.toggle('expanded')">
       <div class="order-log-summary">
         <div class="order-log-left">
           <span class="order-log-num">Order #${order.id} · ${order.time}</span>
           <span class="order-log-desc">${desc}</span>
         </div>
         <div class="order-log-right">
-          <button class="order-done-btn${order.done?" done":""}" onclick="event.stopPropagation();toggleOrderDone(${order.id})">${doneLabel}</button>
+          <button class="order-reorder-btn" id="reorderbtn-${order.id}"
+            onclick="event.stopPropagation();reorderOrder(${order.id})">↺ Reorder</button>
+          <button class="order-done-btn${order.done?" done":""}"
+            onclick="event.stopPropagation();toggleOrderDone(${order.id})">${doneLabel}</button>
           <span class="order-log-total">${fmt(order.total)}</span>
           <span class="order-log-chevron">▼</span>
         </div>
       </div>
-      <div class="order-log-detail">${itemRows}${addonRows}${totalRow}${paymentRows}</div>
+      <div class="order-log-detail">
+        <div class="order-edit-header">
+          <span class="order-edit-label">Items</span>
+          <span style="font-size:0.68rem;color:var(--bark);">tap − / + to edit qty</span>
+        </div>
+        ${editRows}
+        ${addonRows ? `<div style="padding:4px 14px 0;border-top:1px dashed rgba(226,201,168,0.5);margin-top:4px;">${addonRows}</div>` : ""}
+        ${totalRow}${paymentRows}
+      </div>
     </div>`;
   }).join("");
+}
+
+// ── Edit placed order item qty ────────────────────────────────────────────────
+function editOrderItem(orderId, itemKey, dir) {
+  vibe("tap");
+  const order = state.orders.find(o => o.id === orderId);
+  if (!order) return;
+  const item = order.items.find(i => i.key === itemKey);
+  if (!item) return;
+
+  if (dir === "inc") {
+    const rem = remainingCups();
+    if ((rem[item.cup] ?? 0) <= 0) { vibe("error"); return; }
+    item.qty++;
+  } else {
+    item.qty--;
+    if (item.qty <= 0) order.items = order.items.filter(i => i.key !== itemKey);
+  }
+
+  // Recalculate order total
+  const cupTotal   = order.items.reduce((s,i) => s + i.unitPrice * i.qty, 0);
+  const addonTotal = Object.entries(order.addons||{}).reduce((s,[name,qty]) => {
+    const a = ADDONS.find(a=>a.name===name); return s + (a ? a.price*qty : 0);
+  }, 0);
+  const diff  = (cupTotal + addonTotal) - order.total;
+  order.total = cupTotal + addonTotal;
+  state.shiftTotal += diff;
+
+  saveState();
+  renderDrinkButtons();
+  updateHeaderStats();
+  renderOrdersLog();
+
+  // Re-expand the card
+  setTimeout(() => {
+    const card = document.getElementById("ordercard-" + orderId);
+    if (card) card.classList.add("expanded");
+  }, 20);
+}
+
+// ── Reorder: load a placed order into current order panel ────────────────────
+function reorderOrder(orderId) {
+  const order = state.orders.find(o => o.id === orderId);
+  if (!order || !order.items.length) return;
+
+  // Check stock
+  const rem     = remainingCups();
+  const blocked = order.items.filter(i => (rem[i.cup] ?? 0) < i.qty).map(i => i.code);
+  if (blocked.length) {
+    const toast = document.getElementById("quotaToast");
+    toast.textContent = "⚠ Not enough " + blocked.join(", ") + " cups";
+    toast.classList.add("visible");
+    setTimeout(() => toast.classList.remove("visible"), 3000);
+    return;
+  }
+
+  if (state.currentItems.length > 0) {
+    if (!confirm("Replace current order with reorder?")) return;
+  }
+
+  state.currentItems  = order.items.map(i => ({ ...i }));
+  state.currentAddons = { ...(order.addons || {}) };
+  document.getElementById("givenInput").value = "";
+
+  saveState();
+  renderDrinkButtons();
+  renderCurrentOrder();
+  renderAddonPills();
+
+  // Flash button
+  const btn = document.getElementById("reorderbtn-" + orderId);
+  if (btn) {
+    btn.textContent = "✓ Loaded!";
+    btn.classList.add("flashed");
+    setTimeout(() => { btn.textContent = "↺ Reorder"; btn.classList.remove("flashed"); }, 1800);
+  }
+
+  document.querySelector(".order-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 // ════════════════════════════════════════════════════
@@ -1506,6 +1720,8 @@ function computeShiftCupTotal() {
 }
 
 function showQuotaToast(milestone) {
+  vibe("quota");
+  playSound("quota");
   const toast = document.getElementById("quotaToast");
   toast.textContent = milestone === 3000
     ? "🎉 Quota hit! ₱3,000 in cup sales!"
@@ -1733,6 +1949,139 @@ document.addEventListener("input", e => {
     if (!isNaN(v) && v < 0) e.target.value = 0;
   }
 });
+
+// ════════════════════════════════════════════════════
+//  HAPTIC ENGINE
+// ════════════════════════════════════════════════════
+function vibe(type) {
+  if (!navigator.vibrate) return;
+  const patterns = {
+    tap:   18,
+    add:   25,
+    place: [50, 30, 80],
+    quota: [80, 40, 80, 40, 120],
+    error: [30, 20, 30, 20, 30],
+    undo:  40,
+  };
+  navigator.vibrate(patterns[type] ?? 18);
+}
+
+// ════════════════════════════════════════════════════
+//  SOUND ENGINE  (Web Audio API — no files needed)
+// ════════════════════════════════════════════════════
+let _audioCtx = null;
+function _getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return _audioCtx;
+}
+
+function playSound(type) {
+  const cfg = getSettings();
+  if (!cfg.soundEnabled) return;
+  try {
+    const ctx = _getAudioCtx();
+    if (ctx.state === "suspended") ctx.resume();
+
+    if (type === "tap") {
+      // Soft click: quick sine burst
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = "sine"; osc.frequency.value = 700;
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.08);
+
+    } else if (type === "place") {
+      // Soft double-bell: two descending tones
+      [[520, 0, 0.10], [420, 0.10, 0.18]].forEach(([freq, when, end]) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = "sine"; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + when);
+        gain.gain.exponentialRampToValueAtTime(0.14, ctx.currentTime + when + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + end);
+        osc.start(ctx.currentTime + when); osc.stop(ctx.currentTime + end + 0.02);
+      });
+
+    } else if (type === "quota") {
+      // Rising celebration: three ascending tones
+      [[440, 0, 0.12], [550, 0.12, 0.26], [660, 0.26, 0.44]].forEach(([freq, when, end]) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = "triangle"; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + when);
+        gain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + when + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + end);
+        osc.start(ctx.currentTime + when); osc.stop(ctx.currentTime + end + 0.02);
+      });
+    }
+  } catch (e) { /* audio blocked by browser policy — silent fail */ }
+}
+
+// ════════════════════════════════════════════════════
+//  SWIPE TO DISMISS  (all modal overlays)
+// ════════════════════════════════════════════════════
+function attachSwipeToDismiss(overlayId, closeFunc) {
+  const overlay = document.getElementById(overlayId);
+  if (!overlay) return;
+  const modal = overlay.querySelector(".modal");
+  if (!modal) return;
+
+  let startY = 0, currentY = 0, dragging = false;
+
+  overlay.addEventListener("touchstart", e => {
+    if (e.target === overlay) return; // tapping backdrop = close (existing)
+    startY   = e.touches[0].clientY;
+    currentY = startY;
+    dragging = true;
+    modal.style.transition = "none";
+  }, { passive: true });
+
+  overlay.addEventListener("touchmove", e => {
+    if (!dragging) return;
+    currentY  = e.touches[0].clientY;
+    const dy  = Math.max(0, currentY - startY); // only allow downward drag
+    modal.style.transform = `translateY(${dy}px)`;
+  }, { passive: true });
+
+  overlay.addEventListener("touchend", () => {
+    if (!dragging) return;
+    dragging = false;
+    const dy = Math.max(0, currentY - startY);
+    modal.style.transition = "";
+    if (dy > 90) {
+      modal.style.transform = "";
+      closeFunc();
+    } else {
+      modal.style.transform = "";
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+//  OFFLINE INDICATOR
+// ════════════════════════════════════════════════════
+function setOfflineBanner(offline) {
+  const b = document.getElementById("offlineBanner");
+  if (b) b.classList.toggle("visible", offline);
+}
+
+async function retryConnection() {
+  setOfflineBanner(false);
+  try {
+    if (typeof syncPull === "function") await syncPull();
+  } catch (e) {
+    setOfflineBanner(true);
+  }
+}
+
+window.addEventListener("online",  () => setOfflineBanner(false));
+window.addEventListener("offline", () => setOfflineBanner(true));
+// Initial check
+if (!navigator.onLine) setOfflineBanner(true);
 
 buildCatalogue();
 loadState();
