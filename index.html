@@ -94,6 +94,14 @@
     .sync-role-badge.worker  { background:var(--parchment); color:var(--bark); border:1px solid var(--latte); }
     .sync-role-badge.manager { background:#e0f0e0; color:#3a7a3a; border:1px solid #b8ddb8; }
     .sync-btns { display:flex; gap:8px; }
+    .home-offline-pill {
+      width:100%; max-width:400px; margin-top:8px;
+      background: linear-gradient(135deg,#8B2500,#C04020);
+      color:#fff; text-align:center; padding:8px 14px;
+      border-radius:var(--radius-md); font-size:0.78rem; font-weight:700;
+      display:none; box-shadow:0 2px 8px rgba(180,60,0,0.30);
+    }
+    .home-offline-pill.visible { display:block; }
     .sync-btn { flex:1; padding:9px 10px; border-radius:var(--radius-md); font-size:0.82rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; border:none; transition:all .18s; text-align:center; }
     .sync-btn-push { background:var(--grad-cta); color:#fff; box-shadow:var(--shadow-btn); }
     .sync-btn-push:hover { filter:brightness(1.08); transform:translateY(-1px); }
@@ -202,6 +210,8 @@
         <button class="sync-btn sync-btn-pull" id="syncPullBtn" onclick="doSync('pull')">⬇️ Pull from Cloud</button>
       </div>
     </div>
+    </div>
+    <div class="home-offline-pill" id="homeOfflinePill">📡 No connection — sync when back online</div>
   </div>
 
   <!-- ═══════════ SETTINGS MODAL ═══════════ -->
@@ -326,6 +336,13 @@
     initSyncDisplay();
     setTimeout(autoPull, 1500);
     setInterval(autoPull, AUTO_PULL_MS);
+
+    // Offline indicator
+    const _pill = document.getElementById("homeOfflinePill");
+    function _setOffline(v) { if (_pill) _pill.classList.toggle("visible", v); }
+    window.addEventListener("online",  () => _setOffline(false));
+    window.addEventListener("offline", () => _setOffline(true));
+    if (!navigator.onLine) _setOffline(true);
   </script>
 
   <script>
@@ -388,6 +405,8 @@
       _ws.salaryBonusPerK      = n("sp_bonusPerK");
       _ws.quotaStart           = n("sp_quotaStart");
       _ws.lowStock             = n("sp_lowStock");
+      const sndEl = document.getElementById("sp_sound");
+      if (sndEl) _ws.soundEnabled = sndEl.checked;
     }
 
     function addFlavorToCategory(cat) {
@@ -500,6 +519,16 @@
             ${fi("sp_quotaStart","Quota Toast at (₱)",s.quotaStart,locked)}
             ${fi("sp_lowStock","Low Stock Warning (cups)",s.lowStock,locked)}
           </div>
+        </div>
+        <div class="smodal-section">
+          <div class="smodal-section-title">POS Sound</div>
+          <label style="display:flex;align-items:center;gap:10px;cursor:${locked?'default':'pointer'};padding:4px 0;">
+            <input type="checkbox" id="sp_sound" ${s.soundEnabled?"checked":""} ${locked?"disabled":""}
+              style="width:18px;height:18px;accent-color:var(--caramel);cursor:${locked?'default':'pointer'};">
+            <span style="font-size:0.84rem;color:var(--roast);font-weight:600;">Enable order sounds</span>
+            <span style="font-size:0.76rem;color:var(--bark);margin-left:2px;">🔔</span>
+          </label>
+          <div style="font-size:0.72rem;color:var(--bark);margin-top:6px;line-height:1.5;">Subtle tap on item add, soft bell on order placed, rising chime on quota hit.</div>
         </div>
         <div class="smodal-section">
           <div class="smodal-section-title">Flavors</div>
