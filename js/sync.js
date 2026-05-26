@@ -70,7 +70,7 @@ function _initDB() {
 function _mergeByDate(cloudArr, localArr) {
   const map = {};
   (cloudArr || []).forEach(e => { if (e.date) map[e.date] = e; });
-  (localArr  || []).forEach(e => { if (e.date) map[e.date] = e; }); // local overwrites cloud
+  (localArr  || []).forEach(e => { if (e.date) map[e.date] = e; });
   return Object.values(map).sort((a, b) => b.date.localeCompare(a.date));
 }
 
@@ -82,7 +82,7 @@ async function syncPush() {
   const role = getDeviceRole();
 
   if (role === "manager") {
-    // Manager: push settings only
+    // Manager: push settings only, leaves all worker data untouched in Firestore
     const data = {};
     SETTINGS_KEYS.forEach(k => {
       const v = localStorage.getItem(k);
@@ -103,7 +103,7 @@ async function syncPush() {
 
     const data = {};
 
-    // Merge array-based history keys (cloud + local, local wins)
+    // Merge array-based history keys (cloud + local, local wins same date)
     MERGE_ARRAY_KEYS.forEach(k => {
       const cloudArr = JSON.parse(cloudData[k] || "[]");
       const localArr = JSON.parse(localStorage.getItem(k) || "[]");
@@ -146,19 +146,19 @@ async function syncPull() {
   const role = getDeviceRole();
 
   if (role === "manager") {
-    // Manager: full replace — sees everything from all devices
+    // Full replace — manager sees exactly what's in the cloud
     Object.entries(data).forEach(([k, v]) => {
       if (!k.startsWith("_") && v != null) localStorage.setItem(k, v);
     });
 
   } else {
     // Worker pull:
-    // 1. Settings → replace (so prices/flavors are always current)
+    // 1. Settings → replace (prices/flavors always current)
     SETTINGS_KEYS.forEach(k => {
       if (data[k] != null) localStorage.setItem(k, data[k]);
     });
 
-    // 2. History arrays → MERGE (worker sees all shifts, but local entries are never lost)
+    // 2. History arrays → MERGE (worker sees all shifts, local entries never lost)
     MERGE_ARRAY_KEYS.forEach(k => {
       const cloudArr = JSON.parse(data[k] || "[]");
       const localArr = JSON.parse(localStorage.getItem(k) || "[]");
@@ -166,7 +166,7 @@ async function syncPull() {
       localStorage.setItem(k, JSON.stringify(merged));
     });
 
-    // 3. Everything else (brewsFlavorOOS, brewsLastEndingCups, etc.) — keep local
+    // 3. Everything else (brewsFlavorOOS, brewsLastEndingCups etc.) — keep local
   }
 
   const ts = new Date().toISOString();
