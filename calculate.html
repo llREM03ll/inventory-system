@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/styles.css" />
   <style>
     .damage-note {
-      font-size: 0.68rem; color: #b08060; font-weight: 500;
+      font-size: 0.68rem; color: var(--dust); font-weight: 500;
       margin-left: 6px; font-style: italic; text-transform: none; letter-spacing: 0;
     }
     .del-dmg-header {
@@ -19,15 +19,15 @@
       gap: 8px; margin-bottom: 4px;
     }
     .del-dmg-header span {
-      font-size: 0.68rem; font-weight: 700; color: #b08060;
+      font-size: 0.68rem; font-weight: 700; color: var(--dust);
       letter-spacing: 0.07em; text-transform: uppercase; text-align: center;
     }
     .del-dmg-header span:first-child { text-align: left; }
     .carryover-btn {
       display: flex; align-items: center; gap: 7px; width: 100%;
-      background: #f0f7f0; border: 1.5px solid #b8ddb8; border-radius: 11px;
+      background: #f0f7f0; border: 1.5px solid #b8ddb8; border-radius: var(--radius-md);
       padding: 11px 14px; font-size: 0.84rem; font-weight: 700; color: #3a7a3a;
-      font-family: inherit; cursor: pointer; margin-bottom: 10px; transition: all .18s;
+      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; margin-bottom: 10px; transition: all .18s;
     }
     .carryover-btn:hover { background: #e0f0e0; border-color: #8aba8a; transform: translateY(-1px); }
     .carryover-meta { font-size: 0.7rem; color: #7ab87a; font-weight: 500; margin-left: auto; }
@@ -101,7 +101,7 @@
 
       <!-- Free-text other needs -->
       <div>
-        <div style="font-size:0.7rem;font-weight:700;color:#9a7a5e;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;">Other Needs</div>
+        <div style="font-size:0.7rem;font-weight:700;color:var(--bark);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;">Other Needs</div>
         <div id="needsContainer"></div>
         <button type="button" class="add-expense-btn" onclick="addNeedRow()">+ Add Item</button>
       </div>
