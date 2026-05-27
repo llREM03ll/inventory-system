@@ -486,7 +486,7 @@ function printReceipt() {
   el.style.cssText = `
     position:fixed; left:-9999px; top:0;
     width:480px; background:#fffaf5;
-    font-family:"Inter","Segoe UI",sans-serif;
+    font-family:"Plus Jakarta Sans","Segoe UI",sans-serif;
     padding:36px 32px 40px; box-sizing:border-box;
     color:#3d2b1a;
   `;
