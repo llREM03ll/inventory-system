@@ -27,6 +27,8 @@ const SETTINGS_DEFAULTS = {
   quotaStart:           3000,  // first toast fires here
   // ── Low stock warning ─────────────────────────────
   lowStock:             5,     // cups remaining before yellow warning
+  // ── Sound ────────────────────────────────────────
+  soundEnabled:         true,
   // ── Flavors ──────────────────────────────────────
   flavors: {
     milktea: [
