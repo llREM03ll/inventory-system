@@ -599,6 +599,12 @@
 </head>
 <body class="has-bottom-nav">
 
+<script>
+  if ((localStorage.getItem("brewsDeviceRole") || "worker") === "manager") {
+    window.location.replace("index.html");
+  }
+</script>
+
 <!-- ═══════════ SETUP SCREEN ═══════════ -->
 <div id="setupScreen">
   <div class="container">
@@ -885,6 +891,13 @@
 </div>
 
 <script src="js/settings.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
+<script>
+  if (typeof window.syncPull      !== "function") window.syncPull      = async () => { throw new Error("Sync unavailable"); };
+  if (typeof window.getDeviceRole !== "function") window.getDeviceRole = () => localStorage.getItem("brewsDeviceRole") || "worker";
+</script>
+<script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
 <script>
 // Safety fallback — if settings.js failed to load, define a no-op
 if (typeof getSettings !== "function") {
@@ -1731,8 +1744,30 @@ function showQuotaToast(milestone) {
 }
 
 function updateHeaderStats() {
-  document.getElementById("shiftTotalDisplay").textContent = fmt(computeShiftCupTotal());
+  const cupSales = computeShiftCupTotal();
+  document.getElementById("shiftTotalDisplay").textContent = fmt(cupSales);
   document.getElementById("headerOrderCount").textContent  = state.orders.length;
+  updateQuotaBar(cupSales);
+}
+
+function updateQuotaBar(cupSales) {
+  const quota  = getQuotaStart();
+  const pct    = Math.min((cupSales / quota) * 100, 100);
+  const exceed = cupSales > quota;
+  const near   = pct >= 80 && pct < 100;
+  const fill   = document.getElementById("quotaBarFill");
+  const label  = document.getElementById("quotaBarLabel");
+  const amt    = document.getElementById("quotaBarAmt");
+  if (!fill) return;
+  fill.style.width = pct + "%";
+  fill.className   = "quota-bar-fill" + (exceed ? " exceed" : pct >= 100 ? " hit" : near ? " near" : "");
+  if (exceed) {
+    label.textContent = "🎯 Quota hit! +" + fmt(cupSales - quota) + " over";
+    amt.textContent   = fmt(cupSales);
+  } else {
+    label.textContent = pct >= 80 ? "Almost there!" : "Cup Sales";
+    amt.textContent   = fmt(cupSales) + " / " + fmt(quota);
+  }
 }
 
 // ════════════════════════════════════════════════════
