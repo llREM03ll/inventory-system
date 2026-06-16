@@ -532,12 +532,28 @@
     .quota-bar-fill {
       height: 100%; border-radius: 3px;
       background: linear-gradient(90deg, #C4813A, #D4A55A);
-      transition: width .5s cubic-bezier(.4,0,.2,1), background .5s;
+      transition: width .5s cubic-bezier(.4,0,.2,1), background .6s ease;
       min-width: 4px;
     }
     .quota-bar-fill.near   { background: linear-gradient(90deg, #D4A55A, #E8C060); }
     .quota-bar-fill.hit    { background: linear-gradient(90deg, #4a9e4a, #7ab87a); }
-    .quota-bar-fill.exceed { background: linear-gradient(90deg, #4a9e4a, #7ab87a); animation: barPulse 1.8s ease-in-out infinite; }
+    .quota-bar-fill.exceed { background: linear-gradient(90deg, #4a9e4a, #7ab87a); }
+    /* Bonus mode: teal shimmer — replaces the bar after quota flash */
+    .quota-bar-fill.bonus {
+      background: linear-gradient(90deg, #1a7a9a 0%, #30b8d4 40%, #60d8ee 60%, #1a7a9a 100%);
+      background-size: 250% 100%;
+      animation: bonusShimmer 2.2s ease-in-out infinite;
+    }
+    @keyframes bonusShimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    @keyframes barFlash {
+      0%   { filter: brightness(1); }
+      35%  { filter: brightness(2.2); transform: scaleY(2); }
+      100% { filter: brightness(1); transform: scaleY(1); }
+    }
+    .quota-bar-fill.flashing { animation: barFlash .55s ease forwards; }
     @keyframes barPulse { 0%,100%{opacity:1} 50%{opacity:.65} }
 
     /* ── Order edit controls (placed orders) ── */
@@ -689,11 +705,11 @@
       </div>
       <button class="flavor-settings-btn" onclick="openFlavorSettings()">⚙ Flavors</button>
     </div>
-    <!-- Row 3: Quota progress bar -->
+    <!-- Row 3: Single adaptive progress bar (to-quota → bonus mode) -->
     <div class="quota-bar-wrap">
       <div class="quota-bar-row">
-        <span id="quotaBarLabel">Cup Sales</span>
-        <span id="quotaBarAmt">₱0 / ₱3,000</span>
+        <span id="quotaBarLabel">To Quota</span>
+        <span id="quotaBarAmt">₱3,000 left</span>
       </div>
       <div class="quota-bar-track">
         <div class="quota-bar-fill" id="quotaBarFill" style="width:0%"></div>
@@ -1585,25 +1601,51 @@ function renderOrdersLog() {
     list.innerHTML=`<div class="no-orders">No orders yet — get brewing! ☕</div>`; return;
   }
 
-  list.innerHTML = [...state.orders].reverse().map(order => {
-    const desc = order.items.map(i=>`${i.qty}×${i.code}${i.flavor?" ("+i.flavor+")":""}`).join(", ");
+  const CUP_NAMES = { M:"Medium", L:"Large", S:"Small", HC:"Hot Coffee" };
+  const CUP_ORDER = ["M","L","S","HC"];
 
-    // Editable item rows
-    const editRows = order.items.map(i => `
-      <div class="order-edit-row">
-        <div class="order-edit-name">
-          ${i.name} <span style="opacity:.5;font-size:.75em">(${i.code})</span>
-          ${i.flavor?`<span class="order-edit-flavor">${i.flavor}</span>`:""}
+  list.innerHTML = [...state.orders].reverse().map(order => {
+    // ── Summary line: cup counts grouped ──
+    const cupCounts = {};
+    order.items.forEach(i => { cupCounts[i.cup] = (cupCounts[i.cup]||0) + i.qty; });
+    const desc = CUP_ORDER.filter(c => cupCounts[c])
+      .map(c => `${cupCounts[c]}× ${CUP_NAMES[c]||c}`).join(", ");
+
+    // ── Expanded detail: items grouped by cup ──
+    const byGroup = {};
+    order.items.forEach(i => {
+      const g = i.cup || "M";
+      if (!byGroup[g]) byGroup[g] = [];
+      byGroup[g].push(i);
+    });
+
+    const editRows = CUP_ORDER.filter(g => byGroup[g]?.length).map(g => {
+      const rows = byGroup[g].map(i => `
+        <div class="order-edit-row">
+          <div class="order-edit-name">
+            ${i.flavor
+              ? `${i.flavor}<span style="opacity:.4;font-size:.7em"> (${i.code})</span>`
+              : `<em style="opacity:.5;font-style:italic;font-size:.9em">No Flavor</em><span style="opacity:.4;font-size:.7em"> (${i.code})</span>`}
+          </div>
+          <div class="order-edit-qty-wrap">
+            <button class="order-edit-btn remove"
+              onclick="event.stopPropagation();editOrderItem(${order.id},'${i.key.replace(/'/g,"\\'")}','dec')">−</button>
+            <span class="order-edit-qty">${i.qty}</span>
+            <button class="order-edit-btn"
+              onclick="event.stopPropagation();editOrderItem(${order.id},'${i.key.replace(/'/g,"\\'")}','inc')">+</button>
+          </div>
+          <span class="order-edit-total">${fmt(i.unitPrice*i.qty)}</span>
+        </div>`).join("");
+
+      return `<div style="margin-bottom:2px;">
+        <div style="font-size:0.63rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;
+          color:var(--mahogany);padding:5px 14px 3px;background:var(--parchment);
+          border-bottom:1px solid rgba(226,201,168,0.4);border-top:1px solid rgba(226,201,168,0.4);">
+          ${CUP_NAMES[g]||g}
         </div>
-        <div class="order-edit-qty-wrap">
-          <button class="order-edit-btn remove"
-            onclick="event.stopPropagation();editOrderItem(${order.id},'${i.key.replace(/'/g,"\'")}','dec')">−</button>
-          <span class="order-edit-qty">${i.qty}</span>
-          <button class="order-edit-btn"
-            onclick="event.stopPropagation();editOrderItem(${order.id},'${i.key.replace(/'/g,"\'")}','inc')">+</button>
-        </div>
-        <span class="order-edit-total">${fmt(i.unitPrice*i.qty)}</span>
-      </div>`).join("");
+        ${rows}
+      </div>`;
+    }).join("");
 
     const addonRows = Object.entries(order.addons||{}).map(([name,qty])=>{
       const a=ADDONS.find(a=>a.name===name);
@@ -1612,10 +1654,27 @@ function renderOrdersLog() {
 
     const totalRow = `<div class="order-log-detail-row" style="font-weight:700;color:var(--mahogany);border-top:1px solid var(--latte);margin-top:6px;padding-top:6px;"><span>Total</span><span>${fmt(order.total)}</span></div>`;
 
-    const paymentRows = order.given > 0
-      ? `<div class="order-log-detail-row" style="color:var(--bark)"><span>Given</span><span>${fmt(order.given)}</span></div>
-         <div class="order-log-detail-row" style="color:${order.given>=order.total?"#3a7a3a":"#c0665a"};font-weight:600"><span>${order.given>=order.total?"Change":"Short"}</span><span>${fmt(Math.abs(order.given-order.total))}</span></div>`
-      : "";
+    const paymentSection = `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 14px 2px;border-top:1px dashed rgba(226,201,168,0.5);margin-top:4px;">
+        <span style="font-size:0.75rem;color:var(--mahogany);font-weight:700;white-space:nowrap;flex-shrink:0;">Given</span>
+        <input type="number" id="given-input-${order.id}"
+          style="flex:1;min-width:0;padding:5px 9px;border:1.5px solid #dfc9b4;border-radius:8px;
+                 font-size:0.84rem;font-family:'Plus Jakarta Sans',sans-serif;
+                 background:var(--pearl);color:var(--espresso);"
+          value="${order.given || ''}" placeholder="₱0"
+          onclick="event.stopPropagation();"
+          oninput="event.stopPropagation();updateOrderGiven(${order.id},this.value);">
+        <span id="given-change-${order.id}"
+          style="font-size:0.82rem;font-weight:700;min-width:82px;text-align:right;
+                 font-variant-numeric:tabular-nums;flex-shrink:0;
+                 color:${order.given > 0 ? (order.given >= order.total ? '#2e7a2e' : '#c0665a') : 'var(--bark)'};">
+          ${order.given > 0
+            ? (order.given >= order.total
+                ? `Change: ${fmt(order.given - order.total)}`
+                : `Short: ${fmt(order.total - order.given)}`)
+            : 'Change: —'}
+        </span>
+      </div>`;
 
     const doneLabel = order.done ? "✓ Done" : "Mark Done";
     return `<div class="order-log-item${order.done?" order-done":""}" id="ordercard-${order.id}" onclick="this.classList.toggle('expanded')">
@@ -1633,14 +1692,15 @@ function renderOrdersLog() {
           <span class="order-log-chevron">▼</span>
         </div>
       </div>
-      <div class="order-log-detail">
-        <div class="order-edit-header">
-          <span class="order-edit-label">Items</span>
+      <div class="order-log-detail" style="padding:0 0 10px;">
+        <div class="order-edit-header" style="padding:6px 14px 4px;">
+          <span class="order-edit-label">Items by Cup</span>
           <span style="font-size:0.68rem;color:var(--bark);">tap − / + to edit qty</span>
         </div>
         ${editRows}
         ${addonRows ? `<div style="padding:4px 14px 0;border-top:1px dashed rgba(226,201,168,0.5);margin-top:4px;">${addonRows}</div>` : ""}
-        ${totalRow}${paymentRows}
+        <div style="padding:0 14px;">${totalRow}</div>
+        ${paymentSection}
       </div>
     </div>`;
   }).join("");
@@ -1682,6 +1742,26 @@ function editOrderItem(orderId, itemKey, dir) {
     const card = document.getElementById("ordercard-" + orderId);
     if (card) card.classList.add("expanded");
   }, 20);
+}
+
+// ── Edit the "given" (cash tendered) amount on a placed order ─────────────────
+function updateOrderGiven(orderId, value) {
+  const order = state.orders.find(o => o.id === orderId);
+  if (!order) return;
+  order.given = parseFloat(value) || 0;
+  saveState();
+  // Update the inline change display without re-rendering the whole log
+  const disp = document.getElementById(`given-change-${orderId}`);
+  if (!disp) return;
+  const g = order.given, t = order.total;
+  if (g > 0) {
+    const ch = g - t;
+    disp.textContent = ch >= 0 ? `Change: ${fmt(ch)}` : `Short: ${fmt(-ch)}`;
+    disp.style.color  = ch >= 0 ? '#2e7a2e' : '#c0665a';
+  } else {
+    disp.textContent = 'Change: —';
+    disp.style.color  = 'var(--bark)';
+  }
 }
 
 // ── Reorder: load a placed order into current order panel ────────────────────
@@ -1750,23 +1830,56 @@ function updateHeaderStats() {
   updateQuotaBar(cupSales);
 }
 
+let _barInBonusMode = false; // track so we don't re-trigger the flash on every render
+
 function updateQuotaBar(cupSales) {
-  const quota  = getQuotaStart();
-  const pct    = Math.min((cupSales / quota) * 100, 100);
-  const exceed = cupSales > quota;
-  const near   = pct >= 80 && pct < 100;
-  const fill   = document.getElementById("quotaBarFill");
-  const label  = document.getElementById("quotaBarLabel");
-  const amt    = document.getElementById("quotaBarAmt");
+  const quota = getQuotaStart();
+  const fill  = document.getElementById("quotaBarFill");
+  const label = document.getElementById("quotaBarLabel");
+  const amt   = document.getElementById("quotaBarAmt");
   if (!fill) return;
-  fill.style.width = pct + "%";
-  fill.className   = "quota-bar-fill" + (exceed ? " exceed" : pct >= 100 ? " hit" : near ? " near" : "");
-  if (exceed) {
-    label.textContent = "🎯 Quota hit! +" + fmt(cupSales - quota) + " over";
-    amt.textContent   = fmt(cupSales);
+
+  if (cupSales >= quota) {
+    const over      = cupSales - quota;
+    const intoBlock = over % 1000;
+    const bonusPct  = Math.min((intoBlock / 1000) * 100, 100);
+    const remaining = 1000 - intoBlock;
+    const nextMile  = quota + (Math.floor(over / 1000) + 1) * 1000;
+
+    if (!_barInBonusMode) {
+      // ── First time crossing quota: green flash → teal bonus ──
+      _barInBonusMode = true;
+      fill.className   = "quota-bar-fill hit flashing";
+      fill.style.width = "100%";
+      setTimeout(() => {
+        fill.classList.remove("hit","flashing","exceed");
+        fill.classList.add("bonus");
+        fill.style.width = (bonusPct || 4) + "%";
+        label.textContent = intoBlock === 0
+          ? "🚀 Bonus unlocked!"
+          : `+₱${Math.ceil(remaining).toLocaleString("en-PH")} to ₱${nextMile.toLocaleString("en-PH")}`;
+        amt.textContent = `+${fmt(over)} over`;
+      }, 620);
+    } else {
+      // ── Already in bonus mode: just update width + labels smoothly ──
+      fill.className   = "quota-bar-fill bonus";
+      fill.style.width = (bonusPct || 4) + "%";
+      label.textContent = intoBlock === 0
+        ? "🚀 Bonus unlocked!"
+        : `+₱${Math.ceil(remaining).toLocaleString("en-PH")} to ₱${nextMile.toLocaleString("en-PH")}`;
+      amt.textContent = `+${fmt(over)} over`;
+    }
+
   } else {
-    label.textContent = pct >= 80 ? "Almost there!" : "Cup Sales";
-    amt.textContent   = fmt(cupSales) + " / " + fmt(quota);
+    // ── Pre-quota ──
+    _barInBonusMode = false;
+    const pct       = Math.min((cupSales / quota) * 100, 100);
+    const near      = pct >= 80;
+    const remaining = quota - cupSales;
+    fill.style.width = pct + "%";
+    fill.className   = "quota-bar-fill" + (near ? " near" : "");
+    label.textContent = near ? "🔥 Almost there!" : "To Quota";
+    amt.textContent   = `₱${Math.ceil(remaining).toLocaleString("en-PH")} left`;
   }
 }
 
@@ -2122,6 +2235,20 @@ buildCatalogue();
 loadState();
 cleanupOrderLogs();
 sessionStorage.setItem('brewsSession', '1');
+
+// ── Restore quota threshold from saved shift so we never fire at ₱0 ──
+(function restoreQuotaThreshold() {
+  const cupsSoFar = state.orders.reduce(
+    (t, o) => t + o.items.reduce((s, i) => s + i.unitPrice * i.qty, 0), 0);
+  const qs = getQuotaStart();
+  if (cupsSoFar < qs) {
+    nextQuotaThreshold = qs;                                          // quota not hit yet
+  } else {
+    // next unfired milestone above current sales
+    nextQuotaThreshold = qs + (Math.floor((cupsSoFar - qs) / 1000) + 1) * 1000;
+    _barInBonusMode = true;   // already past quota — skip the flash animation on load
+  }
+})();
 
 // ── Carryover: use yesterday's ending cups as today's beginning ───────────────
 (function initPosCarryover() {
