@@ -589,18 +589,6 @@
       padding: 2px 6px;
     }
 
-    /* ── Reorder button ── */
-    .order-reorder-btn {
-      background: var(--parchment); border: 1.5px solid var(--latte);
-      border-radius: var(--radius-sm); padding: 4px 9px;
-      font-size: 0.68rem; font-weight: 700; color: var(--mahogany);
-      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif;
-      transition: all .15s; flex-shrink: 0; white-space: nowrap;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .order-reorder-btn:hover  { background: var(--latte); }
-    .order-reorder-btn:active { transform: scale(0.93); }
-    .order-reorder-btn.flashed { background: #e0f0e0; border-color: #b8ddb8; color: var(--success); }
 
     /* ── Quota toast ── */
     .quota-toast {
@@ -1700,8 +1688,6 @@ function renderOrdersLog() {
           <span class="order-log-desc">${desc}</span>
         </div>
         <div class="order-log-right">
-          <button class="order-reorder-btn" id="reorderbtn-${order.id}"
-            onclick="event.stopPropagation();reorderOrder(${order.id})">↺ Reorder</button>
           <button class="order-done-btn${order.done?" done":""}"
             onclick="event.stopPropagation();toggleOrderDone(${order.id})">${doneLabel}</button>
           <span class="order-log-total">${fmt(order.total)}</span>
@@ -1778,46 +1764,6 @@ function updateOrderGiven(orderId, value) {
     disp.textContent = 'Change: —';
     disp.style.color  = 'var(--bark)';
   }
-}
-
-// ── Reorder: load a placed order into current order panel ────────────────────
-function reorderOrder(orderId) {
-  const order = state.orders.find(o => o.id === orderId);
-  if (!order || !order.items.length) return;
-
-  // Check stock
-  const rem     = remainingCups();
-  const blocked = order.items.filter(i => (rem[i.cup] ?? 0) < i.qty).map(i => i.code);
-  if (blocked.length) {
-    const toast = document.getElementById("quotaToast");
-    toast.textContent = "⚠ Not enough " + blocked.join(", ") + " cups";
-    toast.classList.add("visible");
-    setTimeout(() => toast.classList.remove("visible"), 3000);
-    return;
-  }
-
-  if (state.currentItems.length > 0) {
-    if (!confirm("Replace current order with reorder?")) return;
-  }
-
-  state.currentItems  = order.items.map(i => ({ ...i }));
-  state.currentAddons = { ...(order.addons || {}) };
-  document.getElementById("givenInput").value = "";
-
-  saveState();
-  renderDrinkButtons();
-  renderCurrentOrder();
-  renderAddonPills();
-
-  // Flash button
-  const btn = document.getElementById("reorderbtn-" + orderId);
-  if (btn) {
-    btn.textContent = "✓ Loaded!";
-    btn.classList.add("flashed");
-    setTimeout(() => { btn.textContent = "↺ Reorder"; btn.classList.remove("flashed"); }, 1800);
-  }
-
-  document.querySelector(".order-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 // ════════════════════════════════════════════════════
