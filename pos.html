@@ -1601,31 +1601,43 @@ function renderOrdersLog() {
     list.innerHTML=`<div class="no-orders">No orders yet — get brewing! ☕</div>`; return;
   }
 
-  const CUP_NAMES = { M:"Medium", L:"Large", S:"Small", HC:"Hot Coffee" };
-  const CUP_ORDER = ["M","L","S","HC"];
+  const CODE_LABELS = {
+    M:   "Medium",             L:   "Large",
+    FTM: "Fruit Tea Medium",   FTL: "Fruit Tea Large",
+    MC:  "Iced Coffee Medium", LC:  "Iced Coffee Large",
+    S:   "Small",              HC:  "Hot Coffee",
+  };
+  const CODE_SHORT = {
+    M:   "Medium",      L:   "Large",
+    FTM: "Fruit Tea M", FTL: "Fruit Tea L",
+    MC:  "Iced Coffee M", LC: "Iced Coffee L",
+    S:   "Small",       HC:  "Hot Coffee",
+  };
+  const CODE_ORDER = ["M","L","FTM","FTL","MC","LC","S","HC"];
 
   list.innerHTML = [...state.orders].reverse().map(order => {
-    // ── Summary line: cup counts grouped ──
-    const cupCounts = {};
-    order.items.forEach(i => { cupCounts[i.cup] = (cupCounts[i.cup]||0) + i.qty; });
-    const desc = CUP_ORDER.filter(c => cupCounts[c])
-      .map(c => `${cupCounts[c]}× ${CUP_NAMES[c]||c}`).join(", ");
+    // ── Summary line: counts by drink type ──
+    const codeCounts = {};
+    order.items.forEach(i => { codeCounts[i.code] = (codeCounts[i.code]||0) + i.qty; });
+    const desc = CODE_ORDER.filter(c => codeCounts[c])
+      .map(c => `${codeCounts[c]}× ${CODE_SHORT[c]||c}`).join(", ");
 
-    // ── Expanded detail: items grouped by cup ──
-    const byGroup = {};
+    // ── Expanded detail: items grouped by drink type+size ──
+    const byCode = {};
     order.items.forEach(i => {
-      const g = i.cup || "M";
-      if (!byGroup[g]) byGroup[g] = [];
-      byGroup[g].push(i);
+      const g = i.code || "M";
+      if (!byCode[g]) byCode[g] = [];
+      byCode[g].push(i);
     });
 
-    const editRows = CUP_ORDER.filter(g => byGroup[g]?.length).map(g => {
-      const rows = byGroup[g].map(i => `
+    const editRows = CODE_ORDER.filter(g => byCode[g]?.length).map(g => {
+      const groupItems = byCode[g];
+      const groupQty   = groupItems.reduce((s, i) => s + i.qty, 0);
+
+      const rows = groupItems.map(i => `
         <div class="order-edit-row">
           <div class="order-edit-name">
-            ${i.flavor
-              ? `${i.flavor}<span style="opacity:.4;font-size:.7em"> (${i.code})</span>`
-              : `<em style="opacity:.5;font-style:italic;font-size:.9em">No Flavor</em><span style="opacity:.4;font-size:.7em"> (${i.code})</span>`}
+            ${i.flavor || `<em style="opacity:.45;font-style:italic">No Flavor</em>`}
           </div>
           <div class="order-edit-qty-wrap">
             <button class="order-edit-btn remove"
@@ -1638,10 +1650,14 @@ function renderOrdersLog() {
         </div>`).join("");
 
       return `<div style="margin-bottom:2px;">
-        <div style="font-size:0.63rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;
-          color:var(--mahogany);padding:5px 14px 3px;background:var(--parchment);
-          border-bottom:1px solid rgba(226,201,168,0.4);border-top:1px solid rgba(226,201,168,0.4);">
-          ${CUP_NAMES[g]||g}
+        <div style="display:flex;align-items:center;justify-content:space-between;
+          padding:5px 14px 3px;background:var(--parchment);
+          border-top:1px solid rgba(226,201,168,0.4);border-bottom:1px solid rgba(226,201,168,0.4);">
+          <span style="font-size:0.63rem;font-weight:800;letter-spacing:0.09em;
+            text-transform:uppercase;color:var(--mahogany);">${CODE_LABELS[g]||g}</span>
+          <span style="font-size:0.62rem;font-weight:600;color:var(--dust);letter-spacing:0;">
+            ${groupQty} cup${groupQty > 1 ? "s" : ""}
+          </span>
         </div>
         ${rows}
       </div>`;
