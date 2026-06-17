@@ -540,10 +540,6 @@ function printReceipt() {
     <!-- Breakdown -->
     <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
       <tr style="border-bottom:1px solid #e8d5c4;">
-        <td style="padding:6px 8px;color:#3d2b1a;font-weight:700;">Total Cup Sales</td>
-        <td style="text-align:right;padding:6px 8px;color:#3d2b1a;font-weight:700;">${fmtR(d.totalSales)}</td>
-      </tr>
-      <tr style="border-bottom:1px solid #e8d5c4;">
         <td style="padding:6px 8px;color:#3d2b1a;font-weight:700;">Total Expenses:</td>
         <td style="text-align:right;padding:6px 8px;color:#3d2b1a;font-weight:700;">− ${fmtR(d.salary + d.expenses.reduce((s,e)=>s+e.price,0))}</td>
       </tr>
