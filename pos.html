@@ -214,6 +214,38 @@
       border-radius: var(--radius-md); padding: 1px 6px; font-size: 0.68rem; font-weight: 800;
     }
 
+    /* ── Per-item add-ons (order panel) ── */
+    .order-item-info { cursor: pointer; }
+    .order-item-addons {
+      display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px;
+    }
+    .addon-chip {
+      background: #fdf5ec; border: 1px solid #e0c9b8; color: var(--mahogany);
+      font-size: 0.66rem; font-weight: 700; padding: 1px 7px; border-radius: var(--radius-pill);
+    }
+    .order-item-addons.muted {
+      font-size: 0.68rem; color: var(--dust); font-weight: 600; opacity: 0.75;
+    }
+
+    /* ── Paid Online (GCash) toggle ── */
+    .paid-online-btn {
+      background: var(--parchment); border: 1.5px solid #e0c9b8; border-radius: var(--radius-md);
+      padding: 7px 12px; font-size: 0.78rem; font-weight: 700; color: var(--mahogany);
+      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all .15s;
+      -webkit-tap-highlight-color: transparent; width: 100%;
+    }
+    .paid-online-btn.active { background: #e6f0fa; border-color: #90b8e0; color: #2a5a9a; }
+    .paid-online-btn:active { transform: scale(0.98); }
+    .paid-online-btn.small { width: auto; padding: 4px 10px; font-size: 0.7rem; }
+
+    /* ── Auto-synced expense row (Paid Online / GCash) ── */
+    .expense-row.auto-expense input {
+      background: #f0f5fb; color: #2a5a9a; font-weight: 700; pointer-events: none;
+    }
+    .expense-row.auto-expense .exp-auto-tag {
+      font-size: 0.62rem; color: #5a86bd; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+    }
+
     /* ── Change calculator ── */
     .change-row {
       display: flex; align-items: center; gap: 8px;
@@ -734,12 +766,6 @@
         <div class="empty-order">Tap a drink to start an order</div>
       </div>
 
-      <!-- Add-ons -->
-      <div class="addons-section">
-        <div class="addons-section-label">Add-ons</div>
-        <div class="addon-pills" id="addonPills"></div>
-      </div>
-
       <!-- Change calculator -->
       <div class="change-row">
         <span class="change-label">Given</span>
@@ -749,6 +775,7 @@
 
       <!-- Footer -->
       <div class="order-footer">
+        <button class="paid-online-btn" id="pendingPaidOnlineBtn" style="margin-bottom:9px;" onclick="togglePendingPaidOnline()">📱 Paid Online (GCash)</button>
         <div class="order-subtotal">
           <span>Subtotal</span>
           <span id="orderSubtotal">₱0.00</span>
@@ -827,6 +854,23 @@
     </div>
     <div class="flavor-scroll">
       <div class="flavor-grid" id="flavorGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ ITEM ADD-ON MODAL (bottom sheet) ═══════════ -->
+<div class="modal-overlay" id="itemAddonModal" onclick="handleItemAddonOverlay(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header-row">
+      <div>
+        <div class="modal-title" id="itemAddonModalTitle">Add-ons</div>
+        <div class="modal-sub" id="itemAddonModalSub"></div>
+      </div>
+      <button class="modal-cancel-btn" onclick="closeItemAddonModal()">Done</button>
+    </div>
+    <div class="flavor-scroll">
+      <div class="addon-pills" id="itemAddonGrid" style="padding:4px 18px 18px;"></div>
     </div>
   </div>
 </div>
@@ -1043,13 +1087,15 @@ function getQuotaStart() { return getSettings().quotaStart ?? 3000; }
 // ════════════════════════════════════════════════════
 let state = {
   begM:0, begL:0, begS:0, begHC:0,
-  currentItems:  [],
-  currentAddons: {},
+  currentItems:  [],       // each item now carries its own { addons: {name: qty} }
   orders:        [],
   shiftTotal:    0,
   expenses:      [],
+  pendingPaidOnline: false, // Paid Online (GCash) toggle for the order being built
   shiftStartTime: null,  // timestamp ms
 };
+
+const GCASH_EXPENSE_NAME = "GCash (Paid Online)";
 
 let flavorToastTimer = null;
 function showFlavorToast(msg) {
@@ -1138,14 +1184,32 @@ function getItemTotal() {
   return state.currentItems.reduce((s,i) => s + i.unitPrice * i.qty, 0);
 }
 
-function getAddonTotal() {
-  return Object.entries(state.currentAddons).reduce((s,[name,qty]) => {
+// Add-ons now live on each cart item (per-cup), e.g. item.addons = { "Pearl": 1 }
+// The qty stored is "per cup" and scales with the item's own qty.
+function getItemAddonTotal(item) {
+  return Object.entries(item.addons || {}).reduce((s,[name,qty]) => {
     const a = ADDONS.find(a=>a.name===name);
     return s + (a ? a.price * qty : 0);
   }, 0);
 }
 
+function getAddonTotal() {
+  return state.currentItems.reduce((s,item) => s + getItemAddonTotal(item) * item.qty, 0);
+}
+
 function getOrderTotal() { return getItemTotal() + getAddonTotal(); }
+
+// Aggregate an already-placed order's per-item add-ons into a flat { name: totalQty } map
+// (totalQty already accounts for each item's cup quantity).
+function aggregateOrderAddons(order) {
+  const map = {};
+  (order.items || []).forEach(it => {
+    Object.entries(it.addons || {}).forEach(([name, qty]) => {
+      map[name] = (map[name] || 0) + qty * it.qty;
+    });
+  });
+  return map;
+}
 
 // ════════════════════════════════════════════════════
 //  CLOCK + SHIFT TIMER
@@ -1192,7 +1256,7 @@ function startShift() {
   state.begL  = begL;
   state.begS  = begS;
   state.begHC = begHC;
-  state.currentItems=[]; state.currentAddons={}; state.orders=[]; state.shiftTotal=0; state.expenses=[];
+  state.currentItems=[]; state.pendingPaidOnline=false; state.orders=[]; state.shiftTotal=0; state.expenses=[];
   state.deliveries = {M:0,L:0,S:0,HC:0};
   state.damages    = {M:0,L:0,S:0,HC:0};
   state.shiftStartTime = Date.now();
@@ -1213,12 +1277,13 @@ function showSetup() {
 function showPOS() {
   document.getElementById("setupScreen").style.display="none";
   document.getElementById("posScreen").style.display="flex";
-  renderDrinkButtons(); renderCurrentOrder(); renderAddonPills();
+  renderDrinkButtons(); renderCurrentOrder();
   renderOrdersLog(); updateHeaderStats(); startClock();
   renderPosExpenses();
   renderStockInputs();
   // Attach swipe-to-dismiss on all modal overlays
   attachSwipeToDismiss("flavorModal",         closeFlavorModal);
+  attachSwipeToDismiss("itemAddonModal",      closeItemAddonModal);
   attachSwipeToDismiss("receiptModal",        closeReceiptModal);
   attachSwipeToDismiss("endShiftModal",       closeEndShift);
   attachSwipeToDismiss("flavorSettingsModal", closeFlavorSettings);
@@ -1237,7 +1302,7 @@ function resumeShift() {
     state.deliveries = s.deliveries || {M:0,L:0,S:0,HC:0};
     state.damages    = s.damages    || {M:0,L:0,S:0,HC:0};
     state.currentItems  = [];
-    state.currentAddons = {};
+    state.pendingPaidOnline = false;
     // Restore correct next quota milestone
     const cupsSoFar = state.orders.reduce((t,o)=>t+o.items.reduce((s,i)=>s+i.unitPrice*i.qty,0),0);
     const qs = getQuotaStart();
@@ -1382,7 +1447,7 @@ function addItemToOrder(drink, flavor) {
   if (existing) { existing.qty++; }
   else {
     state.currentItems.push({ key, code:drink.code, name:drink.name, icon:drink.icon,
-      flavor, qty:1, unitPrice:drink.price, cup:drink.cup });
+      flavor, qty:1, unitPrice:drink.price, cup:drink.cup, addons:{} });
   }
   saveState(); renderDrinkButtons(); renderCurrentOrder();
   const badge = document.getElementById(`badge-${drink.code}`);
@@ -1398,10 +1463,10 @@ function setItemQty(key, qty) {
 }
 
 function clearCurrentOrder() {
-  state.currentItems=[]; state.currentAddons={};
+  state.currentItems=[]; state.pendingPaidOnline=false;
   document.getElementById("givenInput").value="";
   document.getElementById("changeDisplay").textContent="Change: —";
-  saveState(); renderDrinkButtons(); renderCurrentOrder(); renderAddonPills();
+  saveState(); renderDrinkButtons(); renderCurrentOrder();
 }
 
 function renderCurrentOrder() {
@@ -1409,6 +1474,7 @@ function renderCurrentOrder() {
   const subtotal  = getOrderTotal();
   document.getElementById("orderSubtotal").textContent = fmt(subtotal);
   document.getElementById("placeOrderBtn").disabled    = state.currentItems.length === 0;
+  updatePendingPaidOnlineBtn();
 
   // Undo button visibility
   const undoBtn = document.getElementById("undoBtn");
@@ -1420,32 +1486,68 @@ function renderCurrentOrder() {
     updateChange(); return;
   }
 
-  container.innerHTML = state.currentItems.map(item => `
+  container.innerHTML = state.currentItems.map(item => {
+    const keyEsc      = item.key.replace(/'/g,"\\'");
+    const addonEntries = Object.entries(item.addons || {});
+    const addonChips  = addonEntries.map(([name,qty]) => `<span class="addon-chip">${qty}× ${name}</span>`).join("");
+    const lineTotal   = item.unitPrice * item.qty + getItemAddonTotal(item) * item.qty;
+    return `
     <div class="order-item">
-      <div class="order-item-info">
+      <div class="order-item-info" onclick="openItemAddonModal('${keyEsc}')">
         <div class="order-item-name">${item.name} <span style="opacity:.5;font-size:.75em">(${item.code})</span></div>
         ${item.flavor ? `<div class="order-item-flavor">${item.flavor}</div>` : ""}
+        ${addonChips
+          ? `<div class="order-item-addons">${addonChips}</div>`
+          : `<div class="order-item-addons muted">+ Add-ons</div>`}
       </div>
       <div class="order-item-qty-controls">
-        <button class="qty-btn" onclick="setItemQty('${item.key.replace(/'/g,"\\'")}', ${item.qty-1})">−</button>
+        <button class="qty-btn" onclick="event.stopPropagation();setItemQty('${keyEsc}', ${item.qty-1})">−</button>
         <span class="order-item-qty">${item.qty}</span>
-        <button class="qty-btn" onclick="setItemQty('${item.key.replace(/'/g,"\\'")}', ${item.qty+1})">+</button>
+        <button class="qty-btn" onclick="event.stopPropagation();setItemQty('${keyEsc}', ${item.qty+1})">+</button>
       </div>
-      <span class="order-item-total">${fmt(item.unitPrice * item.qty)}</span>
+      <span class="order-item-total">${fmt(lineTotal)}</span>
     </div>
-  `).join("");
+  `; }).join("");
 
   updateChange();
 }
 
 // ════════════════════════════════════════════════════
-//  ADD-ONS
+//  ADD-ONS  (per cup — tap a cup in the current order to open this)
 // ════════════════════════════════════════════════════
-function renderAddonPills() {
-  const container = document.getElementById("addonPills");
-  container.innerHTML = "";
+let pendingAddonItemKey = null;
+
+function openItemAddonModal(key) {
+  const item = state.currentItems.find(i => i.key === key);
+  if (!item) return;
+  pendingAddonItemKey = key;
+  document.getElementById("itemAddonModalTitle").textContent =
+    item.name + (item.flavor ? " · " + item.flavor : "");
+  document.getElementById("itemAddonModalSub").textContent =
+    `Applies to all ${item.qty} cup${item.qty>1?"s":""} of this item · tap to add, hold/right-click to remove`;
+  document.getElementById("itemAddonModal").classList.add("open");
+  renderItemAddonGrid();
+}
+
+function closeItemAddonModal() {
+  document.getElementById("itemAddonModal").classList.remove("open");
+  pendingAddonItemKey = null;
+  renderCurrentOrder();
+}
+
+function handleItemAddonOverlay(e) {
+  if (e.target === document.getElementById("itemAddonModal")) closeItemAddonModal();
+}
+
+function renderItemAddonGrid() {
+  const grid = document.getElementById("itemAddonGrid");
+  grid.innerHTML = "";
+  const item = state.currentItems.find(i => i.key === pendingAddonItemKey);
+  if (!item) return;
+  if (!item.addons) item.addons = {};
+
   ADDONS.forEach(a => {
-    const qty = state.currentAddons[a.name] || 0;
+    const qty = item.addons[a.name] || 0;
     const pill = document.createElement("button");
     pill.className = "addon-pill" + (qty > 0 ? " active" : "");
     pill.innerHTML = qty > 0
@@ -1453,19 +1555,36 @@ function renderAddonPills() {
       : `${a.name} <span style="opacity:.5;font-size:.7em">+${fmt(a.price)}</span>`;
     pill.addEventListener("click", () => {
       vibe("tap");
-      state.currentAddons[a.name] = (state.currentAddons[a.name] || 0) + 1;
-      saveState(); renderAddonPills(); renderCurrentOrder();
+      item.addons[a.name] = (item.addons[a.name] || 0) + 1;
+      saveState(); renderItemAddonGrid(); renderCurrentOrder();
     });
     pill.addEventListener("contextmenu", e => {
-      e.preventDefault(); vibe('tap');
-      if (state.currentAddons[a.name]) {
-        state.currentAddons[a.name]--;
-        if (!state.currentAddons[a.name]) delete state.currentAddons[a.name];
-        saveState(); renderAddonPills(); renderCurrentOrder();
+      e.preventDefault(); vibe("tap");
+      if (item.addons[a.name]) {
+        item.addons[a.name]--;
+        if (!item.addons[a.name]) delete item.addons[a.name];
+        saveState(); renderItemAddonGrid(); renderCurrentOrder();
       }
     });
-    container.appendChild(pill);
+    grid.appendChild(pill);
   });
+}
+
+// ════════════════════════════════════════════════════
+//  PAID ONLINE (GCash) — pending toggle for the order being built
+// ════════════════════════════════════════════════════
+function togglePendingPaidOnline() {
+  vibe("tap");
+  state.pendingPaidOnline = !state.pendingPaidOnline;
+  saveState();
+  updatePendingPaidOnlineBtn();
+}
+
+function updatePendingPaidOnlineBtn() {
+  const btn = document.getElementById("pendingPaidOnlineBtn");
+  if (!btn) return;
+  btn.classList.toggle("active", !!state.pendingPaidOnline);
+  btn.textContent = state.pendingPaidOnline ? "✓ Paid Online (GCash)" : "📱 Paid Online (GCash)";
 }
 
 // ════════════════════════════════════════════════════
@@ -1494,19 +1613,20 @@ function placeOrder() {
   const total      = getItemTotal() + addonTotal;
   const order = {
     id: state.orders.length + 1,
-    items: [...state.currentItems],
-    addons: {...state.currentAddons},
+    items: [...state.currentItems], // each item carries its own addons
     total,
     time: timeNow(),
     given,
+    paidOnline: !!state.pendingPaidOnline,
     done: false,
   };
 
   state.orders.push(order);
   state.shiftTotal += total;
-  state.currentItems=[]; state.currentAddons={};
+  state.currentItems=[]; state.pendingPaidOnline=false;
   document.getElementById("givenInput").value="";
   saveState();
+  syncGcashExpense();
 
   // Notify at ₱3,000 then every ₱1,000 milestone (cup sales only)
   const _cupSales = computeShiftCupTotal();
@@ -1515,7 +1635,7 @@ function placeOrder() {
     nextQuotaThreshold += 1000;
   }
 
-  renderDrinkButtons(); renderCurrentOrder(); renderAddonPills();
+  renderDrinkButtons(); renderCurrentOrder();
   renderOrdersLog(); updateHeaderStats(); showReceipt(order);
 
   const badge=document.getElementById("ordersCountBadge");
@@ -1573,11 +1693,41 @@ function undoLastOrder() {
   const last = state.orders.pop();
   state.shiftTotal -= last.total;
   saveState(); renderDrinkButtons(); renderCurrentOrder(); renderOrdersLog(); updateHeaderStats();
+  if (last.paidOnline) syncGcashExpense();
 }
 
 function toggleOrderDone(id) {
   const order = state.orders.find(o => o.id === id);
   if (order) { order.done = !order.done; saveState(); renderOrdersLog(); }
+}
+
+// ── Paid Online (GCash): toggling a placed order auto adds/removes its total
+//    from a dedicated "GCash (Paid Online)" shift expense, so the cash count
+//    at end-of-shift only expects the cash-paid orders. ─────────────────────
+function toggleOrderPaidOnline(id) {
+  vibe("tap");
+  const order = state.orders.find(o => o.id === id);
+  if (!order) return;
+  order.paidOnline = !order.paidOnline;
+  syncGcashExpense();
+  renderOrdersLog();
+  setTimeout(() => {
+    const card = document.getElementById("ordercard-" + id);
+    if (card) card.classList.add("expanded");
+  }, 20);
+}
+
+function syncGcashExpense() {
+  const total = state.orders.filter(o => o.paidOnline).reduce((s,o) => s + o.total, 0);
+  const idx = state.expenses.findIndex(e => e.name === GCASH_EXPENSE_NAME);
+  if (total > 0) {
+    if (idx >= 0) state.expenses[idx].price = total;
+    else state.expenses.push({ name: GCASH_EXPENSE_NAME, price: total });
+  } else if (idx >= 0) {
+    state.expenses.splice(idx, 1);
+  }
+  saveState();
+  renderPosExpenses();
 }
 
 function renderOrdersLog() {
@@ -1651,7 +1801,7 @@ function renderOrdersLog() {
       </div>`;
     }).join("");
 
-    const addonRows = Object.entries(order.addons||{}).map(([name,qty])=>{
+    const addonRows = Object.entries(aggregateOrderAddons(order)).map(([name,qty])=>{
       const a=ADDONS.find(a=>a.name===name);
       return `<div class="order-log-detail-row"><span>${qty}× ${name}</span><span>${fmt((a?.price||0)*qty)}</span></div>`;
     }).join("");
@@ -1678,6 +1828,12 @@ function renderOrdersLog() {
                 : `Short: ${fmt(order.total - order.given)}`)
             : 'Change: —'}
         </span>
+      </div>
+      <div style="padding:6px 14px 2px;">
+        <button class="paid-online-btn small${order.paidOnline?" active":""}"
+          onclick="event.stopPropagation();toggleOrderPaidOnline(${order.id})">
+          ${order.paidOnline ? "✓ Paid Online (GCash)" : "📱 Mark Paid Online (GCash)"}
+        </button>
       </div>`;
 
     const doneLabel = order.done ? "✓ Done" : "Mark Done";
@@ -1688,6 +1844,7 @@ function renderOrdersLog() {
           <span class="order-log-desc">${desc}</span>
         </div>
         <div class="order-log-right">
+          ${order.paidOnline ? `<span style="font-size:0.62rem;font-weight:700;color:#2a5a9a;background:#e6f0fa;border:1px solid #90b8e0;border-radius:6px;padding:2px 6px;flex-shrink:0;">GCash</span>` : ""}
           <button class="order-done-btn${order.done?" done":""}"
             onclick="event.stopPropagation();toggleOrderDone(${order.id})">${doneLabel}</button>
           <span class="order-log-total">${fmt(order.total)}</span>
@@ -1727,9 +1884,7 @@ function editOrderItem(orderId, itemKey, dir) {
 
   // Recalculate order total
   const cupTotal   = order.items.reduce((s,i) => s + i.unitPrice * i.qty, 0);
-  const addonTotal = Object.entries(order.addons||{}).reduce((s,[name,qty]) => {
-    const a = ADDONS.find(a=>a.name===name); return s + (a ? a.price*qty : 0);
-  }, 0);
+  const addonTotal = order.items.reduce((s,i) => s + getItemAddonTotal(i) * i.qty, 0);
   const diff  = (cupTotal + addonTotal) - order.total;
   order.total = cupTotal + addonTotal;
   state.shiftTotal += diff;
@@ -1738,6 +1893,7 @@ function editOrderItem(orderId, itemKey, dir) {
   renderDrinkButtons();
   updateHeaderStats();
   renderOrdersLog();
+  if (order.paidOnline) syncGcashExpense();
 
   // Re-expand the card
   setTimeout(() => {
@@ -1857,21 +2013,31 @@ function toggleExpenses() {
 
 function addPosExpenseRow(name="", price="") {
   const container = document.getElementById("posExpensesContainer");
+  const isAuto = name === GCASH_EXPENSE_NAME;
   const row = document.createElement("div");
-  row.className = "expense-row";
-  row.innerHTML = `
+  row.className = "expense-row" + (isAuto ? " auto-expense" : "");
+  row.innerHTML = isAuto
+    ? `
+    <input type="text"   class="exp-name"  value="${name}" readonly>
+    <input type="number" class="exp-price" value="${price}" readonly>
+    <span class="exp-auto-tag">auto</span>
+  `
+    : `
     <input type="text"   class="exp-name"  placeholder="Expense name" value="${name}">
     <input type="number" class="exp-price" placeholder="₱0"           value="${price}">
     <button type="button" onclick="this.parentElement.remove(); savePosExpenses();">x</button>
   `;
-  row.addEventListener("input", savePosExpenses);
+  if (!isAuto) row.addEventListener("input", savePosExpenses);
   container.appendChild(row);
 }
 
 function savePosExpenses() {
   const rows = document.querySelectorAll("#posExpensesContainer .expense-row");
-  state.expenses = [];
+  // Preserve the auto-synced GCash row as-is; it's managed by syncGcashExpense().
+  const gcash = state.expenses.find(e => e.name === GCASH_EXPENSE_NAME);
+  state.expenses = gcash ? [gcash] : [];
   rows.forEach(r => {
+    if (r.classList.contains("auto-expense")) return;
     const name  = r.querySelector(".exp-name").value.trim();
     const price = parseFloat(r.querySelector(".exp-price").value) || 0;
     if (name || price) state.expenses.push({name, price});
@@ -1891,26 +2057,30 @@ function renderPosExpenses() {
 function showReceipt(order) {
   document.getElementById("receiptOrderNum").textContent = `Order #${order.id} · ${order.time}`;
 
-  let itemsHTML = order.items.map(i => `
+  let itemsHTML = order.items.map(i => {
+    const itemAddonRows = Object.entries(i.addons||{}).map(([name,qty]) => {
+      const a = ADDONS.find(a=>a.name===name);
+      return `<div class="receipt-row addon-row"><span>↳ ${qty*i.qty}× ${name}</span><span>${fmt((a?.price||0)*qty*i.qty)}</span></div>`;
+    }).join("");
+    return `
     <div class="receipt-row">
       <span>${i.qty}× ${i.name} (${i.code})</span>
       <span>${fmt(i.unitPrice*i.qty)}</span>
     </div>
     ${i.flavor?`<div class="receipt-row flavor-sub"><span>↳ ${i.flavor}</span></div>`:""}
-  `).join("");
-
-  const addonRows = Object.entries(order.addons||{}).map(([name,qty]) => {
-    const a=ADDONS.find(a=>a.name===name);
-    return `<div class="receipt-row addon-row"><span>${qty}× ${name}</span><span>${fmt((a?.price||0)*qty)}</span></div>`;
-  }).join("");
-
-  if (addonRows) itemsHTML += `<div style="border-top:1px dashed var(--latte);margin-top:6px;padding-top:6px;">${addonRows}</div>`;
+    ${itemAddonRows}
+  `; }).join("");
 
   document.getElementById("receiptItems").innerHTML = itemsHTML;
   document.getElementById("receiptTotal").innerHTML = `<span>Total</span><span>${fmt(order.total)}</span>`;
 
   // Payment rows (given / change)
   let paymentHTML = "";
+  if (order.paidOnline) {
+    paymentHTML += `
+      <hr class="modal-divider">
+      <div class="receipt-row" style="font-weight:700;color:#2a5a9a"><span>📱 Paid via GCash</span><span></span></div>`;
+  }
   if (order.given > 0) {
     const change = order.given - order.total;
     paymentHTML = `
@@ -1946,13 +2116,8 @@ function computeCupTotals() {
 }
 
 function computeAddonRevenue() {
-  let total=0;
-  state.orders.forEach(o=>{
-    Object.entries(o.addons||{}).forEach(([name,qty])=>{
-      const a=ADDONS.find(a=>a.name===name); if(a) total+=a.price*qty;
-    });
-  });
-  return total;
+  return state.orders.reduce((sum,o) =>
+    sum + o.items.reduce((s,i) => s + getItemAddonTotal(i) * i.qty, 0), 0);
 }
 
 function openEndShift() {
@@ -1968,6 +2133,7 @@ function openEndShift() {
   const addonRev = computeAddonRevenue();
   const cupSales = computeShiftCupTotal();
   const expTotal = state.expenses.reduce((s,e)=>s+e.price,0);
+  const gcashTotal = state.orders.filter(o=>o.paidOnline).reduce((s,o)=>s+o.total,0);
   const totalDel = (del.M||0)+(del.L||0)+(del.S||0)+(del.HC||0);
   const totalDmg = (dmg.M||0)+(dmg.L||0)+(dmg.S||0)+(dmg.HC||0);
   const delRow = totalDel>0 ? `<div class="end-shift-row" style="color:#3a7a3a;"><span>📦 Delivered</span><span>M+${del.M||0} L+${del.L||0} S+${del.S||0} HC+${del.HC||0}</span></div>` : "";
@@ -1977,7 +2143,8 @@ function openEndShift() {
     <div class="end-shift-row bold"><span>Cup Sales</span><span>${fmt(cupSales)}</span></div>
     ${addonRev?`<div class="end-shift-row"><span>Add-on Revenue</span><span>+ ${fmt(addonRev)}</span></div>`:""}
     <div class="end-shift-row" style="font-weight:700;border-top:1.5px solid var(--mochaccino);padding-top:8px;margin-top:4px;"><span>Total Revenue</span><span>${fmt(state.shiftTotal)}</span></div>
-    ${expTotal?`<div class="end-shift-row"><span>Expenses</span><span>− ${fmt(expTotal)}</span></div>`:""}
+    ${gcashTotal?`<div class="end-shift-row" style="color:#2a5a9a;"><span>📱 Paid Online (GCash)</span><span>${fmt(gcashTotal)}</span></div>`:""}
+    ${expTotal?`<div class="end-shift-row"><span>Expenses (incl. GCash)</span><span>− ${fmt(expTotal)}</span></div>`:""}
     <div class="end-shift-row section-head"><span>Cup Counts → Auto-filled</span><span></span></div>
     ${delRow}${dmgRow}
     <div class="end-shift-row"><span>Medium (M)</span><span>${state.begM} → ${warn(endM)}</span></div>
