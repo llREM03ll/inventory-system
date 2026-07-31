@@ -19,11 +19,6 @@ function saveHistory(date, results) {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
-function getHistoryByDate(date) {
-  const history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-  return history.find(h => h.date === date) || null;
-}
-
 function deleteHistoryByDate(date) {
   const history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
   localStorage.setItem(HISTORY_KEY, JSON.stringify(history.filter(h => h.date !== date)));

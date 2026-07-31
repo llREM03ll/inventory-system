@@ -9,6 +9,9 @@
   <meta name="theme-color" content="#6b4f36" />
   <title>BREWS.CO – Calculate</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/theme.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/header.js"></script>
   <style>
     .damage-note {
       font-size: 0.68rem; color: var(--dust); font-weight: 500;
@@ -25,12 +28,12 @@
     .del-dmg-header span:first-child { text-align: left; }
     .carryover-btn {
       display: flex; align-items: center; gap: 7px; width: 100%;
-      background: #f0f7f0; border: 1.5px solid #b8ddb8; border-radius: var(--radius-md);
-      padding: 11px 14px; font-size: 0.84rem; font-weight: 700; color: #3a7a3a;
+      background: var(--success-bg); border: 1.5px solid var(--success-border); border-radius: var(--radius-md);
+      padding: 11px 14px; font-size: 0.84rem; font-weight: 700; color: var(--success-dark);
       font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; margin-bottom: 10px; transition: all .18s;
     }
-    .carryover-btn:hover { background: #e0f0e0; border-color: #8aba8a; transform: translateY(-1px); }
-    .carryover-meta { font-size: 0.7rem; color: #7ab87a; font-weight: 500; margin-left: auto; }
+    .carryover-btn:hover { background: var(--success-bg-soft); border-color: var(--success-hover-border); transform: translateY(-1px); }
+    .carryover-meta { font-size: 0.7rem; color: var(--success-mid); font-weight: 500; margin-left: auto; }
     @media (max-width: 600px) {
       .del-dmg-header { display: none; }
     }
@@ -43,10 +46,10 @@
   }
 </script>
   <div class="container">
-    <a href="index.html" style="text-decoration:none;">
-      <div class="brand">BREWS.CO</div>
-      <div class="brand-sub">Calculate</div>
-    </a>
+    <div id="calcHeaderRoot"></div>
+    <script>
+      document.getElementById("calcHeaderRoot").innerHTML = renderPageHeader({ subtitle: "Calculate" });
+    </script>
 
     <div id="carryoverWrap" style="display:none;">
       <button class="carryover-btn" onclick="useYesterdaysEnding()">
@@ -117,20 +120,7 @@
     </div>
   </div>
 
-  <nav class="bottom-nav">
-    <a href="calculate.html" class="bottom-nav-item active">
-      <span class="bottom-nav-icon">🧮</span>
-      <span class="bottom-nav-label">Calculate</span>
-    </a>
-    <a href="pos.html" class="bottom-nav-item bottom-nav-shift" id="shiftNavBtn">
-      <span class="bottom-nav-shift-pill">🧋</span>
-      <span class="bottom-nav-label" id="shiftNavLabel">Shift</span>
-    </a>
-    <a href="calendar.html" class="bottom-nav-item">
-      <span class="bottom-nav-icon">📅</span>
-      <span class="bottom-nav-label">History</span>
-    </a>
-  </nav>
+  <script>document.write(renderBottomNav("calculate"));</script>
 
   <script>
     // Clamp all number inputs to 0+
@@ -167,7 +157,7 @@
             if (!el) return;
             el.value = val;
             el.style.transition = "background .4s";
-            el.style.background = "#e6f5e6";
+            el.style.background = "var(--success-bg-alt)";
             setTimeout(() => el.style.background = "", 900);
           });
           if (typeof saveInputs === "function") saveInputs();
@@ -195,7 +185,6 @@
   </script>
   <script>
     if (typeof window.syncPush      !== "function") window.syncPush      = async () => { throw new Error("Sync unavailable"); };
-    if (typeof window.getDeviceRole !== "function") window.getDeviceRole = () => localStorage.getItem("brewsDeviceRole") || "worker";
   </script>
   <script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
   <script src="js/InventorySystem.js"></script>

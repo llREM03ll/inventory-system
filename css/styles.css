@@ -19,8 +19,46 @@
   --mochaccino: #C4A07A;
   --bark:       #9A7050;
   --dust:       #B89870;
+  --dusk:       #EED9BE;
   --success:    #4A8A4A;
   --danger:     #B85040;
+
+  /* ── Status: success (green) ──────────────────────────────
+     Consolidates ~35 raw hex greens found scattered across
+     index/pos/calendar/calculate into one canonical set. */
+  --success-light:       #4A9E4A; /* gradient light stop */
+  --success-mid:         #7AB87A; /* icon dots / gradient stop / focus border */
+  --success-dark:        #3A7A3A; /* text & icon color */
+  --success-bg:          #F0F7F0; /* light tint background */
+  --success-bg-alt:      #E6F5E6; /* badge tint background */
+  --success-bg-soft:     #E0F0E0; /* role badge / hover background */
+  --success-border:      #B8DDB8;
+  --success-hover-border:#8ABA8A;
+
+  /* ── Status: danger (red) ── */
+  --danger-soft:    #C0665A; /* softer red for text/links */
+  --danger-deep:    #C04020;
+  --danger-darkest: #8B2500;
+  --danger-bg:       #FDF0F0; /* light tint background */
+  --danger-bg-hover: #FAE0DE;
+  --danger-border:   #F0D5D5;
+
+  /* ── Status: info (blue) ── */
+  --info:        #2A5A9A;
+  --info-deep:   #1A7A9A;
+  --info-bg:     #E6F0FA;
+  --info-border: #90B8E0;
+
+  /* ── Neutrals: warm sand/clay (cards, badges, calendar) ── */
+  --sand:        #F0E4D8;
+  --sand-border: #E0C9B8;
+  --sand-hover:  #E4D0BF;
+  --sand-alt:    #FDF5EC;
+  --clay:        #C7A27C;
+  --clay-light:  #D4A97C;
+  --clay-dark:   #9A6E52;
+
+  --white: #FFFFFF;
 
   --grad-cta:   linear-gradient(135deg, #D4A55A 0%, #C4813A 40%, #8B4A1A 100%);
   --grad-dark:  linear-gradient(160deg, #2D1106 0%, #4A1E08 50%, #3D1A07 100%);
@@ -29,6 +67,12 @@
   --shadow-lift:0 4px 16px rgba(60,20,0,0.12), 0 16px 40px rgba(60,20,0,0.10);
   --shadow-btn: 0 3px 12px rgba(180,100,30,0.35);
   --shadow-warm:0 2px 12px rgba(196,129,58,0.20);
+
+  /* Wash overlay that sits over the body photo — themeable so it rotates
+     together with the accent instead of staying a fixed hardcoded brown. */
+  --tint-1: rgba(253,245,232,0.78); /* = --cream  @ 78% */
+  --tint-2: rgba(245,228,200,0.72); /* = --parchment @ 72% */
+  --tint-3: rgba(238,217,190,0.76); /* = --dusk @ 76% */
 
   --radius-xl:  20px;
   --radius-lg:  14px;
@@ -50,7 +94,7 @@ body {
   color: var(--roast);
   font-size: 0.88rem;
   line-height: 1.55;
-  background-color: #EED9BE;
+  background-color: var(--dusk);
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
     url('../Image1.jpg');
@@ -66,7 +110,7 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: linear-gradient(160deg, rgba(253,245,232,0.78) 0%, rgba(245,228,200,0.72) 50%, rgba(238,217,190,0.76) 100%);
+  background: linear-gradient(160deg, var(--tint-1) 0%, var(--tint-2) 50%, var(--tint-3) 100%);
   z-index: -1;
 }
 
@@ -234,18 +278,11 @@ tbody tr:hover td { background: rgba(253,245,232,0.7); }
 /* ── Back button ── */
 .back-btn { display: inline-flex; align-items: center; gap: 5px; background: var(--parchment); border: 1.5px solid var(--latte); border-radius: var(--radius-md); padding: 8px 14px; font-weight: 600; font-size: 0.83rem; color: var(--mahogany); cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; text-decoration: none; transition: all .18s; }
 .back-btn:hover { background: var(--latte); transform: translateY(-1px); }
+.top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.header-settings-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: var(--parchment); border: 1.5px solid var(--latte); border-radius: var(--radius-md); font-size: 1rem; cursor: pointer; transition: all .18s; }
+.header-settings-btn:hover { background: var(--latte); transform: translateY(-1px); }
 
 /* ── History List ── */
-.history-list { margin-top: 8px; }
-.history-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1.5px solid var(--latte); border-radius: var(--radius-lg); background: var(--pearl); margin: 8px 0; box-shadow: 0 1px 4px rgba(60,20,0,0.06); transition: all .18s; }
-.history-item:hover { box-shadow: var(--shadow-warm); border-color: var(--mochaccino); transform: translateY(-1px); }
-.history-item .date { font-weight: 700; color: var(--mahogany); font-size: 0.88rem; }
-.history-item .actions { display: flex; gap: 8px; }
-.history-item .actions button { padding: 8px 14px; border-radius: var(--radius-md); border: none; font-weight: 700; font-size: 0.82rem; }
-.btn-restore { background: var(--grad-cta); color: #fff; box-shadow: 0 2px 8px rgba(196,129,58,0.30); }
-.btn-restore:hover { filter: brightness(1.08); transform: translateY(-1px); }
-.btn-delete { background: var(--parchment); color: var(--bark); border: 1.5px solid var(--latte) !important; }
-.btn-delete:hover { background: #fae0de; color: var(--danger); }
 
 /* ── Responsive ── */
 @media (max-width: 600px) {

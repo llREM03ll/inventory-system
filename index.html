@@ -9,6 +9,9 @@
   <meta name="theme-color" content="#6b4f36" />
   <title>BREWS.CO</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/theme.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/header.js"></script>
   <style>
     body { padding: 0; }
 
@@ -52,14 +55,14 @@
     .home-resume {
       width:100%; max-width:400px; display:flex; align-items:center;
       justify-content:space-between; gap:12px;
-      background:#FFFBEE; border:1.5px solid #E8C87A;
+      background:var(--white)BEE; border:1.5px solid #E8C87A;
       border-radius:var(--radius-lg); padding:14px 16px; margin-bottom:14px;
     }
     .home-resume-info  { flex:1; text-align:left; }
     .home-resume-title { font-size:0.86rem; font-weight:700; color:var(--mahogany); }
     .home-resume-sub   { font-size:0.73rem; color:var(--bark); margin-top:2px; }
     .home-resume-btn {
-      flex-shrink:0; background:var(--grad-cta); color:#fff;
+      flex-shrink:0; background:var(--grad-cta); color:var(--white);
       border:none; border-radius:var(--radius-md); padding:10px 16px; font-weight:700;
       font-size:0.82rem; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer;
       text-decoration:none; transition:all .18s; white-space:nowrap; box-shadow:var(--shadow-btn);
@@ -69,7 +72,7 @@
     .view-history-btn {
       width:100%; max-width:400px; display:flex; align-items:center;
       justify-content:center; gap:8px; margin-top:14px;
-      background:var(--grad-cta); color:#fff;
+      background:var(--grad-cta); color:var(--white);
       border:none; border-radius:var(--radius-lg); padding:15px 20px;
       font-size:0.92rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif;
       cursor:pointer; text-decoration:none; transition:all .18s; box-shadow:var(--shadow-btn);
@@ -92,18 +95,18 @@
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
     .sync-role-badge { font-size:0.66rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:3px 10px; border-radius:var(--radius-pill); flex-shrink:0; }
     .sync-role-badge.worker  { background:var(--parchment); color:var(--bark); border:1px solid var(--latte); }
-    .sync-role-badge.manager { background:#e0f0e0; color:#3a7a3a; border:1px solid #b8ddb8; }
+    .sync-role-badge.manager { background:var(--success-bg-soft); color:var(--success-dark); border:1px solid var(--success-border); }
     .sync-btns { display:flex; gap:8px; }
     .home-offline-pill {
       width:100%; max-width:400px; margin-top:8px;
-      background: linear-gradient(135deg,#8B2500,#C04020);
-      color:#fff; text-align:center; padding:8px 14px;
+      background: linear-gradient(135deg,var(--danger-darkest),var(--danger-deep));
+      color:var(--white); text-align:center; padding:8px 14px;
       border-radius:var(--radius-md); font-size:0.78rem; font-weight:700;
       display:none; box-shadow:0 2px 8px rgba(180,60,0,0.30);
     }
     .home-offline-pill.visible { display:block; }
     .sync-btn { flex:1; padding:9px 10px; border-radius:var(--radius-md); font-size:0.82rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; border:none; transition:all .18s; text-align:center; }
-    .sync-btn-push { background:var(--grad-cta); color:#fff; box-shadow:var(--shadow-btn); }
+    .sync-btn-push { background:var(--grad-cta); color:var(--white); box-shadow:var(--shadow-btn); }
     .sync-btn-push:hover { filter:brightness(1.08); transform:translateY(-1px); }
     .sync-btn-pull { background:var(--parchment); color:var(--mahogany); border:1.5px solid var(--latte); }
     .sync-btn-pull:hover { background:var(--latte); transform:translateY(-1px); }
@@ -129,9 +132,9 @@
     .smodal-head { display:flex; align-items:center; justify-content:space-between; padding:14px 20px 12px; border-bottom:1px solid var(--latte); flex-shrink:0; }
     .smodal-title { font-family:"Cormorant Garamond",serif; font-size:1.15rem; font-weight:700; color:var(--espresso); letter-spacing:0.04em; }
     .smodal-actions { display:flex; gap:8px; }
-    .smodal-reset { background:#fdf0f0; border:1.5px solid #f0c8c8; border-radius:var(--radius-md); padding:8px 13px; font-size:0.82rem; font-weight:700; color:var(--danger); font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; }
-    .smodal-reset:hover { background:#fae0de; }
-    .smodal-done { background:var(--grad-cta); color:#fff; border:none; border-radius:var(--radius-md); padding:8px 16px; font-size:0.82rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; box-shadow:var(--shadow-btn); }
+    .smodal-reset { background:var(--danger-bg); border:1.5px solid var(--danger-border); border-radius:var(--radius-md); padding:8px 13px; font-size:0.82rem; font-weight:700; color:var(--danger); font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; }
+    .smodal-reset:hover { background:var(--danger-bg-hover); }
+    .smodal-done { background:var(--grad-cta); color:var(--white); border:none; border-radius:var(--radius-md); padding:8px 16px; font-size:0.82rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; box-shadow:var(--shadow-btn); }
     .smodal-done:hover { filter:brightness(1.08); }
     .smodal-body { overflow-y:auto; padding:16px 20px 32px; flex:1; }
     .smodal-section { margin-bottom:24px; }
@@ -141,18 +144,43 @@
     .smodal-field { display:flex; flex-direction:column; gap:4px; }
     .smodal-label { font-size:0.72rem; font-weight:600; color:var(--bark); }
     .smodal-input { padding:9px 11px; border:1.5px solid var(--latte); border-radius:var(--radius-md); font-size:0.88rem; font-family:"Plus Jakarta Sans",sans-serif; background:var(--pearl); color:var(--roast); width:100%; box-sizing:border-box; transition:border-color .16s; }
-    .smodal-input:focus { outline:none; border-color:var(--caramel); background:#fff; box-shadow:0 0 0 3px rgba(196,129,58,0.14); }
+    .smodal-input:focus { outline:none; border-color:var(--caramel); background:var(--white); box-shadow:0 0 0 3px rgba(196,129,58,0.14); }
     .smodal-input:disabled { background:var(--parchment); color:var(--dust); border-color:var(--latte); cursor:not-allowed; }
     .settings-locked-banner { background:#fdf5e0; border:1.5px solid #e8d5a0; border-radius:var(--radius-lg); padding:12px 14px; margin-bottom:18px; font-size:0.82rem; color:#8a6a20; line-height:1.55; text-align:center; }
 
+    /* ── Theme section (accent color + background photo) ── */
+    .theme-section { margin-bottom: 18px; }
+    .theme-label { font-size: 0.78rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .theme-color-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    #themeColorInput {
+      width: 46px; height: 46px; border: 1.5px solid var(--latte); border-radius: var(--radius-md);
+      padding: 0; cursor: pointer; background: none; flex-shrink: 0;
+    }
+    .theme-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+    .theme-swatch {
+      width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--pearl);
+      box-shadow: 0 0 0 1.5px var(--latte); cursor: pointer; flex-shrink: 0; padding: 0;
+    }
+    .theme-swatch.active { box-shadow: 0 0 0 2px var(--roast); }
+    .theme-text-btn {
+      background: none; border: none; color: var(--mahogany); font-size: 0.78rem; font-weight: 700;
+      text-decoration: underline; cursor: pointer; padding: 4px 0; font-family: "Plus Jakarta Sans", sans-serif;
+    }
+    .theme-upload-btn {
+      flex: 1; padding: 11px; border: 1.5px dashed var(--mochaccino); border-radius: var(--radius-lg);
+      font-weight: 700; font-size: 0.82rem; background: transparent; color: var(--bark);
+      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer;
+    }
+    .theme-upload-btn:hover { background: rgba(196,129,58,0.06); border-color: var(--caramel); color: var(--mahogany); }
+
     .role-toggle { display:flex; gap:8px; margin-bottom:10px; }
     .role-btn { flex:1; padding:10px 14px; border-radius:var(--radius-md); font-size:0.84rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; transition:all .16s; text-align:center; }
-    .role-btn.active { background:var(--grad-cta); color:#fff; border:none; box-shadow:var(--shadow-btn); }
+    .role-btn.active { background:var(--grad-cta); color:var(--white); border:none; box-shadow:var(--shadow-btn); }
     .role-btn:not(.active) { background:var(--parchment); color:var(--mahogany); border:1.5px solid var(--latte); }
     .role-btn:not(.active):hover { background:var(--latte); }
     .role-notice { font-size:0.76rem; line-height:1.55; padding:9px 12px; border-radius:var(--radius-md); }
     .role-notice.worker  { background:var(--pearl); border:1px solid var(--latte); color:var(--bark); }
-    .role-notice.manager { background:#f0f7f0; border:1px solid #b8ddb8; color:#3a7a3a; }
+    .role-notice.manager { background:var(--success-bg); border:1px solid var(--success-border); color:var(--success-dark); }
 
     .sflavor-cat { margin-bottom:16px; }
     .sflavor-cat-title { font-size:0.72rem; font-weight:700; color:var(--mahogany); margin-bottom:7px; }
@@ -162,7 +190,7 @@
     .sflavor-add-row { display:flex; gap:7px; }
     .sflavor-add-input { flex:1; padding:8px 11px; border:1.5px solid var(--latte); border-radius:var(--radius-md); font-size:0.84rem; font-family:"Plus Jakarta Sans",sans-serif; background:var(--pearl); color:var(--roast); }
     .sflavor-add-input:focus { outline:none; border-color:var(--caramel); }
-    .sflavor-add-btn { background:var(--grad-cta); color:#fff; border:none; border-radius:var(--radius-md); padding:8px 14px; font-size:0.82rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; }
+    .sflavor-add-btn { background:var(--grad-cta); color:var(--white); border:none; border-radius:var(--radius-md); padding:8px 14px; font-size:0.82rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; }
   </style>
 </head>
 <body class="has-bottom-nav">
@@ -229,21 +257,11 @@
     </div>
   </div>
 
-  <!-- Worker bottom nav (hidden for managers via JS) -->
-  <nav class="bottom-nav" id="bottomNav">
-    <a href="calculate.html" class="bottom-nav-item">
-      <span class="bottom-nav-icon">🧮</span>
-      <span class="bottom-nav-label">Calculate</span>
-    </a>
-    <a href="pos.html" class="bottom-nav-item bottom-nav-shift" id="shiftNavBtn">
-      <span class="bottom-nav-shift-pill">🧋</span>
-      <span class="bottom-nav-label" id="shiftNavLabel">Shift</span>
-    </a>
-    <a href="calendar.html" class="bottom-nav-item">
-      <span class="bottom-nav-icon">📅</span>
-      <span class="bottom-nav-label">History</span>
-    </a>
-  </nav>
+  <!-- Bottom nav: worker (Calculate/Shift/History) or manager (Home/History/Settings) -->
+  <script>document.write(renderBottomNav(getDeviceRole() === "manager" ? "home" : "", {
+    navId: "bottomNav",
+    variant: getDeviceRole() === "manager" ? "manager" : "worker"
+  }));</script>
 
   <script src="js/settings.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
@@ -252,7 +270,6 @@
     window.syncPush           = async function() { throw new Error("Sync not available."); };
     window.syncPull           = async function() { throw new Error("Sync not available."); };
     window.getLastSyncDisplay = () => null;
-    window.getDeviceRole      = () => localStorage.getItem("brewsDeviceRole") || "worker";
     window.setDeviceRole      = (r) => localStorage.setItem("brewsDeviceRole", r === "manager" ? "manager" : "worker");
   </script>
   <script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
@@ -262,23 +279,18 @@
     (function applyRole() {
       const role      = getDeviceRole();
       const isManager = role === "manager";
-      const nav       = document.getElementById("bottomNav");
       const resume    = document.getElementById("resumeBanner");
       const viewHist  = document.getElementById("viewHistoryBtn");
       const roleSub   = document.getElementById("homeRoleSub");
 
+      applyBottomNavRole();
+
       if (isManager) {
-        // Hide worker nav + resume banner; show history button
-        if (nav)    { nav.style.display = "none"; document.body.classList.remove("has-bottom-nav"); }
         if (resume) resume.style.display = "none";
         if (viewHist) viewHist.style.display = "flex";
         if (roleSub)  roleSub.textContent = "Manager View";
-      } else {
-        // Worker
-        if (resume && localStorage.getItem("brewsResumeShift")) resume.style.display = "flex";
-        if (localStorage.getItem("brewsShiftActive")) {
-          document.getElementById("shiftNavLabel").textContent = "↩ Shift";
-        }
+      } else if (resume && localStorage.getItem("brewsResumeShift")) {
+        resume.style.display = "flex";
       }
     })();
 
@@ -377,13 +389,19 @@
       const resume  = document.getElementById("resumeBanner");
       const viewHist= document.getElementById("viewHistoryBtn");
       const roleSub = document.getElementById("homeRoleSub");
+
+      if (nav) {
+        nav.outerHTML = renderBottomNav(isManager ? "home" : "", {
+          navId: "bottomNav",
+          variant: isManager ? "manager" : "worker"
+        });
+        applyBottomNavRole();
+      }
       if (isManager) {
-        if (nav) { nav.style.display = "none"; document.body.classList.remove("has-bottom-nav"); }
         if (resume)   resume.style.display = "none";
         if (viewHist) viewHist.style.display = "flex";
         if (roleSub)  roleSub.textContent = "Manager View";
       } else {
-        if (nav) { nav.style.display = "flex"; document.body.classList.add("has-bottom-nav"); }
         if (resume && localStorage.getItem("brewsResumeShift")) resume.style.display = "flex";
         if (viewHist) viewHist.style.display = "none";
         if (roleSub)  roleSub.textContent = "Inventory System";
@@ -464,6 +482,32 @@
 
       const lockedBanner = locked ? `<div class="settings-locked-banner">🔒 Settings are managed by the Manager device.<br>Switch to Manager mode above to make changes.</div>` : "";
 
+      const themeSection = `
+        <div class="smodal-section">
+          <div class="smodal-section-title">🎨 Theme (this device)</div>
+          <div class="theme-section">
+            <div class="theme-label">Accent Color</div>
+            <div class="theme-color-row">
+              <input type="color" id="themeColorInput" value="#C4813A" oninput="onThemeColorChange(this.value)">
+              <div class="theme-swatches" id="themeSwatches"></div>
+            </div>
+            <button type="button" class="theme-text-btn" onclick="resetThemeAccent()">Reset to default caramel</button>
+          </div>
+          <div class="theme-section" style="margin-bottom:0;">
+            <div class="theme-label">Background Photo</div>
+            <input type="file" accept="image/*" id="themeBgInput" style="display:none;" onchange="onThemeBgSelected(this.files[0])">
+            <div style="display:flex;gap:8px;">
+              <button type="button" class="theme-upload-btn" onclick="document.getElementById('themeBgInput').click()">📷 Choose Photo</button>
+              <button type="button" class="theme-text-btn" id="themeBgClearBtn" style="display:none;flex-shrink:0;" onclick="clearThemeBg()">Remove</button>
+            </div>
+            <div id="themeBgPreviewWrap" style="display:none;margin-top:10px;">
+              <img id="themeBgPreview" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--radius-md);border:1.5px solid var(--latte);">
+            </div>
+            <div style="font-size:0.72rem;color:var(--dust);margin-top:8px;line-height:1.5;">Saved per device — applies across POS, Inventory &amp; Calendar. Not affected by Worker/Manager lock.</div>
+          </div>
+        </div>`;
+
+
       const addonRows = Object.entries(s.addonPrices).map(([name, price]) => `
         <div class="expense-row saddon-row">
           <input class="smodal-input saddon-name"  type="text"   value="${name}"  placeholder="Add-on name"${locked?" disabled":""}>
@@ -490,7 +534,7 @@
           </div>`:""}
         </div>`).join("");
 
-      document.getElementById("settingsBody").innerHTML = roleSection + lockedBanner + `
+      document.getElementById("settingsBody").innerHTML = themeSection + roleSection + lockedBanner + `
         <div class="smodal-section">
           <div class="smodal-section-title">Drink Prices (₱)</div>
           <div class="smodal-grid">
@@ -538,6 +582,100 @@
         </div>`;
 
       Object.keys(CAT_LABELS).forEach(cat => renderFlavorCat(cat));
+      renderThemeSection();
+    }
+
+    // ── Theme (accent color + background photo) ──────────────────────────────
+    const THEME_SWATCHES = ["#C4813A","#4A90D9","#4AA88A","#D46A9E","#7C6FD4","#D45A5A","#3D3D3D","#2E8B8B"];
+
+    function renderThemeSection() {
+      document.getElementById("themeColorInput").value = window.BrewsTheme.getAccent();
+      renderThemeSwatches();
+      updateThemeBgUI();
+    }
+
+    function renderThemeSwatches() {
+      const current = window.BrewsTheme.getAccent().toLowerCase();
+      const wrap = document.getElementById("themeSwatches");
+      wrap.innerHTML = THEME_SWATCHES.map(c => `
+        <button type="button" class="theme-swatch${c.toLowerCase()===current?" active":""}"
+          style="background:${c};" onclick="onThemeColorChange('${c}')"></button>
+      `).join("");
+    }
+
+    function onThemeColorChange(hex) {
+      window.BrewsTheme.setAccent(hex);
+      document.getElementById("themeColorInput").value = hex;
+      renderThemeSwatches();
+    }
+
+    function resetThemeAccent() {
+      window.BrewsTheme.resetAccent();
+      document.getElementById("themeColorInput").value = window.BrewsTheme.BASE.caramel;
+      renderThemeSwatches();
+    }
+
+    function updateThemeBgUI() {
+      const bg       = window.BrewsTheme.getBackground();
+      const clearBtn = document.getElementById("themeBgClearBtn");
+      const wrap     = document.getElementById("themeBgPreviewWrap");
+      const preview  = document.getElementById("themeBgPreview");
+      if (bg) {
+        clearBtn.style.display = "block";
+        wrap.style.display     = "block";
+        preview.src            = bg;
+      } else {
+        clearBtn.style.display = "none";
+        wrap.style.display     = "none";
+        preview.src            = "";
+      }
+    }
+
+    // Resizes/compresses the chosen photo client-side before storing it
+    // (localStorage has a low size ceiling, and a phone photo straight off
+    // the camera would blow way past it).
+    function onThemeBgSelected(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 1280;
+          let { width, height } = img;
+          if (width > MAX || height > MAX) {
+            const scale = MAX / Math.max(width, height);
+            width  = Math.round(width * scale);
+            height = Math.round(height * scale);
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width; canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+          try {
+            window.BrewsTheme.setBackground(dataUrl);
+            updateThemeBgUI();
+          } catch (err) {
+            alert("That photo was too large to save. Try a smaller image.");
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearThemeBg() {
+      window.BrewsTheme.clearBackground();
+      updateThemeBgUI();
+    }
+  </script>
+
+  <script>
+    // Deep link from another page's Settings icon (see header.js: goToSettings()).
+    // Runs in its own script tag, after the block above has fully initialized
+    // (THEME_SWATCHES etc.), so openSettings() has everything it needs.
+    if (new URLSearchParams(location.search).get("settings") === "1") {
+      openSettings();
+      history.replaceState(null, "", location.pathname);
     }
   </script>
 
