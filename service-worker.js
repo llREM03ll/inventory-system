@@ -1,4 +1,4 @@
-const CACHE_NAME = "brews-inventory-v11";
+const CACHE_NAME = "brews-inventory-v12";
 const urlsToCache = [
   "./",
   "./index.html",

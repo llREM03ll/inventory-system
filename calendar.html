@@ -748,8 +748,11 @@
       const orderRows = orders.map(order => {
         const desc = order.items.map(i => `${i.qty}×${i.code}`).join(", ");
         const flavors = order.items.filter(i => i.flavor).map(i => `${i.code}: ${i.flavor}`).join(" · ");
-        const addons  = Object.entries(order.addons || {})
-          .map(([n, q]) => `${q}× ${n}`).join(", ");
+        const addonMap = {};
+        order.items.forEach(i => Object.entries(i.addons || {}).forEach(([n, q]) => { addonMap[n] = (addonMap[n] || 0) + q * i.qty; }));
+        Object.entries(order.addons || {}).forEach(([n, q]) => { addonMap[n] = (addonMap[n] || 0) + q; });
+        const addons  = Object.entries(addonMap).map(([n, q]) => `${q}× ${n}`).join(", ");
+        const cupNotes = order.items.map(i => [...(i.notes || []), (i.noteText || "").trim()].filter(Boolean).join(", ") ? `${i.code}${i.flavor ? " " + i.flavor : ""}: ${[...(i.notes || []), (i.noteText || "").trim()].filter(Boolean).join(", ")}` : "").filter(Boolean).join(" · ");
         const change  = order.given > 0 ? order.given - order.total : null;
         const isDone  = !!order.done;
         return `
@@ -759,6 +762,7 @@
               <div class="log-order-desc">${desc} — ${formatMoney(order.total)}</div>
               ${flavors ? `<div class="log-order-flavors">🍵 ${flavors}</div>` : ""}
               ${addons  ? `<div class="log-order-addons">+ ${addons}</div>` : ""}
+              ${cupNotes ? `<div class="log-order-addons">Notes — ${cupNotes}</div>` : ""}
               ${order.given > 0 ? `<div class="log-order-payment">Given ${formatMoney(order.given)} · ${change >= 0 ? "Change" : "Short"} ${formatMoney(Math.abs(change))}</div>` : ""}
             </div>
             <span class="log-order-total">${order.time || ""}</span>

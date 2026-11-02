@@ -74,9 +74,7 @@
     }
     .pos-header-row1 { display: flex; align-items: center; justify-content: space-between; width: 100%; }
     .pos-header-row2 { display: flex; align-items: center; gap: 6px; width: 100%; }
-    .pos-header-actions { display: flex; align-items: stretch; gap: 6px; width: 100%; margin-top: 6px; justify-content: flex-end; }
-    .pos-header-actions .flavor-settings-btn { flex: 0 1 auto; padding: 8px 14px; }
-    .pos-header-left { display: flex; flex-direction: column; }
+        .pos-header-left { display: flex; flex-direction: column; }
     .pos-header-brand { font-size: 1rem; font-weight: 800; color: var(--white); letter-spacing: 0.1em; }
     .pos-header-meta  { font-size: 0.68rem; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; margin-top: 1px; display: flex; gap: 6px; }
     .pos-clock        { font-variant-numeric: tabular-nums; }
@@ -113,13 +111,13 @@
       flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer;
       font-family: "Plus Jakarta Sans", sans-serif; transition: all .14s;
       box-shadow: 0 2px 5px rgba(107,61,30,0.06);
-      -webkit-tap-highlight-color: transparent; user-select: none;
+      -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
       height: 116px; overflow: hidden;
     }
     .drink-btn:active { transform: scale(0.92); }
     .drink-btn.has-qty { border-color: var(--clay); background: var(--sand-alt); box-shadow: 0 3px 10px rgba(107,61,30,0.13); }
-    .drink-btn.low-stock { border-color: #e8b87a; background: var(--white)8f0; }
-    .drink-btn.out-stock { border-color: #e8a0a0; background: var(--white)4f4; opacity: 0.6; pointer-events: none; }
+    .drink-btn.low-stock { border-color: #e8b87a; background: #fff8f0; }
+    .drink-btn.out-stock { border-color: #e8a0a0; background: #fff4f4; opacity: 0.6; cursor: not-allowed; }
     .drink-btn.fruit-tea { border-style: dashed; }
     .drink-btn.fruit-tea.has-qty { border-style: solid; }
 
@@ -175,12 +173,12 @@
     }
     .clear-order-btn:hover { background: var(--danger-bg-hover); }
 
-    .order-items { padding: 8px 14px; min-height: 50px; max-height: 180px; overflow-y: auto; }
+    .order-items { padding: 4px 14px; min-height: 50px; max-height: 280px; overflow-y: auto; }
     .empty-order { text-align: center; color: var(--mochaccino); font-size: 0.82rem; padding: 10px 0; }
 
     .order-item {
       display: flex; align-items: center; gap: 8px;
-      padding: 5px 0; border-bottom: 1px solid var(--parchment);
+      padding: 9px 0; border-bottom: 1px solid var(--parchment);
       animation: slideIn .15s ease;
     }
     .order-item:last-child { border-bottom: none; }
@@ -397,6 +395,7 @@
       display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
       overflow: hidden; word-break: break-word;
     }
+    .flavor-btn { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
     .flavor-btn:hover  { background: var(--parchment); border-color: var(--clay); }
     .flavor-btn:active { transform: scale(0.93); }
     .flavor-btn.no-flavor {
@@ -669,6 +668,63 @@
       opacity: 0; transition: opacity .3s, transform .3s; white-space: nowrap; text-align: center;
     }
     .quota-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ═══════════ v2: popups, per-cup customize, tools row ═══════════ */
+    .modal-overlay.centered .modal.popup { max-width: 460px; width: 100%; max-height: 88vh; border-radius: 20px; border-top: none; box-shadow: 0 20px 60px rgba(40,20,5,0.35); }
+    .popup-body { overflow-y: auto; padding: 14px 18px 18px; flex: 1; }
+    .popup-label {
+      font-size: 0.66rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--dust); margin: 4px 0 8px; display: flex; align-items: baseline; gap: 6px;
+    }
+    .popup-label small { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.04em; text-transform: none; color: var(--mochaccino); }
+    .popup-label + .addon-pills, .popup-label + .note-chips { margin-bottom: 16px; }
+    .addon-pill { position: relative; user-select: none; -webkit-user-select: none; }
+    .addon-pill-name  { line-height: 1.2; }
+    .addon-pill-price { opacity: .55; font-size: .68rem; font-weight: 600; }
+    .addon-minus {
+      position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%;
+      background: var(--white); border: 1.5px solid var(--sand-border); color: var(--danger-soft);
+      font-size: 0.9rem; font-weight: 800; line-height: 1; display: flex; align-items: center; justify-content: center;
+    }
+    .addon-minus:active { transform: scale(0.88); }
+    .note-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .note-chip {
+      background: var(--pearl); border: 1.5px solid var(--latte); border-radius: var(--radius-pill);
+      padding: 8px 13px; font-size: 0.78rem; font-weight: 600; color: var(--mahogany);
+      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: all .14s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .note-chip:active { transform: scale(0.95); }
+    .note-chip.active { background: var(--roast); border-color: var(--roast); color: var(--white); }
+    .note-input {
+      width: 100%; box-sizing: border-box; background: var(--pearl); border: 1.5px solid var(--latte);
+      border-radius: var(--radius-md); padding: 10px 12px; font-size: 0.86rem; color: var(--roast);
+      font-family: "Plus Jakarta Sans", sans-serif;
+    }
+    .note-input:focus { outline: none; border-color: var(--clay); }
+    .order-item-code { opacity: .45; font-size: .72em; font-weight: 700; letter-spacing: .04em; }
+    .order-item-info { min-width: 0; }
+    .order-item-addons .note-tag {
+      background: var(--roast); color: var(--white); font-size: 0.64rem; font-weight: 700;
+      padding: 1px 7px; border-radius: var(--radius-pill);
+    }
+    .order-item-addons.muted { text-decoration: underline dotted; text-underline-offset: 3px; }
+    .receipt-row.note-row { padding-left: 10px; color: var(--bark); font-size: 0.74rem; font-style: italic; }
+    .order-edit-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+    .tools-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .tool-btn {
+      background: var(--cream); border: 1.5px solid var(--latte); border-radius: var(--radius-lg);
+      padding: 11px 6px; font-size: 0.74rem; font-weight: 700; color: var(--mahogany);
+      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: all .14s;
+      display: flex; flex-direction: column; align-items: center; gap: 3px; -webkit-tap-highlight-color: transparent;
+    }
+    .tool-btn:hover { background: var(--parchment); border-color: var(--clay); }
+    .tool-btn:active { transform: scale(0.96); }
+    .tool-btn-badge {
+      font-size: 0.62rem; font-weight: 700; padding: 1px 7px; border-radius: var(--radius-pill);
+      background: var(--sand); color: var(--mahogany);
+    }
+    .flavor-toast.neutral { background: var(--roast); box-shadow: 0 3px 14px rgba(60,20,0,0.35); }
   </style>
 </head>
 <body class="has-bottom-nav">
@@ -748,7 +804,7 @@
           <span class="pos-clock" id="shiftTimer">0m 00s</span>
         </div>
       </div>
-      <button class="end-shift-btn" onclick="openEndShift()">⏹ End Shift</button>
+      <button class="end-shift-btn" onclick="openEndShift()">End Shift</button>
     </div>
     <!-- Row 2: Stats -->
     <div class="pos-header-row2">
@@ -760,10 +816,6 @@
         <span class="header-stat-label">Cup Sales</span>
         <span class="header-stat-val" id="shiftTotalDisplay">₱0.00</span>
       </div>
-    </div>
-    <!-- Row 2b: Actions -->
-    <div class="pos-header-actions">
-      <button class="flavor-settings-btn" onclick="openFlavorSettings()">⚙ Flavors</button>
     </div>
     <!-- Row 3: Single adaptive progress bar (to-quota → bonus mode) -->
     <div class="quota-bar-wrap">
@@ -779,7 +831,7 @@
 
   <!-- Offline indicator -->
   <div class="offline-banner" id="offlineBanner">
-    <span>📡 No connection — orders save locally. Push when back online.</span>
+    <span>No connection — orders save locally. Push when back online.</span>
     <button class="offline-retry" onclick="retryConnection()">Retry</button>
   </div>
 
@@ -787,7 +839,7 @@
 
     <!-- Drinks -->
     <div>
-      <div class="drinks-section-label">Drinks</div>
+      <div class="drinks-section-label">Menu <span style="font-weight:500;text-transform:none;letter-spacing:0;opacity:.8;">· tap to order · hold to remove</span></div>
       <div class="drinks-grid" id="drinksGrid"></div>
     </div>
 
@@ -815,7 +867,7 @@
 
       <!-- Footer -->
       <div class="order-footer">
-        <button class="paid-online-btn" id="pendingPaidOnlineBtn" style="margin-bottom:9px;" onclick="togglePendingPaidOnline()">📱 Paid Online (GCash)</button>
+        <button class="paid-online-btn" id="pendingPaidOnlineBtn" style="margin-bottom:9px;" onclick="togglePendingPaidOnline()">Paid Online (GCash)</button>
         <div class="order-subtotal">
           <span>Subtotal</span>
           <span id="orderSubtotal">₱0.00</span>
@@ -826,41 +878,11 @@
       </div>
     </div>
 
-    <!-- Shift Expenses -->
-    <div class="pos-expenses-panel">
-      <div class="pos-expenses-header" onclick="toggleExpenses()">
-        <span class="pos-expenses-title">Shift Expenses</span>
-        <span class="pos-expenses-toggle" id="expensesToggle">▼</span>
-      </div>
-      <div class="pos-expenses-body" id="posExpensesBody">
-        <div id="posExpensesContainer" style="margin-bottom:8px;"></div>
-        <button class="add-expense-btn" style="margin-top:0;" onclick="addPosExpenseRow()">+ Add Expense</button>
-      </div>
-    </div>
-
-    <!-- Mid-Shift Stock: Deliveries & Damages -->
-    <div class="pos-stock-panel">
-      <div class="pos-stock-header" onclick="toggleStockPanel()">
-        <span class="pos-stock-title">Mid-Shift Stock</span>
-        <span class="pos-stock-badge" id="stockBadge" style="display:none;"></span>
-        <span class="pos-stock-toggle" id="stockToggle">▼</span>
-      </div>
-      <div class="pos-stock-body" id="posStockBody">
-        <div class="stock-sub-label" style="color:var(--success-dark);">📦 Delivered Cups</div>
-        <div class="stock-grid">
-          <div class="stock-cell"><div class="stock-cell-label">Medium</div>  <input class="stock-cell-input stock-del-input" type="number" id="sDelM"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
-          <div class="stock-cell"><div class="stock-cell-label">Large</div>   <input class="stock-cell-input stock-del-input" type="number" id="sDelL"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
-          <div class="stock-cell"><div class="stock-cell-label">Small</div>   <input class="stock-cell-input stock-del-input" type="number" id="sDelS"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
-          <div class="stock-cell"><div class="stock-cell-label">Hot ☕</div>   <input class="stock-cell-input stock-del-input" type="number" id="sDelHC" min="0" placeholder="0" oninput="saveStockInputs()"></div>
-        </div>
-        <div class="stock-sub-label" style="color:var(--danger-soft);">💔 Damaged Cups</div>
-        <div class="stock-grid">
-          <div class="stock-cell"><div class="stock-cell-label">Medium</div>  <input class="stock-cell-input stock-dmg-input" type="number" id="sDmgM"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
-          <div class="stock-cell"><div class="stock-cell-label">Large</div>   <input class="stock-cell-input stock-dmg-input" type="number" id="sDmgL"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
-          <div class="stock-cell"><div class="stock-cell-label">Small</div>   <input class="stock-cell-input stock-dmg-input" type="number" id="sDmgS"  min="0" placeholder="0" oninput="saveStockInputs()"></div>
-          <div class="stock-cell"><div class="stock-cell-label">Hot ☕</div>   <input class="stock-cell-input stock-dmg-input" type="number" id="sDmgHC" min="0" placeholder="0" oninput="saveStockInputs()"></div>
-        </div>
-      </div>
+    <!-- Tools -->
+    <div class="tools-row">
+      <button class="tool-btn" onclick="openFlavorSettings()"><span>Flavors</span></button>
+      <button class="tool-btn" onclick="openExpensesModal()"><span>Expenses</span><span class="tool-btn-badge" id="expensesBadge" style="display:none;"></span></button>
+      <button class="tool-btn" onclick="openStockModal()"><span>Stock</span><span class="tool-btn-badge" id="stockBadge" style="display:none;"></span></button>
     </div>
 
     <!-- Orders Log -->
@@ -870,7 +892,7 @@
         <span class="orders-count-badge" id="ordersCountBadge">0</span>
       </div>
       <div id="ordersLogList">
-        <div class="no-orders">No orders yet — get brewing! ☕</div>
+        <div class="no-orders">No orders yet</div>
       </div>
     </div>
 
@@ -881,9 +903,8 @@
 <div class="quota-toast" id="quotaToast">🎉 Quota reached! ₱3,000 in cup sales!</div>
 
 <!-- ═══════════ FLAVOR MODAL (bottom sheet) ═══════════ -->
-<div class="modal-overlay" id="flavorModal" onclick="handleFlavorOverlay(event)">
-  <div class="modal">
-    <div class="modal-handle"></div>
+<div class="modal-overlay centered" id="flavorModal">
+  <div class="modal popup">
     <div class="modal-header-row" style="position:relative;">
       <div class="flavor-toast" id="flavorToast"></div>
       <div>
@@ -906,18 +927,74 @@
 
 
 <!-- ═══════════ ITEM ADD-ON MODAL (bottom sheet) ═══════════ -->
-<div class="modal-overlay" id="itemAddonModal" onclick="handleItemAddonOverlay(event)">
-  <div class="modal">
-    <div class="modal-handle"></div>
+<div class="modal-overlay centered" id="itemAddonModal">
+  <div class="modal popup">
     <div class="modal-header-row">
       <div>
-        <div class="modal-title" id="itemAddonModalTitle">Add-ons</div>
+        <div class="modal-title" id="itemAddonModalTitle">Customize Cup</div>
         <div class="modal-sub" id="itemAddonModalSub"></div>
       </div>
-      <button class="modal-cancel-btn" onclick="closeItemAddonModal()">Done</button>
     </div>
-    <div class="flavor-scroll">
-      <div class="addon-pills" id="itemAddonGrid" style="padding:4px 18px 18px;"></div>
+    <div class="popup-body">
+      <div class="popup-label">Add-ons <small>this cup only · tap to add</small></div>
+      <div class="addon-pills" id="itemAddonGrid"></div>
+      <div class="popup-label">Notes <small>this cup only</small></div>
+      <div class="note-chips" id="itemNoteChips"></div>
+      <input type="text" class="note-input" id="itemNoteInput" maxlength="80"
+        placeholder="Other request (optional)" style="margin-top:10px;" oninput="onItemNoteInput(this.value)">
+    </div>
+    <div class="flavor-modal-footer">
+      <button class="flavor-modal-done-btn" onclick="closeItemAddonModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ EXPENSES MODAL ═══════════ -->
+<div class="modal-overlay centered" id="expensesModal">
+  <div class="modal popup">
+    <div class="modal-header-row">
+      <div>
+        <div class="modal-title">Shift Expenses</div>
+        <div class="modal-sub">Money paid out during this shift</div>
+      </div>
+    </div>
+    <div class="popup-body">
+      <div id="posExpensesContainer"></div>
+      <button class="add-expense-btn" onclick="addPosExpenseRow()">+ Add Expense</button>
+    </div>
+    <div class="flavor-modal-footer">
+      <button class="flavor-modal-done-btn" onclick="closeExpensesModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ STOCK MODAL ═══════════ -->
+<div class="modal-overlay centered" id="stockModal">
+  <div class="modal popup">
+    <div class="modal-header-row">
+      <div>
+        <div class="modal-title">Mid-Shift Stock</div>
+        <div class="modal-sub">Record cup deliveries and damages</div>
+      </div>
+    </div>
+    <div class="popup-body">
+      <div class="stock-sub-label" style="color:var(--success-dark);">Delivered Cups</div>
+      <div class="stock-grid">
+        <div class="stock-cell"><div class="stock-cell-label">Medium</div><input class="stock-cell-input stock-del-input" type="number" id="sDelM" min="0" placeholder="0" oninput="saveStockInputs()"></div>
+        <div class="stock-cell"><div class="stock-cell-label">Large</div><input class="stock-cell-input stock-del-input" type="number" id="sDelL" min="0" placeholder="0" oninput="saveStockInputs()"></div>
+        <div class="stock-cell"><div class="stock-cell-label">Small</div><input class="stock-cell-input stock-del-input" type="number" id="sDelS" min="0" placeholder="0" oninput="saveStockInputs()"></div>
+        <div class="stock-cell"><div class="stock-cell-label">Hot</div><input class="stock-cell-input stock-del-input" type="number" id="sDelHC" min="0" placeholder="0" oninput="saveStockInputs()"></div>
+      </div>
+      <div class="stock-sub-label" style="color:var(--danger-soft);">Damaged Cups</div>
+      <div class="stock-grid">
+        <div class="stock-cell"><div class="stock-cell-label">Medium</div><input class="stock-cell-input stock-dmg-input" type="number" id="sDmgM" min="0" placeholder="0" oninput="saveStockInputs()"></div>
+        <div class="stock-cell"><div class="stock-cell-label">Large</div><input class="stock-cell-input stock-dmg-input" type="number" id="sDmgL" min="0" placeholder="0" oninput="saveStockInputs()"></div>
+        <div class="stock-cell"><div class="stock-cell-label">Small</div><input class="stock-cell-input stock-dmg-input" type="number" id="sDmgS" min="0" placeholder="0" oninput="saveStockInputs()"></div>
+        <div class="stock-cell"><div class="stock-cell-label">Hot</div><input class="stock-cell-input stock-dmg-input" type="number" id="sDmgHC" min="0" placeholder="0" oninput="saveStockInputs()"></div>
+      </div>
+    </div>
+    <div class="flavor-modal-footer">
+      <button class="flavor-modal-done-btn" onclick="closeStockModal()">Done</button>
     </div>
   </div>
 </div>
@@ -1134,10 +1211,12 @@ let state = {
 const GCASH_EXPENSE_NAME = "GCash (Paid Online)";
 
 let flavorToastTimer = null;
-function showFlavorToast(msg) {
+let pendingDrink = null;
+function showFlavorToast(msg, kind) {
   const t = document.getElementById("flavorToast");
   if (!t) return;
   t.textContent = msg;
+  t.classList.toggle("neutral", kind === "neutral");
   t.classList.add("show");
   if (flavorToastTimer) clearTimeout(flavorToastTimer);
   flavorToastTimer = setTimeout(() => t.classList.remove("show"), 1800);
@@ -1265,6 +1344,24 @@ function getAddonTotal() {
 
 function getOrderTotal() { return getItemTotal() + getAddonTotal(); }
 
+// ── Per-cup customization helpers ──────────────────────────────────────────
+// A cart line is either "plain" (key = code||flavor, can hold many identical cups)
+// or "customized" (key = code||flavor#uid, always a single cup with its own
+// add-ons + notes). Customizing one cup of a multi-cup line splits it off.
+const NOTE_PRESETS = ["Less sugar", "No sugar", "Extra sugar", "Less ice", "No ice", "Extra ice"];
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const newUid = () => Math.random().toString(36).slice(2, 8);
+const baseKey = key => String(key).split("#")[0];
+
+function itemNoteList(item) {
+  const n = [...(item.notes || [])];
+  if (item.noteText && item.noteText.trim()) n.push(item.noteText.trim());
+  return n;
+}
+function isCustomized(item) {
+  return Object.keys(item.addons || {}).length > 0 || itemNoteList(item).length > 0;
+}
+
 // Aggregate an already-placed order's per-item add-ons into a flat { name: totalQty } map
 // (totalQty already accounts for each item's cup quantity).
 function aggregateOrderAddons(order) {
@@ -1348,8 +1445,6 @@ function showPOS() {
   renderPosExpenses();
   renderStockInputs();
   // Attach swipe-to-dismiss on all modal overlays
-  attachSwipeToDismiss("flavorModal",         closeFlavorModal);
-  attachSwipeToDismiss("itemAddonModal",      closeItemAddonModal);
   attachSwipeToDismiss("receiptModal",        closeReceiptModal);
   attachSwipeToDismiss("endShiftModal",       closeEndShift);
   attachSwipeToDismiss("flavorSettingsModal", closeFlavorSettings);
@@ -1408,7 +1503,9 @@ function renderDrinkButtons() {
       <span class="drink-btn-price">${fmt(d.price)}</span>
       <span class="stock-pill">${out ? "OUT" : low ? `${left} left` : left}</span>
     `;
-    if (!out) btn.addEventListener("click", () => openFlavorModal(d));
+    attachHold(btn,
+      () => { if (out) { vibe("error"); return; } openFlavorModal(d); },
+      () => { removeOneCup(d.code); });
     grid.appendChild(btn);
   });
 }
@@ -1424,47 +1521,74 @@ function openFlavorModal(drink) {
   refreshFlavorGrid(drink);
 }
 
+// Unified tap / press-and-hold handler (pointer events: no duplicate touch+mouse firing).
+function attachHold(el, onTap, onHold, ms = 500) {
+  let timer = null, fired = false, sx = 0, sy = 0;
+  const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+  el.addEventListener("pointerdown", e => {
+    cancel(); fired = false; sx = e.clientX; sy = e.clientY;
+    timer = setTimeout(() => { timer = null; fired = true; vibrate(40); onHold(); }, ms);
+  });
+  el.addEventListener("pointermove", e => {
+    if (timer && Math.hypot(e.clientX - sx, e.clientY - sy) > 10) cancel();
+  });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(ev => el.addEventListener(ev, cancel));
+  el.addEventListener("contextmenu", e => e.preventDefault());
+  el.addEventListener("click", e => {
+    if (fired) { fired = false; e.preventDefault(); return; }
+    onTap();
+  });
+}
+
+// Removes one cup of a drink (optionally of a specific flavor) from the current order.
+// Plain cups go first so a customized cup isn't lost by accident.
+function removeOneCup(code, flavor) {
+  const match = i => i.code === code && (flavor === undefined || i.flavor === flavor);
+  let idx = -1;
+  for (let n = state.currentItems.length - 1; n >= 0; n--) {
+    if (match(state.currentItems[n]) && !isCustomized(state.currentItems[n])) { idx = n; break; }
+  }
+  if (idx < 0) {
+    for (let n = state.currentItems.length - 1; n >= 0; n--) {
+      if (match(state.currentItems[n])) { idx = n; break; }
+    }
+  }
+  if (idx < 0) return null;
+  const it = state.currentItems[idx];
+  if (it.qty > 1) it.qty--; else state.currentItems.splice(idx, 1);
+  vibe("tap");
+  saveState(); renderDrinkButtons(); renderCurrentOrder();
+  if (pendingDrink) { refreshFlavorGrid(pendingDrink); showFlavorToast("Removed 1× " + (it.flavor || it.name), "neutral"); }
+  return it;
+}
+
 function refreshFlavorGrid(drink) {
   document.getElementById("flavorModalTitle").textContent = drink.name;
   document.getElementById("flavorModalSub").textContent   =
-    fmt(drink.price) + " per cup  ·  tap to add  ·  hold 2s to close";
+    fmt(drink.price) + " per cup  ·  tap to add  ·  hold to remove";
 
   const cat     = DRINK_FLAVOR_CAT[drink.code] || "milktea";
   const flavors = [...(FLAVORS[cat] || [])].sort((a,b) => a.localeCompare(b));
   const grid    = document.getElementById("flavorGrid");
+  const keepScroll = grid.parentElement ? grid.parentElement.scrollTop : 0;
   grid.innerHTML = "";
 
   const countInOrder = (flavor) =>
     state.currentItems.filter(i => i.code === drink.code && i.flavor === flavor)
                        .reduce((s, i) => s + i.qty, 0);
 
-  // Attach hold-to-close on any button
-  function attachHold(btn, onHold) {
-    let holdTimer = null;
-    const start = () => { holdTimer = setTimeout(() => { onHold(); vibrate(40); }, 500); };
-    const cancel = () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } };
-    btn.addEventListener("mousedown",   start);
-    btn.addEventListener("touchstart",  start, { passive: true });
-    btn.addEventListener("mouseup",     cancel);
-    btn.addEventListener("mouseleave",  cancel);
-    btn.addEventListener("touchend",    cancel);
-    btn.addEventListener("touchcancel", cancel);
-  }
-
   // No flavor option (always visible, exempt from search filtering)
   const noCount  = countInOrder("");
   const noFlavor = document.createElement("button");
   noFlavor.className = "flavor-btn no-flavor";
   noFlavor.innerHTML = noCount > 0
-    ? `— No Flavor — <span class="flavor-count">${noCount}</span>`
-    : "— No Flavor / Skip —";
-  noFlavor.addEventListener("click", () => addItemToOrder(drink, ""));
-  attachHold(noFlavor, () => { addItemToOrder(drink, ""); closeFlavorModal(); });
+    ? `No Flavor <span class="flavor-count">${noCount}</span>`
+    : "No Flavor";
+  attachHold(noFlavor, () => addItemToOrder(drink, ""), () => removeOneCup(drink.code, ""));
   grid.appendChild(noFlavor);
 
   flavors.forEach(f => {
     const count  = countInOrder(f);
-    const cat    = DRINK_FLAVOR_CAT[drink.code] || "milktea";
     const oos    = isFlavorOOS(cat, f);
     const btn    = document.createElement("button");
     btn.className = "flavor-btn" + (count > 0 ? " selected" : "") + (oos ? " oos-flavor" : "");
@@ -1474,14 +1598,16 @@ function refreshFlavorGrid(drink) {
       btn.disabled = true;
     }
     btn.innerHTML = count > 0
-      ? `<span class="flavor-btn-label">${f}</span> <span class="flavor-count">${count}</span>`
-      : `<span class="flavor-btn-label">${f}</span>`;
-    if (!oos) {
-      btn.addEventListener("click", () => addItemToOrder(drink, f));
-      attachHold(btn, () => { addItemToOrder(drink, f); closeFlavorModal(); });
-    }
+      ? `<span class="flavor-btn-label">${esc(f)}</span> <span class="flavor-count">${count}</span>`
+      : `<span class="flavor-btn-label">${esc(f)}</span>`;
+    if (!oos) attachHold(btn, () => addItemToOrder(drink, f), () => removeOneCup(drink.code, f));
     grid.appendChild(btn);
   });
+
+  // Re-apply an active search filter and keep scroll position after re-render
+  const q = document.getElementById("flavorSearchInput").value;
+  if (q) filterFlavorGrid(q);
+  if (grid.parentElement) grid.parentElement.scrollTop = keepScroll;
 }
 
 // Live-filters the flavor grid as the person types (name substring match).
@@ -1513,10 +1639,6 @@ function closeFlavorModal() {
   pendingDrink = null;
 }
 
-function handleFlavorOverlay(e) {
-  if (e.target === document.getElementById("flavorModal")) closeFlavorModal();
-}
-
 // ════════════════════════════════════════════════════
 //  CURRENT ORDER
 // ════════════════════════════════════════════════════
@@ -1540,7 +1662,7 @@ function addItemToOrder(drink, flavor) {
   if (existing) { existing.qty++; }
   else {
     state.currentItems.push({ key, code:drink.code, name:drink.name, icon:drink.icon,
-      flavor, qty:1, unitPrice:drink.price, cup:drink.cup, addons:{} });
+      flavor, qty:1, unitPrice:drink.price, cup:drink.cup, addons:{}, notes:[], noteText:"" });
   }
   saveState(); renderDrinkButtons(); renderCurrentOrder();
   const badge = document.getElementById(`badge-${drink.code}`);
@@ -1562,11 +1684,20 @@ function clearCurrentOrder() {
   saveState(); renderDrinkButtons(); renderCurrentOrder();
 }
 
+function itemChipsHTML(item) {
+  const addons = Object.entries(item.addons || {})
+    .map(([name, qty]) => `<span class="addon-chip">+ ${qty > 1 ? qty + "× " : ""}${esc(name)}</span>`);
+  const notes = itemNoteList(item).map(n => `<span class="note-tag">${esc(n)}</span>`);
+  return [...addons, ...notes].join("");
+}
+
 function renderCurrentOrder() {
   const container = document.getElementById("orderItems");
   const subtotal  = getOrderTotal();
   document.getElementById("orderSubtotal").textContent = fmt(subtotal);
-  document.getElementById("placeOrderBtn").disabled    = state.currentItems.length === 0;
+  const placeBtn = document.getElementById("placeOrderBtn");
+  placeBtn.disabled    = state.currentItems.length === 0;
+  placeBtn.textContent = state.currentItems.length ? `Place Order · ${fmt(subtotal)}` : "Place Order";
   updatePendingPaidOnlineBtn();
 
   // Undo button visibility
@@ -1580,23 +1711,22 @@ function renderCurrentOrder() {
   }
 
   container.innerHTML = state.currentItems.map(item => {
-    const keyEsc      = item.key.replace(/'/g,"\\'");
-    const addonEntries = Object.entries(item.addons || {});
-    const addonChips  = addonEntries.map(([name,qty]) => `<span class="addon-chip">${qty}× ${name}</span>`).join("");
-    const lineTotal   = item.unitPrice * item.qty + getItemAddonTotal(item) * item.qty;
+    const chips     = itemChipsHTML(item);
+    const lineTotal = (item.unitPrice + getItemAddonTotal(item)) * item.qty;
+    const hint      = item.qty > 1 ? "Customize a cup" : "Add-ons & notes";
     return `
-    <div class="order-item">
-      <div class="order-item-info" onclick="openItemAddonModal('${keyEsc}')">
-        <div class="order-item-name">${item.name} <span style="opacity:.5;font-size:.75em">(${item.code})</span></div>
-        ${item.flavor ? `<div class="order-item-flavor">${item.flavor}</div>` : ""}
-        ${addonChips
-          ? `<div class="order-item-addons">${addonChips}</div>`
-          : `<div class="order-item-addons muted">+ Add-ons</div>`}
+    <div class="order-item" data-key="${esc(item.key)}">
+      <div class="order-item-info" onclick="openItemAddonModal(this.parentElement.dataset.key)">
+        <div class="order-item-name">${esc(item.name)} <span class="order-item-code">${esc(item.code)}</span></div>
+        ${item.flavor ? `<div class="order-item-flavor">${esc(item.flavor)}</div>` : ""}
+        ${chips
+          ? `<div class="order-item-addons">${chips}</div>`
+          : `<div class="order-item-addons muted">${hint}</div>`}
       </div>
       <div class="order-item-qty-controls">
-        <button class="qty-btn" onclick="event.stopPropagation();setItemQty('${keyEsc}', ${item.qty-1})">−</button>
+        <button class="qty-btn" onclick="event.stopPropagation();setItemQty(this.closest('.order-item').dataset.key, ${item.qty-1})">−</button>
         <span class="order-item-qty">${item.qty}</span>
-        <button class="qty-btn" onclick="event.stopPropagation();setItemQty('${keyEsc}', ${item.qty+1})">+</button>
+        <button class="qty-btn" onclick="event.stopPropagation();setItemQty(this.closest('.order-item').dataset.key, ${item.qty+1})">+</button>
       </div>
       <span class="order-item-total">${fmt(lineTotal)}</span>
     </div>
@@ -1606,61 +1736,110 @@ function renderCurrentOrder() {
 }
 
 // ════════════════════════════════════════════════════
-//  ADD-ONS  (per cup — tap a cup in the current order to open this)
+//  CUSTOMIZE CUP  (add-ons + notes, per cup — tap a line in the current order)
 // ════════════════════════════════════════════════════
 let pendingAddonItemKey = null;
 
+function currentCustomizeItem() {
+  return state.currentItems.find(i => i.key === pendingAddonItemKey);
+}
+
 function openItemAddonModal(key) {
-  const item = state.currentItems.find(i => i.key === key);
+  let item = state.currentItems.find(i => i.key === key);
   if (!item) return;
-  pendingAddonItemKey = key;
-  document.getElementById("itemAddonModalTitle").textContent =
-    item.name + (item.flavor ? " · " + item.flavor : "");
+
+  if (item.qty > 1) {
+    // Split ONE cup off the group so add-ons/notes only affect that cup.
+    item.qty--;
+    const cup = { ...item, qty: 1, key: baseKey(item.key) + "#" + newUid(),
+      addons: { ...(item.addons || {}) }, notes: [...(item.notes || [])], noteText: item.noteText || "" };
+    state.currentItems.splice(state.currentItems.indexOf(item) + 1, 0, cup);
+    item = cup;
+  } else if (!item.key.includes("#")) {
+    item.key = item.key + "#" + newUid();
+  }
+  if (!item.addons) item.addons = {};
+  if (!item.notes)  item.notes  = [];
+  pendingAddonItemKey = item.key;
+  saveState();
+
+  document.getElementById("itemAddonModalTitle").textContent = "Customize Cup";
   document.getElementById("itemAddonModalSub").textContent =
-    `Applies to all ${item.qty} cup${item.qty>1?"s":""} of this item · tap to add, hold/right-click to remove`;
+    item.name + (item.flavor ? " · " + item.flavor : "") + " · this cup only";
+  document.getElementById("itemNoteInput").value = item.noteText || "";
   document.getElementById("itemAddonModal").classList.add("open");
   renderItemAddonGrid();
+  renderItemNoteChips();
+  renderCurrentOrder();
 }
 
 function closeItemAddonModal() {
   document.getElementById("itemAddonModal").classList.remove("open");
+  const item = currentCustomizeItem();
   pendingAddonItemKey = null;
-  renderCurrentOrder();
-}
-
-function handleItemAddonOverlay(e) {
-  if (e.target === document.getElementById("itemAddonModal")) closeItemAddonModal();
+  if (item && !isCustomized(item)) {
+    // Nothing was customized: fold the cup back into its plain group.
+    const plain = baseKey(item.key);
+    const group = state.currentItems.find(i => i.key === plain && i !== item);
+    if (group) { group.qty += item.qty; state.currentItems = state.currentItems.filter(i => i !== item); }
+    else item.key = plain;
+  }
+  saveState(); renderDrinkButtons(); renderCurrentOrder();
 }
 
 function renderItemAddonGrid() {
   const grid = document.getElementById("itemAddonGrid");
   grid.innerHTML = "";
-  const item = state.currentItems.find(i => i.key === pendingAddonItemKey);
+  const item = currentCustomizeItem();
   if (!item) return;
-  if (!item.addons) item.addons = {};
 
   ADDONS.forEach(a => {
-    const qty = item.addons[a.name] || 0;
-    const pill = document.createElement("button");
+    const qty  = item.addons[a.name] || 0;
+    const pill = document.createElement("div");
     pill.className = "addon-pill" + (qty > 0 ? " active" : "");
-    pill.innerHTML = qty > 0
-      ? `${a.name} <span class="addon-pill-qty">×${qty}</span> <span style="opacity:.6;font-size:.7em">+${fmt(a.price)}</span>`
-      : `${a.name} <span style="opacity:.5;font-size:.7em">+${fmt(a.price)}</span>`;
-    pill.addEventListener("click", () => {
+    pill.setAttribute("role", "button");
+    pill.innerHTML = `<span class="addon-pill-name">${esc(a.name)}${qty > 0 ? ` <span class="addon-pill-qty">×${qty}</span>` : ""}</span>
+      <span class="addon-pill-price">+${fmt(a.price)}</span>
+      ${qty > 0 ? `<span class="addon-minus" role="button" aria-label="Remove one ${esc(a.name)}">−</span>` : ""}`;
+    pill.addEventListener("click", e => {
       vibe("tap");
-      item.addons[a.name] = (item.addons[a.name] || 0) + 1;
-      saveState(); renderItemAddonGrid(); renderCurrentOrder();
-    });
-    pill.addEventListener("contextmenu", e => {
-      e.preventDefault(); vibe("tap");
-      if (item.addons[a.name]) {
+      if (e.target.closest(".addon-minus")) {
         item.addons[a.name]--;
         if (!item.addons[a.name]) delete item.addons[a.name];
-        saveState(); renderItemAddonGrid(); renderCurrentOrder();
+      } else {
+        item.addons[a.name] = (item.addons[a.name] || 0) + 1;
       }
+      saveState(); renderItemAddonGrid(); renderCurrentOrder();
     });
     grid.appendChild(pill);
   });
+}
+
+function renderItemNoteChips() {
+  const wrap = document.getElementById("itemNoteChips");
+  wrap.innerHTML = "";
+  const item = currentCustomizeItem();
+  if (!item) return;
+  NOTE_PRESETS.forEach(n => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "note-chip" + (item.notes.includes(n) ? " active" : "");
+    b.textContent = n;
+    b.addEventListener("click", () => {
+      vibe("tap");
+      const i = item.notes.indexOf(n);
+      if (i >= 0) item.notes.splice(i, 1); else item.notes.push(n);
+      saveState(); renderItemNoteChips(); renderCurrentOrder();
+    });
+    wrap.appendChild(b);
+  });
+}
+
+function onItemNoteInput(value) {
+  const item = currentCustomizeItem();
+  if (!item) return;
+  item.noteText = value;
+  saveState(); renderCurrentOrder();
 }
 
 // ════════════════════════════════════════════════════
@@ -1677,7 +1856,7 @@ function updatePendingPaidOnlineBtn() {
   const btn = document.getElementById("pendingPaidOnlineBtn");
   if (!btn) return;
   btn.classList.toggle("active", !!state.pendingPaidOnline);
-  btn.textContent = state.pendingPaidOnline ? "✓ Paid Online (GCash)" : "📱 Paid Online (GCash)";
+  btn.textContent = state.pendingPaidOnline ? "✓ Paid Online (GCash)" : "Paid Online (GCash)";
 }
 
 // ════════════════════════════════════════════════════
@@ -1706,7 +1885,7 @@ function placeOrder() {
   const total      = getItemTotal() + addonTotal;
   const order = {
     id: state.orders.length + 1,
-    items: [...state.currentItems], // each item carries its own addons
+    items: state.currentItems.map(i => ({ ...i, addons: { ...(i.addons||{}) }, notes: [...(i.notes||[])] })), // each cup keeps its own add-ons + notes
     total,
     time: timeNow(),
     given,
@@ -1739,12 +1918,8 @@ function placeOrder() {
 // ════════════════════════════════════════════════════
 //  MID-SHIFT STOCK (DELIVERIES & DAMAGES)
 // ════════════════════════════════════════════════════
-function toggleStockPanel() {
-  const body   = document.getElementById("posStockBody");
-  const toggle = document.getElementById("stockToggle");
-  const isOpen = body.classList.toggle("open");
-  toggle.classList.toggle("open", isOpen);
-}
+function openStockModal()  { vibe("tap"); document.getElementById("stockModal").classList.add("open"); }
+function closeStockModal() { document.getElementById("stockModal").classList.remove("open"); }
 
 function saveStockInputs() {
   const g = id => Math.max(0, parseInt(document.getElementById(id)?.value) || 0);
@@ -1762,7 +1937,7 @@ function saveStockInputs() {
       if (totalDel > 0) parts.push(`+${totalDel} del`);
       if (totalDmg > 0) parts.push(`−${totalDmg} dmg`);
       badge.textContent = parts.join(" · ");
-      badge.style.display = "inline";
+      badge.style.display = "inline-block";
     } else {
       badge.style.display = "none";
     }
@@ -1845,7 +2020,7 @@ function renderOrdersLog() {
   badge.textContent = state.orders.length;
 
   if (!state.orders.length) {
-    list.innerHTML=`<div class="no-orders">No orders yet — get brewing! ☕</div>`; return;
+    list.innerHTML=`<div class="no-orders">No orders yet</div>`; return;
   }
 
   const CODE_LABELS = {
@@ -1884,7 +2059,8 @@ function renderOrdersLog() {
       const rows = groupItems.map(i => `
         <div class="order-edit-row">
           <div class="order-edit-name">
-            ${i.flavor || `<em style="opacity:.45;font-style:italic">No Flavor</em>`}
+            ${i.flavor ? esc(i.flavor) : `<em style="opacity:.45;font-style:italic">No Flavor</em>`}
+            ${itemChipsHTML(i) ? `<div class="order-edit-chips order-item-addons">${itemChipsHTML(i)}</div>` : ""}
           </div>
           <div class="order-edit-qty-wrap">
             <button class="order-edit-btn remove"
@@ -1893,7 +2069,7 @@ function renderOrdersLog() {
             <button class="order-edit-btn"
               onclick="event.stopPropagation();editOrderItem(${order.id},'${i.key.replace(/'/g,"\\'")}','inc')">+</button>
           </div>
-          <span class="order-edit-total">${fmt(i.unitPrice*i.qty)}</span>
+          <span class="order-edit-total">${fmt((i.unitPrice+getItemAddonTotal(i))*i.qty)}</span>
         </div>`).join("");
 
       return `<div style="margin-bottom:2px;">
@@ -1941,9 +2117,9 @@ function renderOrdersLog() {
       <div style="padding:6px 14px 2px;display:flex;gap:6px;">
         <button class="paid-online-btn small${order.paidOnline?" active":""}" style="flex:1;"
           onclick="event.stopPropagation();toggleOrderPaidOnline(${order.id})">
-          ${order.paidOnline ? "✓ Paid Online (GCash)" : "📱 Mark Paid Online (GCash)"}
+          ${order.paidOnline ? "✓ Paid Online (GCash)" : "Mark Paid Online (GCash)"}
         </button>
-        <button class="void-order-btn" onclick="event.stopPropagation();voidOrder(${order.id})">🗑 Void</button>
+        <button class="void-order-btn" onclick="event.stopPropagation();voidOrder(${order.id})">Void</button>
       </div>`;
 
     const doneLabel = order.done ? "✓ Done" : "Mark Done";
@@ -1963,7 +2139,7 @@ function renderOrdersLog() {
       </div>
       <div class="order-log-detail" style="padding:0 0 10px;">
         <div class="order-edit-header" style="padding:6px 14px 4px;">
-          <span class="order-edit-label">Items by Cup</span>
+          <span class="order-edit-label">Cups</span>
           <span style="font-size:0.68rem;color:var(--bark);">tap − / + to edit qty</span>
         </div>
         ${editRows}
@@ -2116,11 +2292,15 @@ function updateQuotaBar(cupSales) {
 // ════════════════════════════════════════════════════
 //  POS EXPENSES
 // ════════════════════════════════════════════════════
-function toggleExpenses() {
-  const body    = document.getElementById("posExpensesBody");
-  const toggle  = document.getElementById("expensesToggle");
-  const isOpen  = body.classList.toggle("open");
-  toggle.classList.toggle("open", isOpen);
+function openExpensesModal()  { vibe("tap"); document.getElementById("expensesModal").classList.add("open"); }
+function closeExpensesModal() { document.getElementById("expensesModal").classList.remove("open"); }
+
+function updateExpensesBadge() {
+  const badge = document.getElementById("expensesBadge");
+  if (!badge) return;
+  const total = (state.expenses || []).reduce((s, e) => s + (parseFloat(e.price) || 0), 0);
+  badge.textContent = total > 0 ? fmt(total) : "";
+  badge.style.display = total > 0 ? "inline-block" : "none";
 }
 
 function addPosExpenseRow(name="", price="") {
@@ -2155,12 +2335,14 @@ function savePosExpenses() {
     if (name || price) state.expenses.push({name, price});
   });
   saveState();
+  updateExpensesBadge();
 }
 
 function renderPosExpenses() {
   const container = document.getElementById("posExpensesContainer");
   container.innerHTML = "";
   if (state.expenses.length) state.expenses.forEach(e => addPosExpenseRow(e.name, e.price));
+  updateExpensesBadge();
 }
 
 // ════════════════════════════════════════════════════
@@ -2172,15 +2354,17 @@ function showReceipt(order) {
   let itemsHTML = order.items.map(i => {
     const itemAddonRows = Object.entries(i.addons||{}).map(([name,qty]) => {
       const a = ADDONS.find(a=>a.name===name);
-      return `<div class="receipt-row addon-row"><span>↳ ${qty*i.qty}× ${name}</span><span>${fmt((a?.price||0)*qty*i.qty)}</span></div>`;
+      return `<div class="receipt-row addon-row"><span>↳ ${qty*i.qty}× ${esc(name)}</span><span>${fmt((a?.price||0)*qty*i.qty)}</span></div>`;
     }).join("");
+    const noteList = itemNoteList(i);
     return `
     <div class="receipt-row">
-      <span>${i.qty}× ${i.name} (${i.code})</span>
+      <span>${i.qty}× ${esc(i.name)} (${esc(i.code)})</span>
       <span>${fmt(i.unitPrice*i.qty)}</span>
     </div>
-    ${i.flavor?`<div class="receipt-row flavor-sub"><span>↳ ${i.flavor}</span></div>`:""}
+    ${i.flavor?`<div class="receipt-row flavor-sub"><span>↳ ${esc(i.flavor)}</span></div>`:""}
     ${itemAddonRows}
+    ${noteList.length?`<div class="receipt-row note-row"><span>${esc(noteList.join(", "))}</span></div>`:""}
   `; }).join("");
 
   document.getElementById("receiptItems").innerHTML = itemsHTML;
@@ -2248,8 +2432,8 @@ function openEndShift() {
   const gcashTotal = state.orders.filter(o=>o.paidOnline).reduce((s,o)=>s+o.total,0);
   const totalDel = (del.M||0)+(del.L||0)+(del.S||0)+(del.HC||0);
   const totalDmg = (dmg.M||0)+(dmg.L||0)+(dmg.S||0)+(dmg.HC||0);
-  const delRow = totalDel>0 ? `<div class="end-shift-row" style="color:var(--success-dark);"><span>📦 Delivered</span><span>M+${del.M||0} L+${del.L||0} S+${del.S||0} HC+${del.HC||0}</span></div>` : "";
-  const dmgRow = totalDmg>0 ? `<div class="end-shift-row" style="color:var(--danger-soft);"><span>💔 Damaged</span><span>M−${dmg.M||0} L−${dmg.L||0} S−${dmg.S||0} HC−${dmg.HC||0}</span></div>` : "";
+  const delRow = totalDel>0 ? `<div class="end-shift-row" style="color:var(--success-dark);"><span>Delivered</span><span>M+${del.M||0} L+${del.L||0} S+${del.S||0} HC+${del.HC||0}</span></div>` : "";
+  const dmgRow = totalDmg>0 ? `<div class="end-shift-row" style="color:var(--danger-soft);"><span>Damaged</span><span>M−${dmg.M||0} L−${dmg.L||0} S−${dmg.S||0} HC−${dmg.HC||0}</span></div>` : "";
   document.getElementById("endShiftSummary").innerHTML=`
     <div class="end-shift-row bold"><span>Orders Placed</span><span>${state.orders.length}</span></div>
     <div class="end-shift-row bold"><span>Cup Sales</span><span>${fmt(cupSales)}</span></div>
