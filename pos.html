@@ -725,6 +725,24 @@
       background: var(--sand); color: var(--mahogany);
     }
     .flavor-toast.neutral { background: var(--roast); box-shadow: 0 3px 14px rgba(60,20,0,0.35); }
+
+    /* ── Scroll lock while a pop-up is open ── */
+    html.modal-open, html.modal-open body { overflow: hidden; }
+    .modal-overlay { overscroll-behavior: contain; }
+
+    /* ── Cup picker ── */
+    .cup-pick-list { display: flex; flex-direction: column; gap: 8px; }
+    .cup-pick-btn {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+      background: var(--pearl); border: 1.5px solid var(--latte); border-radius: var(--radius-md);
+      padding: 12px 14px; font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer;
+      color: var(--roast); font-size: 0.86rem; font-weight: 700; text-align: left;
+      transition: all .14s; -webkit-tap-highlight-color: transparent;
+    }
+    .cup-pick-btn:hover { background: var(--parchment); border-color: var(--clay); }
+    .cup-pick-btn:active { transform: scale(0.98); }
+    .cup-pick-sub  { display: block; font-size: 0.72rem; font-weight: 500; color: var(--bark); margin-top: 2px; }
+    .cup-pick-go   { font-size: 0.74rem; font-weight: 700; color: var(--mahogany); white-space: nowrap; }
   </style>
 </head>
 <body class="has-bottom-nav">
@@ -927,6 +945,24 @@
 
 
 <!-- ═══════════ ITEM ADD-ON MODAL (bottom sheet) ═══════════ -->
+<!-- ═══════════ CUP PICKER (choose which cup of a stack to customize) ═══════════ -->
+<div class="modal-overlay centered" id="cupPickModal">
+  <div class="modal popup">
+    <div class="modal-header-row">
+      <div>
+        <div class="modal-title">Choose a Cup</div>
+        <div class="modal-sub" id="cupPickSub"></div>
+      </div>
+    </div>
+    <div class="popup-body">
+      <div class="cup-pick-list" id="cupPickList"></div>
+    </div>
+    <div class="flavor-modal-footer">
+      <button class="flavor-modal-done-btn" onclick="closeCupPicker()">Done</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay centered" id="itemAddonModal">
   <div class="modal popup">
     <div class="modal-header-row">
@@ -1744,9 +1780,43 @@ function currentCustomizeItem() {
   return state.currentItems.find(i => i.key === pendingAddonItemKey);
 }
 
-function openItemAddonModal(key) {
+let pendingPickKey = null;
+
+function openCupPicker(key) {
+  const item = state.currentItems.find(i => i.key === key);
+  if (!item) return;
+  pendingPickKey = key;
+  document.getElementById("cupPickSub").textContent =
+    item.name + (item.flavor ? " · " + item.flavor : "") + " · tap the cup to customize";
+  const list = document.getElementById("cupPickList");
+  list.innerHTML = "";
+  for (let n = 1; n <= item.qty; n++) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "cup-pick-btn";
+    b.innerHTML = `<span>Cup ${n}<span class="cup-pick-sub">${esc(item.flavor || "No flavor")} · ${fmt(item.unitPrice)}</span></span><span class="cup-pick-go">Customize ›</span>`;
+    b.addEventListener("click", () => {
+      vibe("tap");
+      const k = pendingPickKey;
+      closeCupPicker();
+      openItemAddonModal(k, true);   // that cup leaves the stack
+    });
+    list.appendChild(b);
+  }
+  document.getElementById("cupPickModal").classList.add("open");
+}
+
+function closeCupPicker() {
+  document.getElementById("cupPickModal").classList.remove("open");
+  pendingPickKey = null;
+}
+
+function openItemAddonModal(key, fromPicker) {
   let item = state.currentItems.find(i => i.key === key);
   if (!item) return;
+
+  // A stack of several cups: let the person choose which cup to customize first.
+  if (item.qty > 1 && !fromPicker) { openCupPicker(key); return; }
 
   if (item.qty > 1) {
     // Split ONE cup off the group so add-ons/notes only affect that cup.
@@ -2660,6 +2730,22 @@ buildCatalogue();
 loadState();
 cleanupOrderLogs();
 sessionStorage.setItem('brewsSession', '1');
+
+// ── Scroll lock: while any pop-up is open the page behind it can't scroll ──
+(function setupScrollLock() {
+  const root = document.documentElement;
+  const sync = () => root.classList.toggle("modal-open", !!document.querySelector(".modal-overlay.open"));
+  new MutationObserver(sync).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
+  // iOS ignores overflow:hidden on body for touch scrolling, so also block touchmove
+  // unless the finger is inside a pop-up's own scrollable area.
+  document.addEventListener("touchmove", e => {
+    if (!root.classList.contains("modal-open")) return;
+    if (!e.target.closest(".popup-body, .flavor-scroll, .receipt-modal .modal, .end-shift-modal .modal, #flavorSettingsModal .modal")) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+  sync();
+})();
 
 // ── Restore quota threshold from saved shift so we never fire at ₱0 ──
 (function restoreQuotaThreshold() {
