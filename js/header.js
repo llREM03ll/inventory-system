@@ -5,10 +5,7 @@
  * (calculate.html didn't even have a back link), which is part of why moving
  * around the app felt inconsistent.
  *
- * Settings itself is NOT duplicated here — it's a large, tightly-integrated
- * system on index.html (prices, flavors, theme, sync, role). Rather than
- * risk that logic by copying it, every other page's Settings icon deep-links
- * to index.html, which auto-opens the same modal on load.
+ * Settings is its own page (settings.html).
  */
 (function () {
   window.renderPageHeader = function (opts) {
@@ -33,15 +30,5 @@
   </a>`;
   };
 
-  // On index.html this opens the modal in place (no navigation needed).
-  // Everywhere else it deep-links home with ?settings=1, which index.html
-  // reads on load to auto-open the same modal.
-  window.goToSettings = function () {
-    const onHome = /(^|\/)index\.html$/.test(location.pathname) || /\/$/.test(location.pathname);
-    if (onHome && typeof openSettings === "function") {
-      openSettings();
-    } else {
-      location.href = "index.html?settings=1";
-    }
-  };
+  window.goToSettings = function () { location.href = "settings.html"; };
 })();

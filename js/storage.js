@@ -55,6 +55,7 @@ function restoreInputs() {
 
 function clearInputStorage() {
   localStorage.removeItem(INPUT_STORAGE_KEY);
+  localStorage.removeItem("brewsCalcExtras");
 }
 
 function attachInputListeners() {

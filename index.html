@@ -15,70 +15,26 @@
   <script src="js/header.js"></script>
   <style>
     body { padding: 0; }
+    .home { max-width: 440px; margin: 0 auto; padding: 36px 18px 24px; display: flex; flex-direction: column; gap: 14px; }
+    .home-logo { text-align: center; text-decoration: none; display: block; margin-bottom: 6px; }
+    .home-logo .brand { font-size: 2rem; color: var(--espresso); letter-spacing: 0.20em; }
+    .home-logo .brand-sub { font-size: 0.64rem; color: var(--dust); margin: 4px 0 0; letter-spacing: 0.14em; text-transform: uppercase; }
+    .home-greet { text-align: center; font-family: "Cormorant Garamond", serif; font-size: 1.4rem; font-weight: 700; color: var(--espresso); }
 
-    .home-view {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; text-align: center;
-      min-height: 100vh; padding: 28px 24px 24px;
-    }
-    body.has-bottom-nav .home-view { min-height: calc(100vh - 70px); }
+    .shift-card { background: var(--grad-card); border: 1.5px solid var(--latte); border-radius: 22px; padding: 22px 20px; box-shadow: var(--shadow-card); position: relative; overflow: hidden; }
+    .shift-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--grad-cta); }
+    .shift-state { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bark); display: flex; align-items: center; gap: 7px; }
+    .shift-state i { width: 8px; height: 8px; border-radius: 50%; background: var(--mochaccino); display: inline-block; }
+    .shift-state i.live { background: #6ab86a; animation: pulse .9s infinite; }
+    .shift-title { font-size: 1.15rem; font-weight: 800; color: var(--roast); margin: 8px 0 4px; }
+    .shift-sub { font-size: 0.8rem; color: var(--bark); margin-bottom: 14px; }
+    .shift-btn { display: block; text-align: center; text-decoration: none; background: var(--grad-cta); color: #fff; border-radius: var(--radius-lg); padding: 14px; font-size: 0.92rem; font-weight: 700; box-shadow: var(--shadow-btn); }
+    .shift-btn:active { transform: scale(0.98); }
 
-    .home-logo { text-decoration: none; display: block; margin-bottom: 28px; }
-    .home-logo .brand     { font-size: 2.2rem; color: var(--espresso); letter-spacing: 0.20em; }
-    .home-logo .brand-sub { font-size: 0.62rem; color: var(--dust); margin-bottom: 0; }
-
-    .settings-fab {
-      position: fixed; top: 16px; right: 16px; z-index: 200;
-      background: rgba(253,245,232,0.94); border: 1.5px solid var(--latte);
-      border-radius: var(--radius-lg); padding: 9px 14px; font-size: 0.80rem; font-weight: 700;
-      color: var(--mahogany); font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer;
-      backdrop-filter: blur(10px); transition: all .18s;
-      box-shadow: 0 2px 10px rgba(60,20,0,0.10);
-    }
-    .settings-fab:hover { background: var(--parchment); transform: translateY(-1px); box-shadow: var(--shadow-warm); }
-
-    .home-card {
-      width: 100%; max-width: 400px;
-      background: var(--grad-card);
-      border: 1.5px solid var(--latte); border-radius: 26px;
-      padding: 44px 32px 40px;
-      box-shadow: var(--shadow-card); margin-bottom: 14px;
-      position: relative; overflow: hidden;
-    }
-    .home-card::before { content:""; position:absolute; top:0;left:0;right:0;height:3px;background:var(--grad-cta); }
-    .home-card::after  { content:"☕"; position:absolute;bottom:-12px;right:-2px;font-size:6rem;opacity:0.04;transform:rotate(-12deg);pointer-events:none; }
-
-    .home-emoji { font-size: 3.4rem; line-height: 1; margin-bottom: 20px; }
-    .home-msg   { font-family:"Cormorant Garamond",serif; font-size:1.55rem; font-weight:700; color:var(--espresso); line-height:1.25; margin-bottom:10px; }
-    .home-sub   { font-size:0.9rem; color:var(--bark); font-weight:500; }
-    .home-date  { font-size:0.65rem; color:var(--dust); font-weight:600; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:18px; }
-
-    .home-resume {
-      width:100%; max-width:400px; display:flex; align-items:center;
-      justify-content:space-between; gap:12px;
-      background:var(--white)BEE; border:1.5px solid #E8C87A;
-      border-radius:var(--radius-lg); padding:14px 16px; margin-bottom:14px;
-    }
-    .home-resume-info  { flex:1; text-align:left; }
-    .home-resume-title { font-size:0.86rem; font-weight:700; color:var(--mahogany); }
-    .home-resume-sub   { font-size:0.73rem; color:var(--bark); margin-top:2px; }
-    .home-resume-btn {
-      flex-shrink:0; background:var(--grad-cta); color:var(--white);
-      border:none; border-radius:var(--radius-md); padding:10px 16px; font-weight:700;
-      font-size:0.82rem; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer;
-      text-decoration:none; transition:all .18s; white-space:nowrap; box-shadow:var(--shadow-btn);
-    }
-    .home-resume-btn:hover { filter:brightness(1.08); transform:translateY(-1px); }
-
-    .view-history-btn {
-      width:100%; max-width:400px; display:flex; align-items:center;
-      justify-content:center; gap:8px; margin-top:14px;
-      background:var(--grad-cta); color:var(--white);
-      border:none; border-radius:var(--radius-lg); padding:15px 20px;
-      font-size:0.92rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif;
-      cursor:pointer; text-decoration:none; transition:all .18s; box-shadow:var(--shadow-btn);
-    }
-    .view-history-btn:hover { filter:brightness(1.08); transform:translateY(-1px); }
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat { background: var(--pearl); border: 1.5px solid var(--latte); border-radius: var(--radius-lg); padding: 12px 14px; }
+    .stat span { display: block; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dust); }
+    .stat b { display: block; font-size: 1.05rem; color: var(--roast); margin-top: 3px; font-variant-numeric: tabular-nums; }
 
     /* ── Sync card ── */
     .sync-card {
@@ -110,146 +66,40 @@
     .sync-btn-pull:hover { background:var(--latte); transform:translateY(-1px); }
     .sync-btn:disabled { opacity:0.5; cursor:default; transform:none; }
 
-    /* ── Settings modal ── */
-    .smodal-overlay {
-      position:fixed; inset:0; z-index:500;
-      background:rgba(28,10,0,0.55); backdrop-filter:blur(5px);
-      display:flex; align-items:flex-end; justify-content:center;
-      opacity:0; pointer-events:none; transition:opacity .22s;
-    }
-    .smodal-overlay.open { opacity:1; pointer-events:all; }
-    .smodal {
-      background:var(--cream); width:100%; max-width:720px;
-      border-radius:24px 24px 0 0; max-height:92vh;
-      display:flex; flex-direction:column;
-      box-shadow:0 -8px 40px rgba(28,10,0,0.25); border-top:1.5px solid var(--latte);
-      transform:translateY(24px); transition:transform .26s;
-    }
-    .smodal-overlay.open .smodal { transform:translateY(0); }
-    .smodal-handle { width:36px; height:4px; background:var(--latte); border-radius:2px; margin:10px auto 0; flex-shrink:0; }
-    .smodal-head { display:flex; align-items:center; justify-content:space-between; padding:14px 20px 12px; border-bottom:1px solid var(--latte); flex-shrink:0; }
-    .smodal-title { font-family:"Cormorant Garamond",serif; font-size:1.15rem; font-weight:700; color:var(--espresso); letter-spacing:0.04em; }
-    .smodal-actions { display:flex; gap:8px; }
-    .smodal-reset { background:var(--danger-bg); border:1.5px solid var(--danger-border); border-radius:var(--radius-md); padding:8px 13px; font-size:0.82rem; font-weight:700; color:var(--danger); font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; }
-    .smodal-reset:hover { background:var(--danger-bg-hover); }
-    .smodal-done { background:var(--grad-cta); color:var(--white); border:none; border-radius:var(--radius-md); padding:8px 16px; font-size:0.82rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; box-shadow:var(--shadow-btn); }
-    .smodal-done:hover { filter:brightness(1.08); }
-    .smodal-body { overflow-y:auto; padding:16px 20px 32px; flex:1; }
-    .smodal-section { margin-bottom:24px; }
-    .smodal-section-title { font-size:0.62rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--bark); border-bottom:1px solid var(--latte); padding-bottom:7px; margin-bottom:12px; }
-    .smodal-grid  { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
-    .smodal-grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-    .smodal-field { display:flex; flex-direction:column; gap:4px; }
-    .smodal-label { font-size:0.72rem; font-weight:600; color:var(--bark); }
-    .smodal-input { padding:9px 11px; border:1.5px solid var(--latte); border-radius:var(--radius-md); font-size:0.88rem; font-family:"Plus Jakarta Sans",sans-serif; background:var(--pearl); color:var(--roast); width:100%; box-sizing:border-box; transition:border-color .16s; }
-    .smodal-input:focus { outline:none; border-color:var(--caramel); background:var(--white); box-shadow:0 0 0 3px rgba(196,129,58,0.14); }
-    .smodal-input:disabled { background:var(--parchment); color:var(--dust); border-color:var(--latte); cursor:not-allowed; }
-    .settings-locked-banner { background:#fdf5e0; border:1.5px solid #e8d5a0; border-radius:var(--radius-lg); padding:12px 14px; margin-bottom:18px; font-size:0.82rem; color:#8a6a20; line-height:1.55; text-align:center; }
-
-    /* ── Theme section (accent color + background photo) ── */
-    .theme-section { margin-bottom: 18px; }
-    .theme-label { font-size: 0.78rem; font-weight: 700; color: var(--bark); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
-    .theme-color-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    #themeColorInput {
-      width: 46px; height: 46px; border: 1.5px solid var(--latte); border-radius: var(--radius-md);
-      padding: 0; cursor: pointer; background: none; flex-shrink: 0;
-    }
-    .theme-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
-    .theme-swatch {
-      width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--pearl);
-      box-shadow: 0 0 0 1.5px var(--latte); cursor: pointer; flex-shrink: 0; padding: 0;
-    }
-    .theme-swatch.active { box-shadow: 0 0 0 2px var(--roast); }
-    .theme-text-btn {
-      background: none; border: none; color: var(--mahogany); font-size: 0.78rem; font-weight: 700;
-      text-decoration: underline; cursor: pointer; padding: 4px 0; font-family: "Plus Jakarta Sans", sans-serif;
-    }
-    .theme-upload-btn {
-      flex: 1; padding: 11px; border: 1.5px dashed var(--mochaccino); border-radius: var(--radius-lg);
-      font-weight: 700; font-size: 0.82rem; background: transparent; color: var(--bark);
-      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer;
-    }
-    .theme-upload-btn:hover { background: rgba(196,129,58,0.06); border-color: var(--caramel); color: var(--mahogany); }
-
-
-    .sflavor-cat { margin-bottom:16px; }
-    .sflavor-cat-title { font-size:0.72rem; font-weight:700; color:var(--mahogany); margin-bottom:7px; }
-    .sflavor-pills { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:7px; }
-    .sflavor-pill { display:flex; align-items:center; gap:5px; background:var(--parchment); border:1.5px solid var(--latte); border-radius:var(--radius-pill); padding:5px 10px; font-size:0.76rem; font-weight:600; color:var(--roast); }
-    .sflavor-pill-del { background:none; border:none; color:var(--danger); font-size:0.82rem; cursor:pointer; padding:0 2px; line-height:1; font-weight:800; }
-    .sflavor-add-row { display:flex; gap:7px; }
-    .sflavor-add-input { flex:1; padding:8px 11px; border:1.5px solid var(--latte); border-radius:var(--radius-md); font-size:0.84rem; font-family:"Plus Jakarta Sans",sans-serif; background:var(--pearl); color:var(--roast); }
-    .sflavor-add-input:focus { outline:none; border-color:var(--caramel); }
-    .style-opts { display:flex; flex-wrap:wrap; gap:7px; }
-    .style-opt { padding:8px 14px; border-radius:var(--radius-pill); border:1.5px solid var(--latte); background:var(--parchment); color:var(--mahogany); font-size:0.8rem; font-weight:700; }
-    .style-opt.active { background:var(--grad-cta); color:#fff; border-color:transparent; }
-    .sflavor-add-btn { background:var(--grad-cta); color:var(--white); border:none; border-radius:var(--radius-md); padding:8px 14px; font-size:0.82rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; }
   </style>
 </head>
 <body class="has-bottom-nav">
-
-  <button class="settings-fab" onclick="openSettings()">⚙️ Settings</button>
-
-  <div class="home-view">
+  <div class="home">
     <a href="index.html" class="home-logo">
       <div class="brand">BREWS.CO</div>
-      <div class="brand-sub">Inventory System</div>
+      <div class="brand-sub" id="homeDate"></div>
     </a>
+    <div class="home-greet" id="homeGreet"></div>
 
-    <div class="home-card">
-      <div class="home-emoji" id="homeEmoji"></div>
-      <div class="home-msg"   id="homeMsg"></div>
-      <div class="home-sub"   id="homeSub"></div>
-    </div>
-    <div class="home-date" id="homeDate"></div>
+    <div class="shift-card" id="shiftCard"></div>
 
-    <!-- Resume banner -->
-    <div class="home-resume" id="resumeBanner" style="display:none;">
-      <div class="home-resume-info">
-        <div class="home-resume-title">↩ Unfinished shift saved</div>
-        <div class="home-resume-sub">Your orders are safe — pick up right where you left off.</div>
-      </div>
-      <a href="pos.html" class="home-resume-btn">Resume →</a>
+    <div class="stat-row">
+      <div class="stat"><span>Today's Total</span><b id="todayTotal">—</b></div>
+      <div class="stat"><span>Orders Today</span><b id="todayOrders">—</b></div>
     </div>
 
-
-    <!-- Sync card -->
-    <div class="sync-card">
-      <div class="sync-row">
+    <div class="sync-card" style="max-width:none;margin-top:0;">
+      <div class="sync-row" style="margin-bottom:10px;">
         <div class="sync-status">
           <span class="sync-dot" id="syncDot"></span>
           <span id="syncStatusText">Not synced yet</span>
         </div>
-        
       </div>
       <div class="sync-btns">
-        <button class="sync-btn sync-btn-push" id="syncPushBtn" onclick="doSync('push')">☁️ Push Data</button>
-        <button class="sync-btn sync-btn-pull" id="syncPullBtn" onclick="doSync('pull')">⬇️ Pull from Cloud</button>
+        <button class="sync-btn sync-btn-push" id="syncPushBtn" onclick="doSync('push')">☁️ Push</button>
+        <button class="sync-btn sync-btn-pull" id="syncPullBtn" onclick="doSync('pull')">⬇️ Pull</button>
       </div>
     </div>
-    </div>
-    <div class="home-offline-pill" id="homeOfflinePill">📡 No connection — sync when back online</div>
+    <div class="home-offline-pill" id="homeOfflinePill" style="max-width:none;">📡 No connection. Sync when back online</div>
   </div>
 
-  <!-- ═══════════ SETTINGS MODAL ═══════════ -->
-  <div class="smodal-overlay" id="settingsModal" onclick="handleSettingsOverlay(event)">
-    <div class="smodal">
-      <div class="smodal-handle"></div>
-      <div class="smodal-head">
-        <span class="smodal-title">⚙️ Settings</span>
-        <div class="smodal-actions">
-          <button class="smodal-reset" id="smodal-reset-btn" onclick="confirmResetSettings()">↺ Reset</button>
-          <button class="smodal-done"  id="smodal-save-btn"  onclick="saveAndCloseSettings()">Save ✓</button>
-        </div>
-      </div>
-      <div class="smodal-body" id="settingsBody"></div>
-    </div>
-  </div>
-
-  <!-- Bottom nav -->
   <script>document.write(renderBottomNav("home", { navId: "bottomNav" }));</script>
 
-  <script src="js/settings.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
   <script>
@@ -260,14 +110,71 @@
   <script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
 
   <script>
-    // ── Resume banner ──────────────────────────────────────────────────────────
-    (function showResume() {
-      const resume = document.getElementById("resumeBanner");
-      applyBottomNavRole();
-      if (resume && localStorage.getItem("brewsResumeShift")) resume.style.display = "flex";
+    applyBottomNavRole();
+
+    // ── Header ─────────────────────────────────────────────────────────────────
+    const now = new Date();
+    const hr = now.getHours();
+    document.getElementById("homeGreet").textContent = hr < 12 ? "Good morning ☕" : hr < 18 ? "Good afternoon 🧋" : "Good evening 🌙";
+    document.getElementById("homeDate").textContent = now.toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric" });
+
+    // ── Shift card ─────────────────────────────────────────────────────────────
+    function renderShiftCard() {
+      const card = document.getElementById("shiftCard");
+      const active = !!localStorage.getItem("brewsShiftActive");
+      const saved  = !!localStorage.getItem("brewsResumeShift");
+      if (active) {
+        let start = 0;
+        try { start = JSON.parse(localStorage.getItem("brewsPOSState") || "{}").shiftStartTime || 0; } catch {}
+        const ms = start ? Date.now() - start : 0;
+        const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
+        card.innerHTML = `
+          <div class="shift-state"><i class="live"></i>Shift in progress</div>
+          <div class="shift-title">${start ? (h > 0 ? h + "h " : "") + m + "m running" : "Shift is running"}</div>
+          <div class="shift-sub">Your orders are saved on this device.</div>
+          <a href="pos.html" class="shift-btn">Return to Shift →</a>`;
+      } else if (saved) {
+        card.innerHTML = `
+          <div class="shift-state"><i></i>Unfinished shift</div>
+          <div class="shift-title">Pick up where you left off</div>
+          <div class="shift-sub">Your orders are safe.</div>
+          <a href="pos.html" class="shift-btn">Resume Shift →</a>`;
+      } else {
+        card.innerHTML = `
+          <div class="shift-state"><i></i>No active shift</div>
+          <div class="shift-title">Ready when you are</div>
+          <div class="shift-sub">Enter your beginning cups to start.</div>
+          <a href="pos.html" class="shift-btn">Start Shift →</a>`;
+      }
+    }
+    renderShiftCard();
+    setInterval(renderShiftCard, 30000);
+
+    // ── Today ──────────────────────────────────────────────────────────────────
+    (function renderToday() {
+      const today = now.toISOString().split("T")[0];
+      try {
+        const hist = JSON.parse(localStorage.getItem("inventoryHistory") || "[]");
+        const e = hist.find(h => h.date === today);
+        if (e) {
+          const div = document.createElement("div");
+          div.innerHTML = e.results;
+          for (const row of div.querySelectorAll("tr")) {
+            const c = row.querySelectorAll("td");
+            if (c.length >= 2 && c[0].textContent.includes("Final Total")) { document.getElementById("todayTotal").textContent = c[1].textContent.trim(); break; }
+          }
+        }
+        const logs = JSON.parse(localStorage.getItem("brewsOrderLog") || "[]");
+        const l = logs.find(x => x.date === today);
+        if (l) document.getElementById("todayOrders").textContent = (l.orders || []).length;
+        else {
+          const st = JSON.parse(localStorage.getItem("brewsPOSState") || "{}");
+          if (st.orders) document.getElementById("todayOrders").textContent = st.orders.length;
+        }
+      } catch {}
     })();
 
-    // ── Sync UI ────────────────────────────────────────────────────────────────
+    // ── Sync ───────────────────────────────────────────────────────────────────
     function setSyncUI(state, msg) {
       document.getElementById("syncDot").className = "sync-dot " + (state || "");
       document.getElementById("syncStatusText").textContent = msg;
@@ -275,19 +182,12 @@
       document.getElementById("syncPushBtn").disabled = busy;
       document.getElementById("syncPullBtn").disabled = busy;
     }
-
-    function updateSyncCard() {}
-
     function initSyncDisplay() {
       const last = getLastSyncDisplay();
       setSyncUI(last ? "ok" : "", last ? "Last synced " + last : "Not synced yet");
-      updateSyncCard();
     }
-
     async function doSync(direction) {
-      if (direction === "push") {
-        if (!confirm("⚠️ Push to Cloud?\n\nThis sends this device's history, orders, settings and menu to the cloud.\n\nContinue?")) return;
-      }
+      if (direction === "push" && !confirm("Push to cloud?\n\nThis sends this device's history, orders, settings and menu.")) return;
       setSyncUI("busy", direction === "push" ? "Pushing…" : "Pulling…");
       try {
         if (direction === "push") { await syncPush(); setSyncUI("ok", "Pushed " + getLastSyncDisplay()); }
@@ -297,355 +197,22 @@
         setTimeout(initSyncDisplay, 4000);
       }
     }
-
-    // Auto-pull
-    const AUTO_PULL_MS = 3 * 60 * 1000;
     async function autoPull() {
       if (localStorage.getItem("brewsShiftActive")) return;
       setSyncUI("busy", "Auto-syncing…");
-      try { await syncPull(); setSyncUI("ok", "Auto-synced " + getLastSyncDisplay()); updateSyncCard(); }
+      try { await syncPull(); setSyncUI("ok", "Auto-synced " + getLastSyncDisplay()); }
       catch (e) { setSyncUI("error", "⚠ Auto-sync failed"); setTimeout(initSyncDisplay, 3000); }
     }
-
     initSyncDisplay();
     setTimeout(autoPull, 1500);
-    setInterval(autoPull, AUTO_PULL_MS);
+    setInterval(autoPull, 3 * 60 * 1000);
 
-    // Offline indicator
     const _pill = document.getElementById("homeOfflinePill");
-    function _setOffline(v) { if (_pill) _pill.classList.toggle("visible", v); }
+    const _setOffline = v => _pill.classList.toggle("visible", v);
     window.addEventListener("online",  () => _setOffline(false));
     window.addEventListener("offline", () => _setOffline(true));
     if (!navigator.onLine) _setOffline(true);
-  </script>
 
-  <script>
-    // ── Settings modal ─────────────────────────────────────────────────────────
-    const CAT_LABELS = { milktea:"Milk Tea", fruittea:"Fruit Tea", icedcoffee:"Iced Coffee", hotcoffee:"Hot Coffee" };
-    let _ws = null;
-
-    function openSettings() {
-      _ws = JSON.parse(JSON.stringify(getSettings()));
-      renderSettingsModal();
-      document.getElementById("settingsModal").classList.add("open");
-    }
-    function closeSettings() { document.getElementById("settingsModal").classList.remove("open"); }
-    function handleSettingsOverlay(e) { if (e.target === document.getElementById("settingsModal")) closeSettings(); }
-
-    function confirmResetSettings() {
-      if (!confirm("Reset all settings to defaults? This cannot be undone.")) return;
-      resetSettings(); _ws = JSON.parse(JSON.stringify(getSettings())); renderSettingsModal();
-    }
-
-    function saveAndCloseSettings() {
-      collectFromUI(); saveSettings(_ws);
-      closeSettings();
-    }
-
-    function n(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
-
-    function collectFromUI() {
-      _ws.prices = { M:n("sp_M"),L:n("sp_L"),S:n("sp_S"),MC:n("sp_MC"),LC:n("sp_LC"),HC:n("sp_HC"),FTM:n("sp_FTM"),FTL:n("sp_FTL") };
-      _ws.addonPrices = {};
-      document.querySelectorAll(".saddon-row").forEach(r => {
-        const name = r.querySelector(".saddon-name")?.value?.trim();
-        const price = parseFloat(r.querySelector(".saddon-price")?.value) || 0;
-        if (name) _ws.addonPrices[name] = price;
-      });
-      _ws.salaryBase           = n("sp_salaryBase");
-      _ws.salaryBonusThreshold = n("sp_bonusThreshold");
-      _ws.salaryBonusPerK      = n("sp_bonusPerK");
-      _ws.quotaStart           = n("sp_quotaStart");
-      _ws.lowStock             = n("sp_lowStock");
-      const sndEl = document.getElementById("sp_sound");
-      if (sndEl) _ws.soundEnabled = sndEl.checked;
-    }
-
-    function addFlavorToCategory(cat) {
-      const input = document.getElementById("sfi_" + cat);
-      const val   = input?.value?.trim();
-      if (!val) return;
-      if (!_ws.flavors[cat]) _ws.flavors[cat] = [];
-      if (!_ws.flavors[cat].includes(val)) { _ws.flavors[cat].push(val); renderFlavorCat(cat); }
-      input.value = "";
-    }
-
-    function removeFlavorFromCategory(cat, flavor) {
-      _ws.flavors[cat] = (_ws.flavors[cat] || []).filter(f => f !== flavor);
-      renderFlavorCat(cat);
-    }
-
-    function renderFlavorCat(cat) {
-      const c = document.getElementById("sfcat_" + cat);
-      if (!c) return;
-      const isManager = true;
-      const flavors = _ws.flavors[cat] || [];
-      c.querySelector(".sflavor-pills").innerHTML = flavors.length
-        ? flavors.map(f => `<span class="sflavor-pill">${f}${isManager
-            ? `<button class="sflavor-pill-del" onclick="removeFlavorFromCategory('${cat}','${f.replace(/'/g,"\\'")}')">✕</button>`
-            : ""}</span>`).join("")
-        : `<span style="font-size:0.76rem;color:var(--mochaccino);">No flavors added</span>`;
-    }
-
-    function fi(id, label, val, locked) {
-      return `<div class="smodal-field"><label class="smodal-label">${label}</label>
-        <input class="smodal-input" id="${id}" type="number" value="${val}"${locked?" disabled":""}></div>`;
-    }
-
-    function renderSettingsModal() {
-      const s = _ws, locked = false;
-
-      const st = window.BrewsStyle.get();
-      const styleSection = `
-        <div class="smodal-section">
-          <div class="smodal-section-title">🔤 Font &amp; Text Size (this device)</div>
-          <div class="theme-label">Font</div>
-          <div class="style-opts">${Object.entries(window.BrewsStyle.FONTS).map(([k, f]) =>
-            `<button type="button" class="style-opt${st.font === k ? " active" : ""}" onclick="setAppFont('${k}')">${f.label}</button>`).join("")}</div>
-          <div class="theme-label" style="margin-top:12px;">Text Size</div>
-          <div class="style-opts">${Object.entries(window.BrewsStyle.SIZES).map(([k, l]) =>
-            `<button type="button" class="style-opt${st.size === Number(k) ? " active" : ""}" onclick="setAppSize(${k})">${l}</button>`).join("")}</div>
-          <div style="font-size:0.72rem;color:var(--dust);margin-top:8px;line-height:1.5;">Edit the menu (order, names, icons, colors) from the Shift screen with the ✏️ Edit button.</div>
-        </div>`;
-
-      const themeSection = `
-        <div class="smodal-section">
-          <div class="smodal-section-title">🎨 Theme (this device)</div>
-          <div class="theme-section">
-            <div class="theme-label">Accent Color</div>
-            <div class="theme-color-row">
-              <input type="color" id="themeColorInput" value="#C4813A" oninput="onThemeColorChange(this.value)">
-              <div class="theme-swatches" id="themeSwatches"></div>
-            </div>
-            <button type="button" class="theme-text-btn" onclick="resetThemeAccent()">Reset to default caramel</button>
-          </div>
-          <div class="theme-section" style="margin-bottom:0;">
-            <div class="theme-label">Background Photo</div>
-            <input type="file" accept="image/*" id="themeBgInput" style="display:none;" onchange="onThemeBgSelected(this.files[0])">
-            <div style="display:flex;gap:8px;">
-              <button type="button" class="theme-upload-btn" onclick="document.getElementById('themeBgInput').click()">📷 Choose Photo</button>
-              <button type="button" class="theme-text-btn" id="themeBgClearBtn" style="display:none;flex-shrink:0;" onclick="clearThemeBg()">Remove</button>
-            </div>
-            <div id="themeBgPreviewWrap" style="display:none;margin-top:10px;">
-              <img id="themeBgPreview" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--radius-md);border:1.5px solid var(--latte);">
-            </div>
-            <div style="font-size:0.72rem;color:var(--dust);margin-top:8px;line-height:1.5;">Saved per device — applies across POS, Inventory &amp; Calendar.</div>
-          </div>
-        </div>`;
-
-
-      const addonRows = Object.entries(s.addonPrices).map(([name, price]) => `
-        <div class="expense-row saddon-row">
-          <input class="smodal-input saddon-name"  type="text"   value="${name}"  placeholder="Add-on name"${locked?" disabled":""}>
-          <input class="smodal-input saddon-price" type="number" value="${price}" placeholder="₱0"${locked?" disabled":""}>
-          ${!locked?`<button type="button" onclick="this.parentElement.remove();">✕</button>`:""}
-        </div>`).join("");
-
-      const addAddonBtn = !locked ? `<button class="add-expense-btn" style="margin-top:8px;"
-        onclick="document.getElementById('saddonContainer').insertAdjacentHTML('beforeend',
-          \`<div class='expense-row saddon-row'>
-            <input class='smodal-input saddon-name' type='text' placeholder='Add-on name'>
-            <input class='smodal-input saddon-price' type='number' placeholder='₱0'>
-            <button type='button' onclick='this.parentElement.remove();'>✕</button>
-          </div>\`);">+ Add Add-on</button>` : "";
-
-      const flavorHTML = Object.entries(CAT_LABELS).map(([cat, label]) => `
-        <div class="sflavor-cat" id="sfcat_${cat}">
-          <div class="sflavor-cat-title">${label}</div>
-          <div class="sflavor-pills"></div>
-          ${!locked?`<div class="sflavor-add-row" style="margin-top:6px;">
-            <input class="sflavor-add-input" id="sfi_${cat}" type="text" placeholder="Add flavor…"
-              onkeydown="if(event.key==='Enter'){addFlavorToCategory('${cat}');event.preventDefault();}">
-            <button class="sflavor-add-btn" onclick="addFlavorToCategory('${cat}')">+ Add</button>
-          </div>`:""}
-        </div>`).join("");
-
-      document.getElementById("settingsBody").innerHTML = themeSection + styleSection + `
-        <div class="smodal-section">
-          <div class="smodal-section-title">Drink Prices (₱)</div>
-          <div class="smodal-grid">
-            ${fi("sp_M","Milktea M",s.prices.M,locked)}${fi("sp_L","Milktea L",s.prices.L,locked)}
-            ${fi("sp_S","Milktea S",s.prices.S,locked)}${fi("sp_MC","Iced Coffee M",s.prices.MC,locked)}
-            ${fi("sp_LC","Iced Coffee L",s.prices.LC,locked)}${fi("sp_HC","Hot Coffee",s.prices.HC,locked)}
-            ${fi("sp_FTM","Fruit Tea M",s.prices.FTM,locked)}${fi("sp_FTL","Fruit Tea L",s.prices.FTL,locked)}
-          </div>
-        </div>
-        <div class="smodal-section">
-          <div class="smodal-section-title">Add-on Prices (₱)</div>
-          <div id="saddonContainer">${addonRows}</div>${addAddonBtn}
-        </div>
-        <div class="smodal-section">
-          <div class="smodal-section-title">Salary &amp; Bonus</div>
-          <div class="smodal-grid-3">
-            ${fi("sp_salaryBase","Base Salary (₱)",s.salaryBase,locked)}
-            ${fi("sp_bonusThreshold","Bonus Threshold (₱)",s.salaryBonusThreshold,locked)}
-            ${fi("sp_bonusPerK","Bonus per ₱1,000 (₱)",s.salaryBonusPerK,locked)}
-          </div>
-          <div style="font-size:0.72rem;color:var(--dust);margin-top:8px;line-height:1.5;">Staff earns the base salary when cup sales meet or exceed it. Once sales hit the bonus threshold, the bonus kicks in — plus that same amount for every extra ₱1,000.</div>
-        </div>
-        <div class="smodal-section">
-          <div class="smodal-section-title">Quota &amp; Low Stock</div>
-          <div class="smodal-grid">
-            ${fi("sp_quotaStart","Quota Toast at (₱)",s.quotaStart,locked)}
-            ${fi("sp_lowStock","Low Stock Warning (cups)",s.lowStock,locked)}
-          </div>
-        </div>
-        <div class="smodal-section">
-          <div class="smodal-section-title">POS Sound</div>
-          <label style="display:flex;align-items:center;gap:10px;cursor:${locked?'default':'pointer'};padding:4px 0;">
-            <input type="checkbox" id="sp_sound" ${s.soundEnabled?"checked":""} ${locked?"disabled":""}
-              style="width:18px;height:18px;accent-color:var(--caramel);cursor:${locked?'default':'pointer'};">
-            <span style="font-size:0.84rem;color:var(--roast);font-weight:600;">Enable order sounds</span>
-            <span style="font-size:0.76rem;color:var(--bark);margin-left:2px;">🔔</span>
-          </label>
-          <div style="font-size:0.72rem;color:var(--bark);margin-top:6px;line-height:1.5;">Subtle tap on item add, soft bell on order placed, rising chime on quota hit.</div>
-        </div>
-        <div class="smodal-section">
-          <div class="smodal-section-title">Flavors</div>
-          ${locked?`<div style="font-size:0.76rem;color:var(--dust);margin-bottom:12px;"></div>`
-                  :`<div style="font-size:0.76rem;color:var(--bark);margin-bottom:12px;">Add or remove flavors per drink category.</div>`}
-          ${flavorHTML}
-        </div>`;
-
-      Object.keys(CAT_LABELS).forEach(cat => renderFlavorCat(cat));
-      renderThemeSection();
-    }
-
-    // ── Theme (accent color + background photo) ──────────────────────────────
-    const THEME_SWATCHES = ["#C4813A","#4A90D9","#4AA88A","#D46A9E","#7C6FD4","#D45A5A","#3D3D3D","#2E8B8B"];
-
-    function renderThemeSection() {
-      document.getElementById("themeColorInput").value = window.BrewsTheme.getAccent();
-      renderThemeSwatches();
-      updateThemeBgUI();
-    }
-
-    function renderThemeSwatches() {
-      const current = window.BrewsTheme.getAccent().toLowerCase();
-      const wrap = document.getElementById("themeSwatches");
-      wrap.innerHTML = THEME_SWATCHES.map(c => `
-        <button type="button" class="theme-swatch${c.toLowerCase()===current?" active":""}"
-          style="background:${c};" onclick="onThemeColorChange('${c}')"></button>
-      `).join("");
-    }
-
-    function setAppFont(k) { window.BrewsStyle.set({ font: k }); collectFromUI(); renderSettingsModal(); }
-    function setAppSize(n) { window.BrewsStyle.set({ size: n }); collectFromUI(); renderSettingsModal(); }
-
-    function onThemeColorChange(hex) {
-      window.BrewsTheme.setAccent(hex);
-      document.getElementById("themeColorInput").value = hex;
-      renderThemeSwatches();
-    }
-
-    function resetThemeAccent() {
-      window.BrewsTheme.resetAccent();
-      document.getElementById("themeColorInput").value = window.BrewsTheme.BASE.caramel;
-      renderThemeSwatches();
-    }
-
-    function updateThemeBgUI() {
-      const bg       = window.BrewsTheme.getBackground();
-      const clearBtn = document.getElementById("themeBgClearBtn");
-      const wrap     = document.getElementById("themeBgPreviewWrap");
-      const preview  = document.getElementById("themeBgPreview");
-      if (bg) {
-        clearBtn.style.display = "block";
-        wrap.style.display     = "block";
-        preview.src            = bg;
-      } else {
-        clearBtn.style.display = "none";
-        wrap.style.display     = "none";
-        preview.src            = "";
-      }
-    }
-
-    // Resizes/compresses the chosen photo client-side before storing it
-    // (localStorage has a low size ceiling, and a phone photo straight off
-    // the camera would blow way past it).
-    function onThemeBgSelected(file) {
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const MAX = 1280;
-          let { width, height } = img;
-          if (width > MAX || height > MAX) {
-            const scale = MAX / Math.max(width, height);
-            width  = Math.round(width * scale);
-            height = Math.round(height * scale);
-          }
-          const canvas = document.createElement("canvas");
-          canvas.width = width; canvas.height = height;
-          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL("image/jpeg", 0.72);
-          try {
-            window.BrewsTheme.setBackground(dataUrl);
-            updateThemeBgUI();
-          } catch (err) {
-            alert("That photo was too large to save. Try a smaller image.");
-          }
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function clearThemeBg() {
-      window.BrewsTheme.clearBackground();
-      updateThemeBgUI();
-    }
-  </script>
-
-  <script>
-    // Deep link from another page's Settings icon (see header.js: goToSettings()).
-    // Runs in its own script tag, after the block above has fully initialized
-    // (THEME_SWATCHES etc.), so openSettings() has everything it needs.
-    if (new URLSearchParams(location.search).get("settings") === "1") {
-      openSettings();
-      history.replaceState(null, "", location.pathname);
-    }
-  </script>
-
-  <script>
-    const GREETINGS = [
-      {e:"☕",msg:"Ready to brew?",sub:"Let's make today count."},
-      {e:"🌅",msg:"Good shift starts here",sub:"You got this."},
-      {e:"💪",msg:"Brew hard, count harder",sub:"Every cup adds up."},
-      {e:"🧋",msg:"Let's get brewing!",sub:"Track it. Own it."},
-      {e:"✨",msg:"Another day, another sip",sub:"Make it a great one."},
-      {e:"☕",msg:"Rise & brew",sub:"Time to make it happen."},
-      {e:"😄",msg:"Cups don't count themselves",sub:"Good thing you do."},
-      {e:"🎯",msg:"Today's a good day to sell out",sub:"Let's get to work."},
-      {e:"🧋",msg:"Milk tea season, always",sub:"Ready when you are."},
-      {e:"🚀",msg:"Let's hit that quota!",sub:"₱3,000 won't earn itself."},
-      {e:"✅",msg:"Freshly brewed and ready",sub:"Start when you're set."},
-      {e:"🌟",msg:"One shift at a time",sub:"Make it count."},
-      {e:"🎶",msg:"Shake it, brew it, count it",sub:"Let's go!"},
-      {e:"☕",msg:"The best cup is the next one",sub:"Keep going."},
-      {e:"💼",msg:"Grind first, chill later",sub:"Let's have a great shift."},
-      {e:"🧋",msg:"Small cups, big dreams",sub:"You're building something real."},
-      {e:"🔥",msg:"You're on fire today",sub:"Don't stop now."},
-      {e:"⚡",msg:"Charged up and ready",sub:"Let's make this shift legendary."},
-      {e:"🎉",msg:"Another chance to be great",sub:"Don't waste it."},
-      {e:"🏅",msg:"Champions show up every day",sub:"Even on slow days."},
-      {e:"💰",msg:"Every peso counts",sub:"Track it carefully today."},
-      {e:"☕",msg:"BREWS.CO is open for business",sub:"Have an amazing shift!"},
-      {e:"👑",msg:"You're the barista and the boss",sub:"Act like it."},
-      {e:"🌻",msg:"Bloom where you're brewed",sub:"You're exactly where you need to be."},
-      {e:"⭐",msg:"Be someone's favorite part of the day",sub:"Start with their order."},
-    ];
-    const list = GREETINGS;
-    const g    = list[Math.floor(Math.random() * list.length)];
-    document.getElementById("homeEmoji").textContent = g.e;
-    document.getElementById("homeMsg").textContent   = g.msg;
-    document.getElementById("homeSub").textContent   = g.sub;
-    document.getElementById("homeDate").textContent  = new Date().toLocaleDateString("en-PH", {
-      weekday:"long", year:"numeric", month:"long", day:"numeric"
-    });
-
-    sessionStorage.setItem("brewsNav", "1");
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js");
   </script>
 </body>

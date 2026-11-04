@@ -72,6 +72,7 @@ const SHIFT_KEY = "brewsShiftResult";
         M: s.deliveredM||0, L: s.deliveredL||0,
         S: s.deliveredS||0, HC:s.deliveredHC||0,
       };
+      localStorage.setItem("brewsCalcExtras", JSON.stringify(s.extras || []));
       localStorage.removeItem(SHIFT_KEY);
       saveInputs();
       showShiftBanner();

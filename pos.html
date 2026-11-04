@@ -1196,39 +1196,22 @@ function renderFlavorSettings() {
 
 function buildCatalogue() {
   const cfg = getSettings();
-  const p   = cfg.prices;
-  const ap  = cfg.addonPrices;
-
   DRINKS.length = 0;
-  DRINKS.push(
-    { code:"M",   name:"Milktea M",     icon:"🧋", price:p.M   ?? 29, cup:"M"  },
-    { code:"L",   name:"Milktea L",     icon:"🧋", price:p.L   ?? 39, cup:"L"  },
-    { code:"MC",  name:"Iced Coffee M", icon:"☕", price:p.MC  ?? 35, cup:"M"  },
-    { code:"LC",  name:"Iced Coffee L", icon:"☕", price:p.LC  ?? 45, cup:"L"  },
-    { code:"HC",  name:"Hot Coffee",    icon:"☕", price:p.HC  ?? 45, cup:"HC" },
-    { code:"S",   name:"Milktea S",     icon:"🧋", price:p.S   ?? 25, cup:"S"  },
-    { code:"FTM", name:"Fruit Tea M",   icon:"🍵", price:p.FTM ?? 29, cup:"M"  },
-    { code:"FTL", name:"Fruit Tea L",   icon:"🍵", price:p.FTL ?? 39, cup:"L"  }
-  );
-
-  applyMenuLayout(DRINKS);
+  loadMenuDrinks().forEach(d => DRINKS.push(d));
 
   ADDONS.length = 0;
-  Object.entries(ap).forEach(([name, price]) => ADDONS.push({ name, price }));
+  Object.entries(cfg.addonPrices).forEach(([name, price]) => ADDONS.push({ name, price }));
 
   Object.assign(FLAVORS, cfg.flavors);
 }
+
+// Called by menu.js after any add / edit / delete / reorder
+window.onMenuChanged = () => { buildCatalogue(); renderDrinkButtons(); };
 
 const DRINKS  = [];
 const ADDONS  = [];
 const FLAVORS = {};
 
-const DRINK_FLAVOR_CAT = {
-  M:"milktea", L:"milktea", S:"milktea",
-  FTM:"fruittea", FTL:"fruittea",
-  MC:"icedcoffee", LC:"icedcoffee",
-  HC:"hotcoffee",
-};
 
 const RECEIPT_MS       = 5500;
 const POS_KEY          = "brewsPOSState";
@@ -1347,13 +1330,23 @@ function timeNow() {
 }
 function vibrate(p) { if (navigator.vibrate) navigator.vibrate(p); }
 
-function remainingCups() {
+// Which cup stock an order line uses ("" = none, e.g. food)
+function itemCup(i) {
+  if (i.cup !== undefined) return i.cup;
+  return DRINKS.find(d => d.code === i.code)?.cup || "";
+}
+
+// Cups used so far, by cup size
+function usedByCup(includeCart) {
   const used = {M:0,L:0,S:0,HC:0};
-  state.orders.forEach(o => o.items.forEach(i => {
-    const d = DRINKS.find(d=>d.code===i.code);
-    if (d) used[d.cup] = (used[d.cup]||0) + i.qty;
-  }));
-  state.currentItems.forEach(i => { used[i.cup] = (used[i.cup]||0) + i.qty; });
+  const add = i => { const c = itemCup(i); if (c) used[c] = (used[c]||0) + i.qty; };
+  state.orders.forEach(o => o.items.forEach(add));
+  if (includeCart) state.currentItems.forEach(add);
+  return used;
+}
+
+function remainingCups() {
+  const used = usedByCup(true);
   const del = state.deliveries || {M:0,L:0,S:0,HC:0};
   const dmg = state.damages    || {M:0,L:0,S:0,HC:0};
   return {
@@ -1430,12 +1423,15 @@ function fmtElapsed(ms) {
 }
 
 function startClock() {
+  if (clockInterval) clearInterval(clockInterval);
+  // Old saved shifts may have no start time: fall back to the first order, else now
+  if (!state.shiftStartTime) state.shiftStartTime = state.orders[0]?.id > 1e12 ? state.orders[0].id : Date.now();
   const tick = () => {
     const clockEl = document.getElementById("posClock");
     if (clockEl) clockEl.textContent = timeNow();
     const timerEl = document.getElementById("shiftTimer");
     if (timerEl && state.shiftStartTime)
-      timerEl.textContent = fmtElapsed(Date.now() - state.shiftStartTime);
+      timerEl.textContent = fmtElapsed(Math.max(0, Date.now() - state.shiftStartTime));
   };
   tick();
   clockInterval = setInterval(tick, 1000);
@@ -1466,6 +1462,7 @@ function startShift() {
   state.deliveries = {M:0,L:0,S:0,HC:0};
   state.damages    = {M:0,L:0,S:0,HC:0};
   state.shiftStartTime = Date.now();
+  localStorage.removeItem("brewsShiftMs");
   nextQuotaThreshold = getQuotaStart();
   localStorage.removeItem("brewsResumeShift");
   localStorage.setItem(SHIFT_ACTIVE_KEY, "1");
@@ -1505,6 +1502,8 @@ function resumeShift() {
     state.expenses    = s.expenses    || [];
     state.deliveries = s.deliveries || {M:0,L:0,S:0,HC:0};
     state.damages    = s.damages    || {M:0,L:0,S:0,HC:0};
+    // Keep the timer going from where the shift stopped
+    state.shiftStartTime = Date.now() - (s.elapsedMs || 0);
     state.currentItems  = [];
     state.pendingPaidOnline = false;
     // Restore correct next quota milestone
@@ -1528,9 +1527,9 @@ function renderDrinkButtons() {
 
   DRINKS.filter(d => !d.hidden).forEach(d => {
     const qty  = getQtyForCode(d.code);
-    const left = rem[d.cup] ?? 999;
-    const low  = left > 0 && left <= getLowStock();
-    const out  = left <= 0;
+    const left = d.cup ? (rem[d.cup] ?? 999) : 999;
+    const low  = d.cup && left > 0 && left <= getLowStock();
+    const out  = d.cup && left <= 0;
     const cls  = ["drink-btn",
       qty > 0 ? "has-qty"   : "",
       low      ? "low-stock" : "",
@@ -1546,10 +1545,10 @@ function renderDrinkButtons() {
       <span class="drink-btn-code">${d.code}</span>
       <span class="drink-btn-name">${d.name}</span>
       <span class="drink-btn-price">${fmt(d.price)}</span>
-      <span class="stock-pill">${out ? "OUT" : low ? `${left} left` : left}</span>
+      ${d.cup ? `<span class="stock-pill">${out ? "OUT" : low ? `${left} left` : left}</span>` : ""}
     `;
     attachHold(btn,
-      () => { if (out) { vibe("error"); return; } openFlavorModal(d); },
+      () => { if (out) { vibe("error"); return; } if (d.flav) openFlavorModal(d); else addItemToOrder(d, ""); },
       () => { removeOneCup(d.code); });
     grid.appendChild(btn);
   });
@@ -1612,7 +1611,7 @@ function refreshFlavorGrid(drink) {
   document.getElementById("flavorModalSub").textContent   =
     fmt(drink.price) + " per cup  ·  tap to add  ·  hold to remove";
 
-  const cat     = DRINK_FLAVOR_CAT[drink.code] || "milktea";
+  const cat     = drink.flav || "milktea";
   const flavors = [...(FLAVORS[cat] || [])].sort((a,b) => a.localeCompare(b));
   const grid    = document.getElementById("flavorGrid");
   const keepScroll = grid.parentElement ? grid.parentElement.scrollTop : 0;
@@ -1689,7 +1688,7 @@ function closeFlavorModal() {
 // ════════════════════════════════════════════════════
 function addItemToOrder(drink, flavor) {
   const rem  = remainingCups();
-  const left = rem[drink.cup] ?? 0;
+  const left = drink.cup ? (rem[drink.cup] ?? 0) : 999;
   if (left <= 0) {
     vibe("error");
     showFlavorToast(`Out of ${drink.cup} cups!`);
@@ -1712,7 +1711,7 @@ function addItemToOrder(drink, flavor) {
   saveState(); renderDrinkButtons(); renderCurrentOrder();
   const badge = document.getElementById(`badge-${drink.code}`);
   if (badge) { badge.classList.remove("pop"); void badge.offsetWidth; badge.classList.add("pop"); }
-  refreshFlavorGrid(drink);
+  if (document.getElementById("flavorModal").classList.contains("open")) refreshFlavorGrid(drink);
 }
 
 function setItemQty(key, qty) {
@@ -2102,19 +2101,11 @@ function renderOrdersLog() {
     list.innerHTML=`<div class="no-orders">No orders yet</div>`; return;
   }
 
-  const CODE_LABELS = {
-    M:   "Medium",             L:   "Large",
-    FTM: "Fruit Tea Medium",   FTL: "Fruit Tea Large",
-    MC:  "Iced Coffee Medium", LC:  "Iced Coffee Large",
-    S:   "Small",              HC:  "Hot Coffee",
-  };
-  const CODE_SHORT = {
-    M:   "Medium",      L:   "Large",
-    FTM: "Fruit Tea M", FTL: "Fruit Tea L",
-    MC:  "Iced Coffee M", LC: "Iced Coffee L",
-    S:   "Small",       HC:  "Hot Coffee",
-  };
-  const CODE_ORDER = ["M","L","FTM","FTL","MC","LC","S","HC"];
+  // Labels come from the order lines themselves, so added/removed products always show
+  const nameOf = {};
+  state.orders.forEach(o => o.items.forEach(i => { nameOf[i.code] = i.name; }));
+  const CODE_LABELS = nameOf, CODE_SHORT = nameOf;
+  const CODE_ORDER = [...DRINKS.map(d => d.code), ...Object.keys(nameOf).filter(c => !DRINKS.some(d => d.code === c))];
 
   list.innerHTML = [...state.orders].reverse().map(order => {
     // ── Summary line: counts by drink type ──
@@ -2240,7 +2231,7 @@ function editOrderItem(orderId, itemKey, dir) {
 
   if (dir === "inc") {
     const rem = remainingCups();
-    if ((rem[item.cup] ?? 0) <= 0) { vibe("error"); return; }
+    if (item.cup && (rem[item.cup] ?? 0) <= 0) { vibe("error"); return; }
     item.qty++;
     bumpSalesTallyDelta(item, 1);
   } else {
@@ -2490,6 +2481,19 @@ function computeCupTotals() {
   return t;
 }
 
+// Everything that isn't a core cup line (M, L, S, HC, MC, LC): Fruit Tea and any product you added.
+// These go to Calculate as their own rows, priced exactly as sold.
+function computeExtras() {
+  const core = new Set(["M","L","S","HC","MC","LC"]);
+  const map = {};
+  state.orders.forEach(o => o.items.forEach(i => {
+    if (core.has(i.code)) return;
+    const e = map[i.code] || (map[i.code] = { code: i.code, name: i.name, cup: itemCup(i), qty: 0, total: 0 });
+    e.qty += i.qty; e.total += i.unitPrice * i.qty;
+  }));
+  return Object.values(map);
+}
+
 function computeAddonRevenue() {
   return state.orders.reduce((sum,o) =>
     sum + o.items.reduce((s,i) => s + getItemAddonTotal(i) * i.qty, 0), 0);
@@ -2500,10 +2504,12 @@ function openEndShift() {
   const del = state.deliveries || {M:0,L:0,S:0,HC:0};
   const dmg = state.damages    || {M:0,L:0,S:0,HC:0};
   // Physical remaining = beg + delivered - damaged - used_in_orders
-  const endM  = state.begM  + (del.M||0)  - (dmg.M||0)  - t.M  - t.MC  - t.FTM;
-  const endL  = state.begL  + (del.L||0)  - (dmg.L||0)  - t.L  - t.LC  - t.FTL;
-  const endS  = state.begS  + (del.S||0)  - (dmg.S||0)  - t.S;
-  const endHC = state.begHC + (del.HC||0) - (dmg.HC||0) - t.HC;
+  const u     = usedByCup(false);
+  const extras = computeExtras();
+  const endM  = state.begM  + (del.M||0)  - (dmg.M||0)  - u.M;
+  const endL  = state.begL  + (del.L||0)  - (dmg.L||0)  - u.L;
+  const endS  = state.begS  + (del.S||0)  - (dmg.S||0)  - u.S;
+  const endHC = state.begHC + (del.HC||0) - (dmg.HC||0) - u.HC;
   const warn  = v => v<0 ? `<span style="color:var(--danger-soft);font-weight:700">${v} ⚠</span>` : v;
   const addonRev = computeAddonRevenue();
   const cupSales = computeShiftCupTotal();
@@ -2528,8 +2534,7 @@ function openEndShift() {
     <div class="end-shift-row"><span>Hot Coffee (HC)</span><span>${state.begHC} → ${warn(endHC)}</span></div>
     <div class="end-shift-row"><span>MC Tally</span><span>${t.MC}</span></div>
     <div class="end-shift-row"><span>LC Tally</span><span>${t.LC}</span></div>
-    <div class="end-shift-row"><span>FTM Tally</span><span>${t.FTM}</span></div>
-    <div class="end-shift-row"><span>FTL Tally</span><span>${t.FTL}</span></div>
+    ${extras.map(e => `<div class="end-shift-row"><span>${esc(e.name)}</span><span>${e.qty}</span></div>`).join("")}
   `;
   document.getElementById("endShiftModal").classList.add("open");
 }
@@ -2543,10 +2548,11 @@ function confirmEndShift() {
 
   // Formula end: beg + del - cups_used_in_orders (no damage — damage is annotation only)
   // Matches how calculate.html treats damageX: shown on receipt but not in formula
-  const formulaEndM  = state.begM  + (del.M||0)  - t.M  - t.MC  - t.FTM;
-  const formulaEndL  = state.begL  + (del.L||0)  - t.L  - t.LC  - t.FTL;
-  const formulaEndS  = state.begS  + (del.S||0)  - t.S;
-  const formulaEndHC = state.begHC + (del.HC||0) - t.HC;
+  const u = usedByCup(false);
+  const formulaEndM  = state.begM  + (del.M||0)  - u.M;
+  const formulaEndL  = state.begL  + (del.L||0)  - u.L;
+  const formulaEndS  = state.begS  + (del.S||0)  - u.S;
+  const formulaEndHC = state.begHC + (del.HC||0) - u.HC;
 
   // Physical end for carry-over = formula end minus damaged cups
   const physEndM  = formulaEndM  - (dmg.M||0);
@@ -2564,18 +2570,23 @@ function confirmEndShift() {
     origBegL: state.begL,  begL: state.begL  + (del.L||0),  endL: formulaEndL,
     origBegS: state.begS,  begS: state.begS  + (del.S||0),  endS: formulaEndS,
     origBegHC:state.begHC, begHC:state.begHC + (del.HC||0), endHC:formulaEndHC,
-    tallyMC:t.MC, tallyLC:t.LC, tallyFTM:t.FTM, tallyFTL:t.FTL,
+    tallyMC:t.MC, tallyLC:t.LC,
+    extras: computeExtras(),
     expenses: state.expenses,
     addonRevenue: computeAddonRevenue(),
     deliveredM:del.M||0, deliveredL:del.L||0, deliveredS:del.S||0, deliveredHC:del.HC||0,
     damageM:   dmg.M||0, damageL:   dmg.L||0, damageS:   dmg.S||0, damageHC:   dmg.HC||0,
   }));
 
+  const shiftMs = state.shiftStartTime ? Date.now() - state.shiftStartTime : 0;
+  localStorage.setItem("brewsShiftMs", String(shiftMs));
+
   // Save resumable snapshot so staff can pick up again if needed
   localStorage.setItem("brewsResumeShift", JSON.stringify({
     begM:state.begM, begL:state.begL, begS:state.begS, begHC:state.begHC,
     orders:state.orders, shiftTotal:state.shiftTotal, expenses:state.expenses,
     deliveries: state.deliveries, damages: state.damages,
+    elapsedMs: shiftMs,
     savedAt: Date.now(),
   }));
   saveOrderLog();

@@ -155,6 +155,11 @@ function addExpenseRow(name = "", price = "") {
   container.appendChild(row);
 }
 
+// ── Extras (Fruit Tea + added products) saved by the POS at End Shift ─────────
+function getCalcExtras() {
+  try { return JSON.parse(localStorage.getItem("brewsCalcExtras") || "[]"); } catch { return []; }
+}
+
 // ── Calculate ─────────────────────────────────────────────────────────────────
 
 function calculate() {
@@ -168,6 +173,7 @@ function calculate() {
   system.setCupsHC(v("beginHC"), v("endHC"));
   system.setMC(v("tallyMC"));
   system.setLC(v("tallyLC"));
+  system.setExtras(getCalcExtras());
   system.setExpenses(getExpensesFromUI());
   system.setAddons(v("addons"));
 
@@ -187,6 +193,7 @@ function calculate() {
     { item: system.MC, beg: null,         end: null,        dmg: 0      },
     { item: system.HC, beg: v("beginHC"), end: v("endHC"), dmg: dmg.HC },
     { item: system.S,  beg: v("beginS"),  end: v("endS"),  dmg: dmg.S  },
+    ...system.extras.map(item => ({ item, beg: null, end: null, dmg: 0 })),
   ];
 
   const dash = val => (val === null ? "—" : val);
@@ -316,16 +323,14 @@ function calculate() {
     dmg, del,
     origBegs, deliveries,
     shiftDuration: (() => {
+      let ms = parseInt(localStorage.getItem("brewsShiftMs") || "0", 10);
       try {
         const s = JSON.parse(localStorage.getItem("brewsPOSState") || "{}");
-        if (s.shiftStartTime) {
-          const ms = Date.now() - s.shiftStartTime;
-          const h  = Math.floor(ms / 3600000);
-          const m  = Math.floor((ms % 3600000) / 60000);
-          return h > 0 ? `${h}h ${m}m` : `${m}m`;
-        }
+        if (s.shiftStartTime) ms = Date.now() - s.shiftStartTime;
       } catch {}
-      return null;
+      if (!ms) return null;
+      const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
+      return h > 0 ? `${h}h ${m}m` : `${m}m`;
     })(),
   };
   renderResults(html);

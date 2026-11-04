@@ -268,14 +268,7 @@
 
   <div id="calHeaderRoot"></div>
   <script>
-    document.getElementById("calHeaderRoot").innerHTML = renderPageHeader({
-      subtitle: "History",
-      extraButtonsHTML: `
-        <button class="export-csv-btn" id="calExportBtn" onclick="exportHistoryCSV()" style="display:none;">📊 Export CSV</button>
-        <button class="pull-cloud-btn" id="calPullBtn" onclick="calPullFromCloud()" style="display:none;">⬇️ Pull Cloud</button>
-        <button class="delete-all-btn" onclick="deleteAllHistory()">🗑 Delete All</button>
-      `
-    });
+    document.getElementById("calHeaderRoot").innerHTML = renderPageHeader({ subtitle: "History" });
   </script>
 
   <div class="month-nav">
@@ -305,29 +298,38 @@
     </span>
   </div>
 
-  <div class="section monthly-exp-section">
-    <h3>Monthly Expenses</h3>
-    <div id="monthlyExpContainer"></div>
-    <button class="add-expense-btn" onclick="addMonthlyExpRow()">+ Add Monthly Expense</button>
-  </div>
-
   <div class="monthly-summary" id="monthlySummary"></div>
 
   <div class="popular-flavors" id="popularFlavors"></div>
 
-  <!-- Retention Settings -->
-  <div class="section retention-section">
-    <h3>Order Log Retention</h3>
-    <p class="retention-desc">Saved shift orders auto-delete after a set period. Choose how long to keep them:</p>
-    <div class="retention-pills" id="retentionPills"></div>
-    <p class="retention-note" id="retentionNote"></p>
-  </div>
+  <details class="fold">
+    <summary>Monthly Expenses</summary>
+    <div class="fold-body monthly-exp-section">
+      <div id="monthlyExpContainer"></div>
+      <button class="add-expense-btn" onclick="addMonthlyExpRow()">+ Add Monthly Expense</button>
+    </div>
+  </details>
 
-  <!-- Saved Order Logs -->
-  <div class="section order-logs-section">
-    <h3>Saved Order Logs</h3>
-    <div id="orderLogsContainer"></div>
-  </div>
+  <details class="fold">
+    <summary>Saved Order Logs</summary>
+    <div class="fold-body">
+      <div id="orderLogsContainer"></div>
+    </div>
+  </details>
+
+  <details class="fold">
+    <summary>Data &amp; Storage</summary>
+    <div class="fold-body">
+      <p class="retention-desc">Keep saved order logs for:</p>
+      <div class="retention-pills" id="retentionPills"></div>
+      <p class="retention-note" id="retentionNote"></p>
+      <div class="fold-actions">
+        <button class="fold-btn" id="calExportBtn" onclick="exportHistoryCSV()">📊 Export CSV</button>
+        <button class="fold-btn" id="calPullBtn" onclick="calPullFromCloud()">⬇️ Pull from Cloud</button>
+        <button class="fold-btn danger" onclick="deleteAllHistory()">🗑 Delete All History</button>
+      </div>
+    </div>
+  </details>
 </div>
 
 <!-- Receipt Modal -->

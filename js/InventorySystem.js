@@ -27,6 +27,8 @@ class InventorySystem {
     this.salaryBonusThreshold = cfg?.salaryBonusThreshold ?? 3000;
     this.salaryBonusPerK      = cfg?.salaryBonusPerK      ?? 50;
 
+    this.extras       = [];   // Fruit Tea + products you added, priced as sold
+
     this.expensesList = [];
     this.expenses     = 0;
     this.addons       = 0;
@@ -39,6 +41,19 @@ class InventorySystem {
   setMC(tally)                   { this.MC.usedCups = tally; }
   setLC(tally)                   { this.LC.usedCups = tally; }
 
+  // list: [{ name, cup, qty, total }]. Their cups come out of the matching cup count,
+  // and their sales are added on their own rows.
+  setExtras(list) {
+    this.extras = [];
+    (list || []).forEach(e => {
+      if (!e.qty) return;
+      const it = new Item(e.name, e.total / e.qty);
+      it.usedCups = e.qty;
+      this.extras.push(it);
+      if (e.cup && this[e.cup]) this[e.cup].usedCups -= e.qty;
+    });
+  }
+
   setExpenses(list) {
     this.expensesList = list;
     this.expenses     = list.reduce((s, i) => s + i.price, 0);
@@ -47,7 +62,8 @@ class InventorySystem {
 
   computeTotalCupSale() {
     return this.M.total + this.L.total + this.S.total +
-           this.MC.total + this.LC.total + this.HC.total;
+           this.MC.total + this.LC.total + this.HC.total +
+           this.extras.reduce((t, e) => t + e.total, 0);
   }
 
   computeSalaryBonus(totalSales) {
