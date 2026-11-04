@@ -11,11 +11,6 @@
 (function () {
   const ACCENT_KEY = "brewsThemeAccent"; // hex string
   const BG_KEY     = "brewsThemeBg";     // data URL string
-  const ROLE_KEY   = "brewsDeviceRole";  // "worker" | "manager"
-
-  // Shared device-role getter — theme.js loads first on every page, so this
-  // is the single source of truth instead of each page redefining it.
-  window.getDeviceRole = () => localStorage.getItem(ROLE_KEY) || "worker";
 
   // Must mirror the :root values in css/styles.css
   const BASE = {

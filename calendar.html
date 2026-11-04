@@ -10,6 +10,7 @@
   <title>BREWS.CO – History</title>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/theme.js"></script>
+  <script src="js/appstyle.js"></script>
   <script src="js/nav.js"></script>
   <script src="js/header.js"></script>
   <style>
@@ -257,8 +258,6 @@
       white-space: nowrap; box-shadow: 0 3px 14px rgba(0,0,0,0.22);
       pointer-events: none; background: var(--roast);
     }
-    /* Manager: no bottom nav, toast sits lower */
-    body:not(.has-bottom-nav) #calSyncToast { bottom: 20px; }
   </style>
 </head>
 <body class="has-bottom-nav">
@@ -793,15 +792,12 @@
   renderOrderLogs();
   renderCalendar();
 
-  // ── Role-based setup ────────────────────────────────────────────────────────
-  (function initCalRole() {
-    const role = getDeviceRole();
-    const isManager = role === "manager";
-
+  // ── Setup ───────────────────────────────────────────────────────────────────
+  (function initCal() {
     const pullBtn   = document.getElementById("calPullBtn");
     const exportBtn = document.getElementById("calExportBtn");
-    if (pullBtn   && isManager) pullBtn.style.display   = "inline-flex";
-    if (exportBtn && isManager) exportBtn.style.display = "inline-flex";
+    if (pullBtn)   pullBtn.style.display   = "inline-flex";
+    if (exportBtn) exportBtn.style.display = "inline-flex";
 
     // Offline indicator
     const pill = document.getElementById("calOfflinePill");
@@ -811,13 +807,13 @@
     if (!navigator.onLine) setOffline(true);
   })();
 
-  // Manager pull function
+  // Pull function
   async function calPullFromCloud() {
     const btn = document.getElementById("calPullBtn");
     if (btn) { btn.disabled = true; btn.textContent = "⬇️ Pulling…"; }
     _showCalToast("Pulling from cloud…", "var(--mahogany)", false);
     try {
-      await syncPull(); // manager pull = full replace
+      await syncPull();
       cleanupOrderLogs(); renderRetentionPills(); renderOrderLogs(); renderCalendar();
       _showCalToast("✓ History updated from cloud", "var(--success-dark)", true);
     } catch (e) {
@@ -895,9 +891,7 @@
   }
 </script>
 
-<script>document.write(renderBottomNav("history", {
-  variant: getDeviceRole() === "manager" ? "manager" : "worker"
-}));</script>
+<script>document.write(renderBottomNav("history"));</script>
 <script>
   applyBottomNavRole();
   const _nav = performance.getEntriesByType('navigation')[0];

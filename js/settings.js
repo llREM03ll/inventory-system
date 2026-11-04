@@ -72,8 +72,10 @@ function getSettings() {
 
 function saveSettings(s) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  localStorage.setItem("brewsSettingsModified", new Date().toISOString());
 }
 
 function resetSettings() {
   localStorage.removeItem(SETTINGS_KEY);
+  localStorage.setItem("brewsSettingsModified", new Date().toISOString());
 }

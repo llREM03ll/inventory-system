@@ -355,15 +355,13 @@ function saveCurrentResults() {
     btn.style.opacity = "0.65"; btn.style.cursor = "default";
   }
 
-  // Auto-push to cloud immediately after saving (workers only)
+  // Auto-push to cloud immediately after saving
   _autoPushAfterSave();
 }
 
 // ── Auto-push toast helpers ───────────────────────────────────────────────────
 async function _autoPushAfterSave() {
-  // Skip if sync functions are not available or this is a manager device
   if (typeof syncPush !== "function") return;
-  if (typeof getDeviceRole === "function" && getDeviceRole() === "manager") return;
 
   _showSyncToast("☁️ Syncing to cloud…", "#7a5c3e", false);
   try {
@@ -504,15 +502,7 @@ function printReceipt() {
 
     <!-- Cup Sales table -->
     <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#b08060;margin-bottom:8px;text-align:center;">Cup Sales</div>
-    <table style="width:100%;border-collapse:collapse;font-size:0.8rem;table-layout:fixed;">
-      <colgroup>
-        <col style="width:22%">
-        <col style="width:12%">
-        <col style="width:12%">
-        <col style="width:18%">
-        <col style="width:12%">
-        <col style="width:24%">
-      </colgroup>
+    <table class="rcpt-fit" style="width:100%;border-collapse:collapse;font-size:0.8rem;">
       <thead>
         <tr style="background:#f5ede5;">
           <th style="text-align:left;padding:6px 8px;color:#9a7a5e;font-size:.66rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">Item</th>
@@ -538,7 +528,7 @@ function printReceipt() {
     <div style="border-top:1.5px dashed #d4b89e;margin:14px 0;"></div>
 
     <!-- Breakdown -->
-    <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
+    <table class="rcpt-fit" style="width:100%;border-collapse:collapse;font-size:0.84rem;">
       <tr style="border-bottom:1px solid #e8d5c4;">
         <td style="padding:6px 8px;color:#3d2b1a;font-weight:700;">Total Expenses:</td>
         <td style="text-align:right;padding:6px 8px;color:#3d2b1a;font-weight:700;">− ${fmtR(d.salary + d.expenses.reduce((s,e)=>s+e.price,0))}</td>
@@ -620,6 +610,13 @@ function printReceipt() {
 
   document.body.appendChild(el);
 
+  // Keep amounts on one line; if anything is too wide, make the receipt wider
+  el.querySelectorAll("td:not(:first-child), th:not(:first-child)").forEach(c => { c.style.whiteSpace = "nowrap"; });
+  let _w = 480;
+  while (_w < 900 && [...el.querySelectorAll("table.rcpt-fit")].some(t => t.offsetWidth > t.parentElement.clientWidth - 64 + 1)) {
+    _w += 40; el.style.width = _w + "px";
+  }
+
   html2canvas(el, { backgroundColor: "#fffaf5", scale: 2, useCORS: true, logging: false })
     .then(canvas => {
       document.body.removeChild(el);
@@ -632,6 +629,31 @@ function printReceipt() {
       alert("Could not save image. Try again.");
     });
 }
+
+// ── Fit helper ────────────────────────────────────────────────────────────────
+// Wraps each table in #results and shrinks its text until it fits the width,
+// so long peso amounts are never cut off. Falls back to sideways scroll.
+function fitResultTables() {
+  const res = document.getElementById("results");
+  if (!res) return;
+  res.querySelectorAll("table").forEach(t => {
+    let wrap = t.parentElement;
+    if (!wrap.classList.contains("tbl-fit")) {
+      wrap = document.createElement("div");
+      wrap.className = "tbl-fit";
+      t.parentNode.insertBefore(wrap, t);
+      wrap.appendChild(t);
+    }
+    const base = parseFloat(getComputedStyle(t).fontSize) || 14;
+    let size = base;
+    t.style.setProperty("--fit", base + "px");
+    while (t.offsetWidth > wrap.clientWidth + 1 && size > 8) {
+      size -= 0.5;
+      t.style.setProperty("--fit", size + "px");
+    }
+  });
+}
+window.addEventListener("resize", () => { if (typeof fitResultTables === "function") fitResultTables(); });
 
 // ── Render helper ─────────────────────────────────────────────────────────────
 
@@ -650,6 +672,7 @@ function renderResults(contentHTML) {
       </label>
     </div>`;
   delete res.dataset.view;
+  fitResultTables();
   // Refresh auto-detected needs preview
   renderNeedsAutoPreview();
 }

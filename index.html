@@ -10,6 +10,7 @@
   <title>BREWS.CO</title>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/theme.js"></script>
+  <script src="js/appstyle.js"></script>
   <script src="js/nav.js"></script>
   <script src="js/header.js"></script>
   <style>
@@ -93,9 +94,6 @@
     .sync-dot.busy  { background:var(--honey); animation:pulse .8s infinite; }
     .sync-dot.error { background:var(--danger); }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
-    .sync-role-badge { font-size:0.66rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:3px 10px; border-radius:var(--radius-pill); flex-shrink:0; }
-    .sync-role-badge.worker  { background:var(--parchment); color:var(--bark); border:1px solid var(--latte); }
-    .sync-role-badge.manager { background:var(--success-bg-soft); color:var(--success-dark); border:1px solid var(--success-border); }
     .sync-btns { display:flex; gap:8px; }
     .home-offline-pill {
       width:100%; max-width:400px; margin-top:8px;
@@ -173,14 +171,6 @@
     }
     .theme-upload-btn:hover { background: rgba(196,129,58,0.06); border-color: var(--caramel); color: var(--mahogany); }
 
-    .role-toggle { display:flex; gap:8px; margin-bottom:10px; }
-    .role-btn { flex:1; padding:10px 14px; border-radius:var(--radius-md); font-size:0.84rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; transition:all .16s; text-align:center; }
-    .role-btn.active { background:var(--grad-cta); color:var(--white); border:none; box-shadow:var(--shadow-btn); }
-    .role-btn:not(.active) { background:var(--parchment); color:var(--mahogany); border:1.5px solid var(--latte); }
-    .role-btn:not(.active):hover { background:var(--latte); }
-    .role-notice { font-size:0.76rem; line-height:1.55; padding:9px 12px; border-radius:var(--radius-md); }
-    .role-notice.worker  { background:var(--pearl); border:1px solid var(--latte); color:var(--bark); }
-    .role-notice.manager { background:var(--success-bg); border:1px solid var(--success-border); color:var(--success-dark); }
 
     .sflavor-cat { margin-bottom:16px; }
     .sflavor-cat-title { font-size:0.72rem; font-weight:700; color:var(--mahogany); margin-bottom:7px; }
@@ -190,6 +180,9 @@
     .sflavor-add-row { display:flex; gap:7px; }
     .sflavor-add-input { flex:1; padding:8px 11px; border:1.5px solid var(--latte); border-radius:var(--radius-md); font-size:0.84rem; font-family:"Plus Jakarta Sans",sans-serif; background:var(--pearl); color:var(--roast); }
     .sflavor-add-input:focus { outline:none; border-color:var(--caramel); }
+    .style-opts { display:flex; flex-wrap:wrap; gap:7px; }
+    .style-opt { padding:8px 14px; border-radius:var(--radius-pill); border:1.5px solid var(--latte); background:var(--parchment); color:var(--mahogany); font-size:0.8rem; font-weight:700; }
+    .style-opt.active { background:var(--grad-cta); color:#fff; border-color:transparent; }
     .sflavor-add-btn { background:var(--grad-cta); color:var(--white); border:none; border-radius:var(--radius-md); padding:8px 14px; font-size:0.82rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; }
   </style>
 </head>
@@ -200,7 +193,7 @@
   <div class="home-view">
     <a href="index.html" class="home-logo">
       <div class="brand">BREWS.CO</div>
-      <div class="brand-sub" id="homeRoleSub">Inventory System</div>
+      <div class="brand-sub">Inventory System</div>
     </a>
 
     <div class="home-card">
@@ -210,7 +203,7 @@
     </div>
     <div class="home-date" id="homeDate"></div>
 
-    <!-- Worker only: resume banner -->
+    <!-- Resume banner -->
     <div class="home-resume" id="resumeBanner" style="display:none;">
       <div class="home-resume-info">
         <div class="home-resume-title">↩ Unfinished shift saved</div>
@@ -219,10 +212,6 @@
       <a href="pos.html" class="home-resume-btn">Resume →</a>
     </div>
 
-    <!-- Manager only: View History button -->
-    <a href="calendar.html" class="view-history-btn" id="viewHistoryBtn" style="display:none;">
-      📅 View History &amp; Reports →
-    </a>
 
     <!-- Sync card -->
     <div class="sync-card">
@@ -231,7 +220,7 @@
           <span class="sync-dot" id="syncDot"></span>
           <span id="syncStatusText">Not synced yet</span>
         </div>
-        <span class="sync-role-badge worker" id="syncRoleBadge">Worker</span>
+        
       </div>
       <div class="sync-btns">
         <button class="sync-btn sync-btn-push" id="syncPushBtn" onclick="doSync('push')">☁️ Push Data</button>
@@ -257,11 +246,8 @@
     </div>
   </div>
 
-  <!-- Bottom nav: worker (Calculate/Shift/History) or manager (Home/History/Settings) -->
-  <script>document.write(renderBottomNav(getDeviceRole() === "manager" ? "home" : "", {
-    navId: "bottomNav",
-    variant: getDeviceRole() === "manager" ? "manager" : "worker"
-  }));</script>
+  <!-- Bottom nav -->
+  <script>document.write(renderBottomNav("home", { navId: "bottomNav" }));</script>
 
   <script src="js/settings.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
@@ -270,28 +256,15 @@
     window.syncPush           = async function() { throw new Error("Sync not available."); };
     window.syncPull           = async function() { throw new Error("Sync not available."); };
     window.getLastSyncDisplay = () => null;
-    window.setDeviceRole      = (r) => localStorage.setItem("brewsDeviceRole", r === "manager" ? "manager" : "worker");
   </script>
   <script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
 
   <script>
-    // ── Role-based UI on load ──────────────────────────────────────────────────
-    (function applyRole() {
-      const role      = getDeviceRole();
-      const isManager = role === "manager";
-      const resume    = document.getElementById("resumeBanner");
-      const viewHist  = document.getElementById("viewHistoryBtn");
-      const roleSub   = document.getElementById("homeRoleSub");
-
+    // ── Resume banner ──────────────────────────────────────────────────────────
+    (function showResume() {
+      const resume = document.getElementById("resumeBanner");
       applyBottomNavRole();
-
-      if (isManager) {
-        if (resume) resume.style.display = "none";
-        if (viewHist) viewHist.style.display = "flex";
-        if (roleSub)  roleSub.textContent = "Manager View";
-      } else if (resume && localStorage.getItem("brewsResumeShift")) {
-        resume.style.display = "flex";
-      }
+      if (resume && localStorage.getItem("brewsResumeShift")) resume.style.display = "flex";
     })();
 
     // ── Sync UI ────────────────────────────────────────────────────────────────
@@ -303,14 +276,7 @@
       document.getElementById("syncPullBtn").disabled = busy;
     }
 
-    function updateSyncCard() {
-      const role  = getDeviceRole();
-      const badge = document.getElementById("syncRoleBadge");
-      const push  = document.getElementById("syncPushBtn");
-      badge.textContent = role === "manager" ? "Manager" : "Worker";
-      badge.className   = "sync-role-badge " + role;
-      push.textContent  = role === "manager" ? "⚙️ Push Settings" : "☁️ Push Data";
-    }
+    function updateSyncCard() {}
 
     function initSyncDisplay() {
       const last = getLastSyncDisplay();
@@ -320,11 +286,7 @@
 
     async function doSync(direction) {
       if (direction === "push") {
-        const role = getDeviceRole();
-        const what = role === "manager"
-          ? "settings (prices, salary, flavors) — history is untouched"
-          : "shift data (history, orders) — settings are untouched";
-        if (!confirm("⚠️ Push to Cloud?\n\nThis updates the cloud with this device's " + what + ".\n\nContinue?")) return;
+        if (!confirm("⚠️ Push to Cloud?\n\nThis sends this device's history, orders, settings and menu to the cloud.\n\nContinue?")) return;
       }
       setSyncUI("busy", direction === "push" ? "Pushing…" : "Pulling…");
       try {
@@ -336,7 +298,7 @@
       }
     }
 
-    // Auto-pull (role-aware inside syncPull)
+    // Auto-pull
     const AUTO_PULL_MS = 3 * 60 * 1000;
     async function autoPull() {
       if (localStorage.getItem("brewsShiftActive")) return;
@@ -371,41 +333,13 @@
     function handleSettingsOverlay(e) { if (e.target === document.getElementById("settingsModal")) closeSettings(); }
 
     function confirmResetSettings() {
-      if (getDeviceRole() !== "manager") return;
       if (!confirm("Reset all settings to defaults? This cannot be undone.")) return;
       resetSettings(); _ws = JSON.parse(JSON.stringify(getSettings())); renderSettingsModal();
     }
 
     function saveAndCloseSettings() {
-      if (getDeviceRole() === "manager") { collectFromUI(); saveSettings(_ws); }
-      closeSettings(); updateSyncCard();
-    }
-
-    function setLocalRole(role) {
-      setDeviceRole(role); renderSettingsModal(); updateSyncCard();
-      // Re-apply role UI without full reload
-      const isManager = role === "manager";
-      const nav     = document.getElementById("bottomNav");
-      const resume  = document.getElementById("resumeBanner");
-      const viewHist= document.getElementById("viewHistoryBtn");
-      const roleSub = document.getElementById("homeRoleSub");
-
-      if (nav) {
-        nav.outerHTML = renderBottomNav(isManager ? "home" : "", {
-          navId: "bottomNav",
-          variant: isManager ? "manager" : "worker"
-        });
-        applyBottomNavRole();
-      }
-      if (isManager) {
-        if (resume)   resume.style.display = "none";
-        if (viewHist) viewHist.style.display = "flex";
-        if (roleSub)  roleSub.textContent = "Manager View";
-      } else {
-        if (resume && localStorage.getItem("brewsResumeShift")) resume.style.display = "flex";
-        if (viewHist) viewHist.style.display = "none";
-        if (roleSub)  roleSub.textContent = "Inventory System";
-      }
+      collectFromUI(); saveSettings(_ws);
+      closeSettings();
     }
 
     function n(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
@@ -428,7 +362,6 @@
     }
 
     function addFlavorToCategory(cat) {
-      if (getDeviceRole() !== "manager") return;
       const input = document.getElementById("sfi_" + cat);
       const val   = input?.value?.trim();
       if (!val) return;
@@ -438,7 +371,6 @@
     }
 
     function removeFlavorFromCategory(cat, flavor) {
-      if (getDeviceRole() !== "manager") return;
       _ws.flavors[cat] = (_ws.flavors[cat] || []).filter(f => f !== flavor);
       renderFlavorCat(cat);
     }
@@ -446,7 +378,7 @@
     function renderFlavorCat(cat) {
       const c = document.getElementById("sfcat_" + cat);
       if (!c) return;
-      const isManager = getDeviceRole() === "manager";
+      const isManager = true;
       const flavors = _ws.flavors[cat] || [];
       c.querySelector(".sflavor-pills").innerHTML = flavors.length
         ? flavors.map(f => `<span class="sflavor-pill">${f}${isManager
@@ -461,26 +393,20 @@
     }
 
     function renderSettingsModal() {
-      const s = _ws, role = getDeviceRole(), isManager = role === "manager", locked = !isManager;
+      const s = _ws, locked = false;
 
-      document.getElementById("smodal-save-btn").style.display  = isManager ? "" : "none";
-      document.getElementById("smodal-reset-btn").style.display = isManager ? "" : "none";
-
-      const roleSection = `
+      const st = window.BrewsStyle.get();
+      const styleSection = `
         <div class="smodal-section">
-          <div class="smodal-section-title">Device Role</div>
-          <div class="role-toggle">
-            <button class="role-btn${!isManager?" active":""}" onclick="setLocalRole('worker')">👷 Worker</button>
-            <button class="role-btn${isManager?" active":""}"  onclick="setLocalRole('manager')">👔 Manager</button>
-          </div>
-          <div class="role-notice ${role}">
-            ${isManager
-              ? "✓ <strong>Manager mode</strong> — You can edit all settings. Push sends prices, salary &amp; flavors to all devices. You only see Calendar &amp; History."
-              : "👷 <strong>Worker mode</strong> — Settings are view-only. Push sends shift data (history &amp; orders) to the cloud."}
-          </div>
+          <div class="smodal-section-title">🔤 Font &amp; Text Size (this device)</div>
+          <div class="theme-label">Font</div>
+          <div class="style-opts">${Object.entries(window.BrewsStyle.FONTS).map(([k, f]) =>
+            `<button type="button" class="style-opt${st.font === k ? " active" : ""}" onclick="setAppFont('${k}')">${f.label}</button>`).join("")}</div>
+          <div class="theme-label" style="margin-top:12px;">Text Size</div>
+          <div class="style-opts">${Object.entries(window.BrewsStyle.SIZES).map(([k, l]) =>
+            `<button type="button" class="style-opt${st.size === Number(k) ? " active" : ""}" onclick="setAppSize(${k})">${l}</button>`).join("")}</div>
+          <div style="font-size:0.72rem;color:var(--dust);margin-top:8px;line-height:1.5;">Edit the menu (order, names, icons, colors) from the Shift screen with the ✏️ Edit button.</div>
         </div>`;
-
-      const lockedBanner = locked ? `<div class="settings-locked-banner">🔒 Settings are managed by the Manager device.<br>Switch to Manager mode above to make changes.</div>` : "";
 
       const themeSection = `
         <div class="smodal-section">
@@ -503,7 +429,7 @@
             <div id="themeBgPreviewWrap" style="display:none;margin-top:10px;">
               <img id="themeBgPreview" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--radius-md);border:1.5px solid var(--latte);">
             </div>
-            <div style="font-size:0.72rem;color:var(--dust);margin-top:8px;line-height:1.5;">Saved per device — applies across POS, Inventory &amp; Calendar. Not affected by Worker/Manager lock.</div>
+            <div style="font-size:0.72rem;color:var(--dust);margin-top:8px;line-height:1.5;">Saved per device — applies across POS, Inventory &amp; Calendar.</div>
           </div>
         </div>`;
 
@@ -534,7 +460,7 @@
           </div>`:""}
         </div>`).join("");
 
-      document.getElementById("settingsBody").innerHTML = themeSection + roleSection + lockedBanner + `
+      document.getElementById("settingsBody").innerHTML = themeSection + styleSection + `
         <div class="smodal-section">
           <div class="smodal-section-title">Drink Prices (₱)</div>
           <div class="smodal-grid">
@@ -576,7 +502,7 @@
         </div>
         <div class="smodal-section">
           <div class="smodal-section-title">Flavors</div>
-          ${locked?`<div style="font-size:0.76rem;color:var(--dust);margin-bottom:12px;">Managed by the Manager device.</div>`
+          ${locked?`<div style="font-size:0.76rem;color:var(--dust);margin-bottom:12px;"></div>`
                   :`<div style="font-size:0.76rem;color:var(--bark);margin-bottom:12px;">Add or remove flavors per drink category.</div>`}
           ${flavorHTML}
         </div>`;
@@ -602,6 +528,9 @@
           style="background:${c};" onclick="onThemeColorChange('${c}')"></button>
       `).join("");
     }
+
+    function setAppFont(k) { window.BrewsStyle.set({ font: k }); collectFromUI(); renderSettingsModal(); }
+    function setAppSize(n) { window.BrewsStyle.set({ size: n }); collectFromUI(); renderSettingsModal(); }
 
     function onThemeColorChange(hex) {
       window.BrewsTheme.setAccent(hex);
@@ -707,16 +636,7 @@
       {e:"🌻",msg:"Bloom where you're brewed",sub:"You're exactly where you need to be."},
       {e:"⭐",msg:"Be someone's favorite part of the day",sub:"Start with their order."},
     ];
-    const MANAGER_GREETINGS = [
-      {e:"👔",msg:"Welcome back, Manager",sub:"Pull the latest and check the numbers."},
-      {e:"📊",msg:"How's the shop doing?",sub:"Pull to see the latest from your team."},
-      {e:"📋",msg:"Reports are ready",sub:"Pull from cloud to see today's shift."},
-      {e:"👀",msg:"Keeping an eye on things?",sub:"Smart. Pull the latest data."},
-      {e:"💼",msg:"Manager on duty",sub:"Check the history, update settings."},
-    ];
-
-    const role = getDeviceRole();
-    const list = role === "manager" ? MANAGER_GREETINGS : GREETINGS;
+    const list = GREETINGS;
     const g    = list[Math.floor(Math.random() * list.length)];
     document.getElementById("homeEmoji").textContent = g.e;
     document.getElementById("homeMsg").textContent   = g.msg;

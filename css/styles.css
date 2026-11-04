@@ -420,3 +420,59 @@ body.has-bottom-nav .pos-body { padding-bottom: 92px; }
 }
 
 .home-resume-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+
+/* ── Results tables: scale to fit, never clip long amounts ── */
+.tbl-fit { width: 100%; overflow-x: auto; }
+#results table { font-size: var(--fit, 0.86rem); border-radius: 0; overflow: visible; }
+#results .tbl-fit > table { margin-top: 10px; }
+#results td, #results th { font-size: 1em; padding-left: 6px; padding-right: 6px; }
+#results th { font-size: 0.76em; }
+#results td:not(:first-child), #results th:not(:first-child) { white-space: nowrap; }
+#results td:first-child { word-break: break-word; }
+#results .summary td { font-size: 1.02em; }
+#results .summary strong { font-size: 1.09em; }
+#results .summary .expense-sub td { font-size: 0.95em; }
+
+/* ══════════════════════════════════════════════
+   MENU CUSTOMIZATION (POS)
+══════════════════════════════════════════════ */
+.drinks-section-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.menu-edit-btn, .menu-edit-bar button { background: var(--parchment); color: var(--mahogany); border: 1.5px solid var(--latte); border-radius: var(--radius-pill); padding: 4px 12px; font-size: 0.72rem; font-weight: 700; }
+.menu-edit-btn { display: inline-flex; align-items: center; gap: 4px; }
+.menu-edit-bar { display: none; align-items: center; gap: 6px; background: var(--cream); border: 1.5px dashed var(--mochaccino); border-radius: var(--radius-md); padding: 7px 10px; margin-bottom: 8px; font-size: 0.74rem; color: var(--bark); font-weight: 600; }
+.menu-edit-bar span { flex: 1; }
+.menu-edit-bar .done { background: var(--grad-cta); color: #fff; border: none; }
+
+.drink-btn { height: auto; min-height: 116px; }
+.drink-btn-img { width: 36px; height: 36px; border-radius: 9px; object-fit: cover; display: block; }
+.drink-btn.custom { background: var(--tile-bg) !important; }
+.drink-btn.custom .drink-btn-code, .drink-btn.custom .drink-btn-name, .drink-btn.custom .drink-btn-price { color: var(--tile-fg); }
+
+.drinks-grid.editing { touch-action: pan-y; }
+.drink-btn.editing { cursor: grab; touch-action: pan-y; animation: tileWiggle .32s ease-in-out infinite alternate; }
+.drink-btn.editing:active { transform: none; }
+.drink-btn.editing.is-hidden { opacity: 0.45; }
+.drink-btn.drag-source { opacity: 0.25; animation: none; }
+.tile-edit-badge { position: absolute; top: 5px; right: 6px; font-size: 0.72rem; }
+.drink-btn.drag-ghost { position: fixed; z-index: 2000; margin: 0; pointer-events: none; animation: none; transform: scale(1.06); box-shadow: 0 10px 26px rgba(40,15,0,0.35); }
+@keyframes tileWiggle { from { transform: rotate(-1.1deg); } to { transform: rotate(1.1deg); } }
+
+.mi-overlay { position: fixed; inset: 0; z-index: 3000; display: none; align-items: flex-end; justify-content: center; background: rgba(28,10,0,0.5); }
+.mi-overlay.open { display: flex; }
+.mi-sheet { width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto; background: var(--pearl); border-radius: 20px 20px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)); }
+.mi-title { font-size: 1rem; font-weight: 800; color: var(--roast); margin-bottom: 6px; }
+.mi-label { display: block; font-size: 0.66rem; font-weight: 700; color: var(--bark); letter-spacing: 0.08em; text-transform: uppercase; margin: 12px 0 5px; }
+.mi-input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--latte); border-radius: var(--radius-md); font-size: 0.9rem; background: #fff; color: var(--roast); }
+.mi-row { display: flex; align-items: center; gap: 8px; }
+.mi-prev { width: 46px; height: 46px; border-radius: 12px; background: var(--cream); border: 1.5px solid var(--latte); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.mi-prev-emoji { font-size: 1.6rem; }
+.mi-prev-img { width: 100%; height: 100%; object-fit: cover; }
+.mi-btn { background: var(--parchment); color: var(--mahogany); border: 1.5px solid var(--latte); border-radius: var(--radius-md); padding: 9px 14px; font-size: 0.8rem; font-weight: 700; }
+.mi-btn.primary { background: var(--grad-cta); color: #fff; border: none; }
+.mi-swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--latte); padding: 0; }
+.mi-swatch.active { border-color: var(--roast); box-shadow: 0 0 0 2px var(--caramel); }
+#miColor { width: 38px; height: 32px; padding: 0; border: none; background: none; }
+.mi-check { display: flex; align-items: center; gap: 9px; margin-top: 14px; font-size: 0.86rem; font-weight: 600; color: var(--roast); }
+.mi-check input { width: 18px; height: 18px; accent-color: var(--caramel); }
+.mi-actions { display: flex; align-items: center; gap: 8px; margin-top: 18px; }

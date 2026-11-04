@@ -10,6 +10,7 @@
   <title>BREWS.CO – Calculate</title>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/theme.js"></script>
+  <script src="js/appstyle.js"></script>
   <script src="js/nav.js"></script>
   <script src="js/header.js"></script>
   <style>
@@ -40,11 +41,6 @@
   </style>
 </head>
 <body class="has-bottom-nav">
-<script>
-  if ((localStorage.getItem("brewsDeviceRole") || "worker") === "manager") {
-    window.location.replace("index.html");
-  }
-</script>
   <div class="container">
     <div id="calcHeaderRoot"></div>
     <script>

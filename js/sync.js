@@ -1,18 +1,14 @@
 /**
- * sync.js — Firebase Firestore sync for BREWS.CO
+ * sync.js - Firebase Firestore sync for BREWS.CO
  *
- * WORKER  → push: merges history + data  | pull: settings replace + history merge
- * MANAGER → push: settings only          | pull: everything (full replace)
+ * Every device is the same. Push sends history, orders AND settings/menu.
  *
- * History merge rule (both push and pull):
- *   Cloud entries + local entries are combined by date.
- *   Local always wins on same-date conflict — the device that worked that shift
- *   is the source of truth for that day.
+ * History arrays are merged by date (local wins on same-date conflict), so
+ * nobody overwrites another device's shift.
  *
- * This means:
- *   - Workers can SEE all shifts from all devices (cross-check) ✓
- *   - Workers can never accidentally overwrite another worker's entry ✓
- *   - Manager sees everything after pulling ✓
+ * Settings and menu layout carry a "last edited" time (brewsSettingsModified).
+ * Pull only replaces local settings when the cloud copy is newer, so an edit
+ * you made on this device is never wiped by the 3-minute auto-pull.
  */
 
 const FIREBASE_CONFIG = {
@@ -26,9 +22,9 @@ const FIREBASE_CONFIG = {
 
 const SHOP_DOC = "shops/brews-co-main";
 const SYNC_TS  = "brewsLastSync";
-const ROLE_KEY = "brewsDeviceRole"; // "worker" | "manager" — stored locally, never synced
+const SETTINGS_MOD_KEY = "brewsSettingsModified";
 
-// Worker pushes/pulls these. Array keys are always MERGED, never replaced.
+// Array keys are MERGED, never replaced.
 const DATA_KEYS = [
   "inventoryHistory",
   "brewsOrderLog",
@@ -37,18 +33,15 @@ const DATA_KEYS = [
   "brewsOrderRetention",
 ];
 
-// Manager pushes only these.
-const SETTINGS_KEYS = ["brewsSettings"];
+// Shared by every device (prices, salary, flavors, menu layout).
+const SETTINGS_KEYS = ["brewsSettings", "brewsMenuLayout"];
 
 // These DATA_KEYS hold arrays of {date,...} objects and use the merge strategy.
 const MERGE_ARRAY_KEYS = ["inventoryHistory", "brewsOrderLog"];
 
-// ── Role helpers ──────────────────────────────────────────────────────────────
-function getDeviceRole() {
-  return localStorage.getItem(ROLE_KEY) || "worker";
-}
-function setDeviceRole(role) {
-  localStorage.setItem(ROLE_KEY, role === "manager" ? "manager" : "worker");
+// Call this whenever settings or the menu layout are edited.
+function markSettingsModified() {
+  localStorage.setItem(SETTINGS_MOD_KEY, new Date().toISOString());
 }
 
 // ── DB init ───────────────────────────────────────────────────────────────────
@@ -66,7 +59,6 @@ function _initDB() {
 }
 
 // ── Merge helpers ─────────────────────────────────────────────────────────────
-// Combines two {date,...} arrays. localArr wins on same-date conflict.
 function _mergeByDate(cloudArr, localArr) {
   const map = {};
   (cloudArr || []).forEach(e => { if (e.date) map[e.date] = e; });
@@ -77,57 +69,52 @@ function _mergeByDate(cloudArr, localArr) {
 // ── Push ──────────────────────────────────────────────────────────────────────
 async function syncPush() {
   const db = _initDB();
-  if (!db) throw new Error("Firebase unavailable — check your connection.");
+  if (!db) throw new Error("Firebase unavailable. Check your connection.");
 
-  const role = getDeviceRole();
+  let cloudData = {};
+  try {
+    const snap = await _db.doc(SHOP_DOC).get();
+    if (snap.exists) cloudData = snap.data();
+  } catch (e) {
+    console.warn("Could not fetch cloud for merge, pushing local only:", e);
+  }
 
-  if (role === "manager") {
-    // Manager: push settings only, leaves all worker data untouched in Firestore
-    const data = {};
+  const data = {};
+
+  // History arrays: merge cloud + local, local wins same date
+  MERGE_ARRAY_KEYS.forEach(k => {
+    const cloudArr = JSON.parse(cloudData[k] || "[]");
+    const localArr = JSON.parse(localStorage.getItem(k) || "[]");
+    const merged   = _mergeByDate(cloudArr, localArr);
+    data[k] = JSON.stringify(merged);
+    localStorage.setItem(k, data[k]);
+  });
+
+  // Other data keys: local wins outright
+  DATA_KEYS.filter(k => !MERGE_ARRAY_KEYS.includes(k)).forEach(k => {
+    const v = localStorage.getItem(k);
+    if (v != null) data[k] = v;
+  });
+
+  // Monthly expense keys
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith("brewsMonthlyExp_")) data[k] = localStorage.getItem(k);
+  }
+
+  // Settings + menu: only push if this device's copy is at least as new as the cloud's
+  const localMod = localStorage.getItem(SETTINGS_MOD_KEY) || "";
+  const cloudMod = cloudData._settingsPushedAt || "";
+  if (localMod && localMod >= cloudMod) {
     SETTINGS_KEYS.forEach(k => {
       const v = localStorage.getItem(k);
       if (v != null) data[k] = v;
     });
-    data._settingsPushedAt = new Date().toISOString();
-    await _db.doc(SHOP_DOC).set(data, { merge: true });
-
-  } else {
-    // Worker: fetch cloud first so we can merge history arrays
-    let cloudData = {};
-    try {
-      const snap = await _db.doc(SHOP_DOC).get();
-      if (snap.exists) cloudData = snap.data();
-    } catch (e) {
-      console.warn("Could not fetch cloud for merge — pushing local only:", e);
-    }
-
-    const data = {};
-
-    // Merge array-based history keys (cloud + local, local wins same date)
-    MERGE_ARRAY_KEYS.forEach(k => {
-      const cloudArr = JSON.parse(cloudData[k] || "[]");
-      const localArr = JSON.parse(localStorage.getItem(k) || "[]");
-      const merged   = _mergeByDate(cloudArr, localArr);
-      data[k] = JSON.stringify(merged);
-      // Also update local so this worker sees all shifts after pushing
-      localStorage.setItem(k, data[k]);
-    });
-
-    // Non-array data keys: local wins outright
-    DATA_KEYS.filter(k => !MERGE_ARRAY_KEYS.includes(k)).forEach(k => {
-      const v = localStorage.getItem(k);
-      if (v != null) data[k] = v;
-    });
-
-    // Dynamic monthly expense keys
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && k.startsWith("brewsMonthlyExp_")) data[k] = localStorage.getItem(k);
-    }
-
-    data._dataPushedAt = new Date().toISOString();
-    await _db.doc(SHOP_DOC).set(data, { merge: true });
+    data._settingsPushedAt = localMod;
   }
+
+  data._dataPushedAt = new Date().toISOString();
+  await _db.doc(SHOP_DOC).set(data, { merge: true });
 
   const ts = new Date().toISOString();
   localStorage.setItem(SYNC_TS, ts);
@@ -137,37 +124,35 @@ async function syncPush() {
 // ── Pull ──────────────────────────────────────────────────────────────────────
 async function syncPull() {
   const db = _initDB();
-  if (!db) throw new Error("Firebase unavailable — check your connection.");
+  if (!db) throw new Error("Firebase unavailable. Check your connection.");
 
   const snap = await _db.doc(SHOP_DOC).get();
   if (!snap.exists) throw new Error("No cloud data found yet.\nPush from a device first.");
 
   const data = snap.data();
-  const role = getDeviceRole();
 
-  if (role === "manager") {
-    // Full replace — manager sees exactly what's in the cloud
-    Object.entries(data).forEach(([k, v]) => {
-      if (!k.startsWith("_") && v != null) localStorage.setItem(k, v);
-    });
-
-  } else {
-    // Worker pull:
-    // 1. Settings → replace (prices/flavors always current)
+  // 1. Settings + menu: replace only when the cloud copy is newer
+  const localMod = localStorage.getItem(SETTINGS_MOD_KEY) || "";
+  const cloudMod = data._settingsPushedAt || "";
+  const cloudHasSettings = SETTINGS_KEYS.some(k => data[k] != null);
+  if (cloudHasSettings && (!localMod || cloudMod > localMod)) {
     SETTINGS_KEYS.forEach(k => {
       if (data[k] != null) localStorage.setItem(k, data[k]);
     });
-
-    // 2. History arrays → MERGE (worker sees all shifts, local entries never lost)
-    MERGE_ARRAY_KEYS.forEach(k => {
-      const cloudArr = JSON.parse(data[k] || "[]");
-      const localArr = JSON.parse(localStorage.getItem(k) || "[]");
-      const merged   = _mergeByDate(cloudArr, localArr);
-      localStorage.setItem(k, JSON.stringify(merged));
-    });
-
-    // 3. Everything else (brewsFlavorOOS, brewsLastEndingCups etc.) — keep local
+    if (cloudMod) localStorage.setItem(SETTINGS_MOD_KEY, cloudMod);
   }
+
+  // 2. History arrays: merge
+  MERGE_ARRAY_KEYS.forEach(k => {
+    const cloudArr = JSON.parse(data[k] || "[]");
+    const localArr = JSON.parse(localStorage.getItem(k) || "[]");
+    localStorage.setItem(k, JSON.stringify(_mergeByDate(cloudArr, localArr)));
+  });
+
+  // 3. Monthly expenses from other devices
+  Object.entries(data).forEach(([k, v]) => {
+    if (k.startsWith("brewsMonthlyExp_") && v != null) localStorage.setItem(k, v);
+  });
 
   const ts = new Date().toISOString();
   localStorage.setItem(SYNC_TS, ts);

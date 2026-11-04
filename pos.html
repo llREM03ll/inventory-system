@@ -10,8 +10,10 @@
   <title>BREWS.CO – POS</title>
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/theme.js"></script>
+  <script src="js/appstyle.js"></script>
   <script src="js/nav.js"></script>
   <script src="js/header.js"></script>
+  <script src="js/menu.js"></script>
   <style>
     body { align-items: flex-start; padding: 0; }
 
@@ -747,11 +749,6 @@
 </head>
 <body class="has-bottom-nav">
 
-<script>
-  if ((localStorage.getItem("brewsDeviceRole") || "worker") === "manager") {
-    window.location.replace("index.html");
-  }
-</script>
 
 <!-- ═══════════ SETUP SCREEN ═══════════ -->
 <div id="setupScreen">
@@ -857,7 +854,15 @@
 
     <!-- Drinks -->
     <div>
-      <div class="drinks-section-label">Menu <span style="font-weight:500;text-transform:none;letter-spacing:0;opacity:.8;">· tap to order · hold to remove</span></div>
+      <div class="drinks-section-label drinks-section-row">
+        <span>Menu <span style="font-weight:500;text-transform:none;letter-spacing:0;opacity:.8;">· tap to order · hold to remove</span></span>
+        <button type="button" class="menu-edit-btn" id="menuEditBtn" onclick="toggleMenuEdit(true)">✏️ Edit</button>
+      </div>
+      <div class="menu-edit-bar" id="menuEditBar">
+        <span>Drag to reorder · tap to edit</span>
+        <button type="button" onclick="resetMenuLayout()">Reset</button>
+        <button type="button" class="done" onclick="toggleMenuEdit(false)">Done</button>
+      </div>
       <div class="drinks-grid" id="drinksGrid"></div>
     </div>
 
@@ -1206,6 +1211,8 @@ function buildCatalogue() {
     { code:"FTL", name:"Fruit Tea L",   icon:"🍵", price:p.FTL ?? 39, cup:"L"  }
   );
 
+  applyMenuLayout(DRINKS);
+
   ADDONS.length = 0;
   Object.entries(ap).forEach(([name, price]) => ADDONS.push({ name, price }));
 
@@ -1517,8 +1524,9 @@ function renderDrinkButtons() {
   const rem  = remainingCups();
   const grid = document.getElementById("drinksGrid");
   grid.innerHTML = "";
+  if (menuEditing) { renderMenuEditTiles(grid); return; }
 
-  DRINKS.forEach(d => {
+  DRINKS.filter(d => !d.hidden).forEach(d => {
     const qty  = getQtyForCode(d.code);
     const left = rem[d.cup] ?? 999;
     const low  = left > 0 && left <= getLowStock();
@@ -1530,10 +1538,11 @@ function renderDrinkButtons() {
     ].filter(Boolean).join(" ");
 
     const btn = document.createElement("button");
-    btn.className = cls;
+    btn.className = cls + (d.color ? " custom" : "");
+    if (d.color) btn.style.cssText = drinkTileStyle(d);
     btn.innerHTML = `
       <span class="qty-badge" id="badge-${d.code}">${qty}</span>
-      <span class="drink-btn-icon">${d.icon}</span>
+      ${drinkIconHTML(d)}
       <span class="drink-btn-code">${d.code}</span>
       <span class="drink-btn-name">${d.name}</span>
       <span class="drink-btn-price">${fmt(d.price)}</span>
