@@ -20,7 +20,21 @@ const FIREBASE_CONFIG = {
   appId:             "1:616181567630:web:bd1d78bf8ced49f29f39df",
 };
 
-const SHOP_DOC = "shops/brews-co-main";
+// The shop's cloud document. With a sync key (Settings → Cloud Sync) the document name is that
+// secret key, so only devices that know it can reach the data. Without one, the old shared
+// name is used so existing setups keep working.
+const LEGACY_SHOP_ID = "brews-co-main";
+const SYNC_KEY_STORE = "brewsSyncKey";
+const SYNC_KEY_RE    = /^[A-Za-z0-9_-]{16,64}$/;
+function getSyncKey() { const k = localStorage.getItem(SYNC_KEY_STORE) || ""; return SYNC_KEY_RE.test(k) ? k : ""; }
+function hasSyncKey() { return !!getSyncKey(); }
+function shopDoc() { return "shops/" + (getSyncKey() || LEGACY_SHOP_ID); }
+function makeSyncKey() {
+  const a = new Uint8Array(24); crypto.getRandomValues(a);
+  return btoa(String.fromCharCode(...a)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+}
+function _parseArr(v) { try { const a = JSON.parse(v || "[]"); return Array.isArray(a) ? a : []; } catch { return []; } }
+function _validJSON(v) { try { JSON.parse(v); return true; } catch { return false; } }
 const SYNC_TS  = "brewsLastSync";
 const SETTINGS_MOD_KEY = "brewsSettingsModified";
 
@@ -69,11 +83,11 @@ function _mergeByDate(cloudArr, localArr) {
 // ── Push ──────────────────────────────────────────────────────────────────────
 async function syncPush() {
   const db = _initDB();
-  if (!db) throw new Error("Firebase unavailable. Check your connection.");
+  if (!db) throw new Error("Cloud sync is not available right now.");
 
   let cloudData = {};
   try {
-    const snap = await _db.doc(SHOP_DOC).get();
+    const snap = await _db.doc(shopDoc()).get();
     if (snap.exists) cloudData = snap.data();
   } catch (e) {
     console.warn("Could not fetch cloud for merge, pushing local only:", e);
@@ -83,8 +97,8 @@ async function syncPush() {
 
   // History arrays: merge cloud + local, local wins same date
   MERGE_ARRAY_KEYS.forEach(k => {
-    const cloudArr = JSON.parse(cloudData[k] || "[]");
-    const localArr = JSON.parse(localStorage.getItem(k) || "[]");
+    const cloudArr = _parseArr(cloudData[k]);
+    const localArr = _parseArr(localStorage.getItem(k));
     const merged   = _mergeByDate(cloudArr, localArr);
     data[k] = JSON.stringify(merged);
     localStorage.setItem(k, data[k]);
@@ -114,7 +128,7 @@ async function syncPush() {
   }
 
   data._dataPushedAt = new Date().toISOString();
-  await _db.doc(SHOP_DOC).set(data, { merge: true });
+  await _db.doc(shopDoc()).set(data, { merge: true });
 
   const ts = new Date().toISOString();
   localStorage.setItem(SYNC_TS, ts);
@@ -126,7 +140,7 @@ async function syncPull() {
   const db = _initDB();
   if (!db) throw new Error("Firebase unavailable. Check your connection.");
 
-  const snap = await _db.doc(SHOP_DOC).get();
+  const snap = await _db.doc(shopDoc()).get();
   if (!snap.exists) throw new Error("No cloud data found yet.\nPush from a device first.");
 
   const data = snap.data();
@@ -137,21 +151,21 @@ async function syncPull() {
   const cloudHasSettings = SETTINGS_KEYS.some(k => data[k] != null);
   if (cloudHasSettings && (!localMod || cloudMod > localMod)) {
     SETTINGS_KEYS.forEach(k => {
-      if (data[k] != null) localStorage.setItem(k, data[k]);
+      if (typeof data[k] === "string" && _validJSON(data[k])) localStorage.setItem(k, data[k]);
     });
     if (cloudMod) localStorage.setItem(SETTINGS_MOD_KEY, cloudMod);
   }
 
   // 2. History arrays: merge
   MERGE_ARRAY_KEYS.forEach(k => {
-    const cloudArr = JSON.parse(data[k] || "[]");
-    const localArr = JSON.parse(localStorage.getItem(k) || "[]");
+    const cloudArr = _parseArr(data[k]);
+    const localArr = _parseArr(localStorage.getItem(k));
     localStorage.setItem(k, JSON.stringify(_mergeByDate(cloudArr, localArr)));
   });
 
   // 3. Monthly expenses from other devices
   Object.entries(data).forEach(([k, v]) => {
-    if (k.startsWith("brewsMonthlyExp_") && v != null) localStorage.setItem(k, v);
+    if (/^brewsMonthlyExp_[\d-]+$/.test(k) && typeof v === "string" && _validJSON(v)) localStorage.setItem(k, v);
   });
 
   const ts = new Date().toISOString();

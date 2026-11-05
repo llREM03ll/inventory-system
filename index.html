@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" href="icon-192.png" />
@@ -9,17 +10,30 @@
   <meta name="theme-color" content="#6b4f36" />
   <title>BREWS.CO</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/util.js"></script>
   <script src="js/theme.js"></script>
   <script src="js/appstyle.js"></script>
   <script src="js/nav.js"></script>
   <script src="js/header.js"></script>
   <style>
     body { padding: 0; }
-    .home { max-width: 440px; margin: 0 auto; padding: 36px 18px 24px; display: flex; flex-direction: column; gap: 14px; }
-    .home-logo { text-align: center; text-decoration: none; display: block; margin-bottom: 6px; }
-    .home-logo .brand { font-size: 2rem; color: var(--espresso); letter-spacing: 0.20em; }
-    .home-logo .brand-sub { font-size: 0.64rem; color: var(--dust); margin: 4px 0 0; letter-spacing: 0.14em; text-transform: uppercase; }
-    .home-greet { text-align: center; font-family: "Cormorant Garamond", serif; font-size: 1.4rem; font-weight: 700; color: var(--espresso); }
+    .home-view { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 100vh; padding: 28px 20px 24px; gap: 14px; }
+    body.has-bottom-nav .home-view { min-height: calc(100vh - 70px); }
+    .home-view > * { width: 100%; max-width: 400px; }
+    .home-logo { text-decoration: none; display: block; margin-bottom: 4px; }
+    .home-logo .brand     { font-size: 2.2rem; color: var(--espresso); letter-spacing: 0.20em; }
+    .home-logo .brand-sub { font-size: 0.62rem; color: var(--dust); margin-bottom: 0; }
+
+    .home-card {
+      background: var(--grad-card); border: 1.5px solid var(--latte); border-radius: 26px;
+      padding: 34px 28px 30px; box-shadow: var(--shadow-card); position: relative; overflow: hidden;
+    }
+    .home-card::before { content:""; position:absolute; top:0;left:0;right:0;height:3px;background:var(--grad-cta); }
+    .home-card::after  { content:"☕"; position:absolute;bottom:-12px;right:-2px;font-size:6rem;opacity:0.04;transform:rotate(-12deg);pointer-events:none; }
+    .home-emoji { font-size: 3.2rem; line-height: 1; margin-bottom: 16px; }
+    .home-msg   { font-family:"Cormorant Garamond",serif; font-size:1.55rem; font-weight:700; color:var(--espresso); line-height:1.25; margin-bottom:8px; }
+    .home-sub   { font-size:0.9rem; color:var(--bark); font-weight:500; }
+    .home-date  { font-size:0.65rem; color:var(--dust); font-weight:600; letter-spacing:0.14em; text-transform:uppercase; margin-top: -4px; }
 
     .shift-card { background: var(--grad-card); border: 1.5px solid var(--latte); border-radius: 22px; padding: 22px 20px; box-shadow: var(--shadow-card); position: relative; overflow: hidden; }
     .shift-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--grad-cta); }
@@ -69,12 +83,18 @@
   </style>
 </head>
 <body class="has-bottom-nav">
-  <div class="home">
+  <div class="home-view">
     <a href="index.html" class="home-logo">
       <div class="brand">BREWS.CO</div>
-      <div class="brand-sub" id="homeDate"></div>
+      <div class="brand-sub">Inventory System</div>
     </a>
-    <div class="home-greet" id="homeGreet"></div>
+
+    <div class="home-card">
+      <div class="home-emoji" id="homeEmoji"></div>
+      <div class="home-msg"   id="homeMsg"></div>
+      <div class="home-sub"   id="homeSub"></div>
+    </div>
+    <div class="home-date" id="homeDate"></div>
 
     <div class="shift-card" id="shiftCard"></div>
 
@@ -83,7 +103,7 @@
       <div class="stat"><span>Orders Today</span><b id="todayOrders">—</b></div>
     </div>
 
-    <div class="sync-card" style="max-width:none;margin-top:0;">
+    <div class="sync-card" style="margin-top:0;">
       <div class="sync-row" style="margin-bottom:10px;">
         <div class="sync-status">
           <span class="sync-dot" id="syncDot"></span>
@@ -95,125 +115,15 @@
         <button class="sync-btn sync-btn-pull" id="syncPullBtn" onclick="doSync('pull')">⬇️ Pull</button>
       </div>
     </div>
-    <div class="home-offline-pill" id="homeOfflinePill" style="max-width:none;">📡 No connection. Sync when back online</div>
+    <div class="home-offline-pill" id="homeOfflinePill">📡 No connection. Sync when back online</div>
   </div>
 
-  <script>document.write(renderBottomNav("home", { navId: "bottomNav" }));</script>
+  <div data-layout-nav="home" data-nav-id="bottomNav"></div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
-  <script>
-    window.syncPush           = async function() { throw new Error("Sync not available."); };
-    window.syncPull           = async function() { throw new Error("Sync not available."); };
-    window.getLastSyncDisplay = () => null;
-  </script>
-  <script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
-
-  <script>
-    applyBottomNavRole();
-
-    // ── Header ─────────────────────────────────────────────────────────────────
-    const now = new Date();
-    const hr = now.getHours();
-    document.getElementById("homeGreet").textContent = hr < 12 ? "Good morning ☕" : hr < 18 ? "Good afternoon 🧋" : "Good evening 🌙";
-    document.getElementById("homeDate").textContent = now.toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric" });
-
-    // ── Shift card ─────────────────────────────────────────────────────────────
-    function renderShiftCard() {
-      const card = document.getElementById("shiftCard");
-      const active = !!localStorage.getItem("brewsShiftActive");
-      const saved  = !!localStorage.getItem("brewsResumeShift");
-      if (active) {
-        let start = 0;
-        try { start = JSON.parse(localStorage.getItem("brewsPOSState") || "{}").shiftStartTime || 0; } catch {}
-        const ms = start ? Date.now() - start : 0;
-        const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
-        card.innerHTML = `
-          <div class="shift-state"><i class="live"></i>Shift in progress</div>
-          <div class="shift-title">${start ? (h > 0 ? h + "h " : "") + m + "m running" : "Shift is running"}</div>
-          <div class="shift-sub">Your orders are saved on this device.</div>
-          <a href="pos.html" class="shift-btn">Return to Shift →</a>`;
-      } else if (saved) {
-        card.innerHTML = `
-          <div class="shift-state"><i></i>Unfinished shift</div>
-          <div class="shift-title">Pick up where you left off</div>
-          <div class="shift-sub">Your orders are safe.</div>
-          <a href="pos.html" class="shift-btn">Resume Shift →</a>`;
-      } else {
-        card.innerHTML = `
-          <div class="shift-state"><i></i>No active shift</div>
-          <div class="shift-title">Ready when you are</div>
-          <div class="shift-sub">Enter your beginning cups to start.</div>
-          <a href="pos.html" class="shift-btn">Start Shift →</a>`;
-      }
-    }
-    renderShiftCard();
-    setInterval(renderShiftCard, 30000);
-
-    // ── Today ──────────────────────────────────────────────────────────────────
-    (function renderToday() {
-      const today = now.toISOString().split("T")[0];
-      try {
-        const hist = JSON.parse(localStorage.getItem("inventoryHistory") || "[]");
-        const e = hist.find(h => h.date === today);
-        if (e) {
-          const div = document.createElement("div");
-          div.innerHTML = e.results;
-          for (const row of div.querySelectorAll("tr")) {
-            const c = row.querySelectorAll("td");
-            if (c.length >= 2 && c[0].textContent.includes("Final Total")) { document.getElementById("todayTotal").textContent = c[1].textContent.trim(); break; }
-          }
-        }
-        const logs = JSON.parse(localStorage.getItem("brewsOrderLog") || "[]");
-        const l = logs.find(x => x.date === today);
-        if (l) document.getElementById("todayOrders").textContent = (l.orders || []).length;
-        else {
-          const st = JSON.parse(localStorage.getItem("brewsPOSState") || "{}");
-          if (st.orders) document.getElementById("todayOrders").textContent = st.orders.length;
-        }
-      } catch {}
-    })();
-
-    // ── Sync ───────────────────────────────────────────────────────────────────
-    function setSyncUI(state, msg) {
-      document.getElementById("syncDot").className = "sync-dot " + (state || "");
-      document.getElementById("syncStatusText").textContent = msg;
-      const busy = state === "busy";
-      document.getElementById("syncPushBtn").disabled = busy;
-      document.getElementById("syncPullBtn").disabled = busy;
-    }
-    function initSyncDisplay() {
-      const last = getLastSyncDisplay();
-      setSyncUI(last ? "ok" : "", last ? "Last synced " + last : "Not synced yet");
-    }
-    async function doSync(direction) {
-      if (direction === "push" && !confirm("Push to cloud?\n\nThis sends this device's history, orders, settings and menu.")) return;
-      setSyncUI("busy", direction === "push" ? "Pushing…" : "Pulling…");
-      try {
-        if (direction === "push") { await syncPush(); setSyncUI("ok", "Pushed " + getLastSyncDisplay()); }
-        else                      { await syncPull(); setSyncUI("ok", "Pulled " + getLastSyncDisplay()); }
-      } catch (e) {
-        setSyncUI("error", "⚠ " + (e.message || "Sync failed"));
-        setTimeout(initSyncDisplay, 4000);
-      }
-    }
-    async function autoPull() {
-      if (localStorage.getItem("brewsShiftActive")) return;
-      setSyncUI("busy", "Auto-syncing…");
-      try { await syncPull(); setSyncUI("ok", "Auto-synced " + getLastSyncDisplay()); }
-      catch (e) { setSyncUI("error", "⚠ Auto-sync failed"); setTimeout(initSyncDisplay, 3000); }
-    }
-    initSyncDisplay();
-    setTimeout(autoPull, 1500);
-    setInterval(autoPull, 3 * 60 * 1000);
-
-    const _pill = document.getElementById("homeOfflinePill");
-    const _setOffline = v => _pill.classList.toggle("visible", v);
-    window.addEventListener("online",  () => _setOffline(false));
-    window.addEventListener("offline", () => _setOffline(true));
-    if (!navigator.onLine) _setOffline(true);
-
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js");
-  </script>
+  <script src="vendor/firebase-app-compat.js"></script>
+  <script src="vendor/firebase-firestore-compat.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/home.js"></script>
 </body>
 </html>

@@ -1,4 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* Fonts are bundled in /fonts (SIL Open Font License), nothing is loaded from the internet */
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/plus-jakarta-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/plus-jakarta-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/plus-jakarta-sans-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/plus-jakarta-sans-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 800; font-display: swap; src: url("../fonts/plus-jakarta-sans-latin-800-normal.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/cormorant-garamond-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/cormorant-garamond-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 700; font-display: swap; src: url("../fonts/cormorant-garamond-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 400; font-display: swap; src: url("../fonts/cormorant-garamond-latin-400-italic.woff2") format("woff2"); }
+@font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 600; font-display: swap; src: url("../fonts/cormorant-garamond-latin-600-italic.woff2") format("woff2"); }
 
 /* ══════════════════════════════════════════════════════
    BREWS.CO DESIGN SYSTEM
@@ -566,3 +576,9 @@ select.mi-input { appearance: auto; }
 .fold-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 .fold-btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px; border-radius: var(--radius-md); background: var(--parchment); color: var(--mahogany); border: 1.5px solid var(--latte); font-size: 0.84rem; }
 .fold-btn.danger { background: var(--danger-bg); color: var(--danger-soft); border-color: var(--danger-border); }
+
+/* ── Product editor: flavor box ── */
+.mi-flavbox { margin-top: 10px; background: var(--cream); border: 1.5px solid var(--latte); border-radius: var(--radius-md); padding: 10px 12px; }
+.mi-flavtitle { font-size: 0.78rem; font-weight: 700; color: var(--mahogany); margin-bottom: 8px; }
+.mi-flavtitle small { color: var(--bark); font-weight: 600; }
+.mi-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; max-height: 150px; overflow-y: auto; }

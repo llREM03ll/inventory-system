@@ -63,7 +63,7 @@ function getAutoCupNeeds() {
 
 function getAutoFlavorNeeds() {
   try {
-    const oos  = JSON.parse(localStorage.getItem("brewsFlavorOOS") || "[]");
+    const oos  = readJSON("brewsFlavorOOS", []);
     const seen = new Set();
     return oos.map(key => {
       const name = key.startsWith("FT:") ? key.slice(3) : key;
@@ -103,7 +103,7 @@ function renderNeedsAutoPreview() {
       <div style="display:flex;align-items:center;justify-content:space-between;
         background:#fff4f0;border:1.5px solid #f0c8b8;border-radius:10px;
         padding:8px 12px;margin-bottom:5px;font-size:0.84rem;">
-        <span style="font-weight:600;color:#5c4631;">${c.label}</span>
+        <span style="font-weight:600;color:#5c4631;">${esc(c.label)}</span>
         <span style="font-size:0.76rem;color:#c0665a;font-weight:700;">${c.remaining} left (≤${low})</span>
       </div>`).join("");
   }
@@ -147,7 +147,7 @@ function addExpenseRow(name = "", price = "") {
   const row       = document.createElement("div");
   row.className   = "expense-row";
   row.innerHTML   = `
-    <input type="text"   class="exp-name"  placeholder="Item name" value="${name}">
+    <input type="text"   class="exp-name"  placeholder="Item name" value="${esc(name)}">
     <input type="number" class="exp-price" placeholder="₱0"        value="${price}">
     <button type="button" onclick="this.parentElement.remove(); saveInputs();">x</button>
   `;
@@ -157,7 +157,7 @@ function addExpenseRow(name = "", price = "") {
 
 // ── Extras (Fruit Tea + added products) saved by the POS at End Shift ─────────
 function getCalcExtras() {
-  try { return JSON.parse(localStorage.getItem("brewsCalcExtras") || "[]"); } catch { return []; }
+  try { return readJSON("brewsCalcExtras", []); } catch { return []; }
 }
 
 // ── Calculate ─────────────────────────────────────────────────────────────────
@@ -197,7 +197,7 @@ function calculate() {
   ];
 
   const dash = val => (val === null ? "—" : val);
-  const today = new Date().toISOString().split("T")[0];
+  const today = localDate();
   const existingDate = document.getElementById("resultDate")?.value || today;
   lastRenderDate = existingDate;
 
@@ -240,7 +240,7 @@ function calculate() {
         : `${beg}`;
 
     html += `<tr>
-      <td>${item.name}</td>
+      <td>${esc(item.name)}</td>
       <td>${displayBeg}</td>
       <td>${warnIfNeg(item.usedCups, item.usedCups)}</td>
       <td>${formatMoney(item.price)}</td>
@@ -300,7 +300,7 @@ function calculate() {
     </tr>
   `;
   system.expensesList.forEach(e => {
-    html += `<tr class="expense-sub"><td>${e.name}</td><td style="text-align:right">- ${formatMoney(e.price)}</td></tr>`;
+    html += `<tr class="expense-sub"><td>${esc(e.name)}</td><td style="text-align:right">- ${formatMoney(e.price)}</td></tr>`;
   });
   html += `
     <tr><td style="padding-top:12px;border-top:1px solid #e8d5c4;">Gross Income:</td>
@@ -325,7 +325,7 @@ function calculate() {
     shiftDuration: (() => {
       let ms = parseInt(localStorage.getItem("brewsShiftMs") || "0", 10);
       try {
-        const s = JSON.parse(localStorage.getItem("brewsPOSState") || "{}");
+        const s = readJSON("brewsPOSState", {});
         if (s.shiftStartTime) ms = Date.now() - s.shiftStartTime;
       } catch {}
       if (!ms) return null;
@@ -344,7 +344,7 @@ function calculate() {
 function saveCurrentResults() {
   if (!lastRenderContent) { alert("Please compute first."); return; }
   const dateInput  = document.getElementById("resultDate");
-  const editedDate = dateInput?.value || lastRenderDate || new Date().toISOString().split("T")[0];
+  const editedDate = dateInput?.value || lastRenderDate || localDate();
   saveHistory(editedDate, lastRenderContent);
 
   // Save ending cups for carry-over to next shift
@@ -423,7 +423,7 @@ function printReceipt() {
   const d = lastRenderData;
 
   // ── Build filename: MMDDYY_cashonhand ─────────────────────────────────────
-  const dp     = (d.date || new Date().toISOString().split("T")[0]).split("-");
+  const dp     = (d.date || localDate()).split("-");
   const mmddyy = dp[1] + dp[2] + dp[0].slice(2);
   const cash   = Math.round(d.finalTotal);
   const filename = `${mmddyy}_${cash}.png`;
@@ -452,7 +452,7 @@ function printReceipt() {
 
     return `
       <tr>
-        <td style="text-align:left;padding:6px 8px;color:${neg?"#c0665a":"#3d2b1a"};border-bottom:1px solid #f0e4d8;word-break:break-word;">${item.name}</td>
+        <td style="text-align:left;padding:6px 8px;color:${neg?"#c0665a":"#3d2b1a"};border-bottom:1px solid #f0e4d8;word-break:break-word;">${esc(item.name)}</td>
         <td style="text-align:center;padding:6px 4px;color:#7a5c3e;border-bottom:1px solid #f0e4d8;line-height:1.3;">${begDisplay}</td>
         <td style="text-align:center;padding:6px 4px;color:${neg?"#c0665a":"#3d2b1a"};font-weight:${neg?700:400};border-bottom:1px solid #f0e4d8;">${item.usedCups}${neg?" ⚠":""}</td>
         <td style="text-align:center;padding:6px 4px;color:#9a7a5e;border-bottom:1px solid #f0e4d8;">${fmtR(item.price)}</td>
@@ -462,7 +462,7 @@ function printReceipt() {
   }).join("");
 
   const expRows = d.expenses.map(e =>
-    `<tr><td style="padding:3px 8px 3px 20px;color:#9a7a5e;font-size:.83rem" colspan="2">↳ ${e.name}</td>
+    `<tr><td style="padding:3px 8px 3px 20px;color:#9a7a5e;font-size:.83rem" colspan="2">↳ ${esc(e.name)}</td>
          <td style="text-align:right;padding:3px 8px;color:#9a7a5e;font-size:.83rem" colspan="4">− ${fmtR(e.price)}</td></tr>`
   ).join("");
 
@@ -544,7 +544,7 @@ function printReceipt() {
       </tr>
       ${d.expenses.map(e=>`
       <tr style="border-bottom:1px solid #f0e4d8;">
-        <td style="padding:3px 8px 3px 22px;color:#9a7a5e;font-size:0.8rem;">${e.name}</td>
+        <td style="padding:3px 8px 3px 22px;color:#9a7a5e;font-size:0.8rem;">${esc(e.name)}</td>
         <td style="text-align:right;padding:3px 8px;color:#9a7a5e;font-size:0.8rem;">− ${fmtR(e.price)}</td>
       </tr>`).join("")}
       <tr style="border-bottom:1px solid #e8d5c4;">
@@ -576,7 +576,7 @@ function printReceipt() {
 
       const cupRows = needs.cups.map(c => `
         <tr style="border-bottom:1px solid #f0e4d8;">
-          <td style="padding:5px 8px;font-size:0.82rem;color:#5c4631;">${c.label}</td>
+          <td style="padding:5px 8px;font-size:0.82rem;color:#5c4631;">${esc(c.label)}</td>
           <td style="text-align:right;padding:5px 8px;font-size:0.82rem;font-weight:700;color:#c0665a;">${c.remaining} left ⚠</td>
         </tr>`).join("");
 

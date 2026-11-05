@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -9,6 +10,7 @@
   <meta name="theme-color" content="#6b4f36" />
   <title>BREWS.CO – Calculate</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/util.js"></script>
   <script src="js/theme.js"></script>
   <script src="js/appstyle.js"></script>
   <script src="js/nav.js"></script>
@@ -42,10 +44,7 @@
 </head>
 <body class="has-bottom-nav">
   <div class="container">
-    <div id="calcHeaderRoot"></div>
-    <script>
-      document.getElementById("calcHeaderRoot").innerHTML = renderPageHeader({ subtitle: "Calculate" });
-    </script>
+    <div data-layout-header data-subtitle="Calculate"></div>
 
     <div id="carryoverWrap" style="display:none;">
       <button class="carryover-btn" onclick="useYesterdaysEnding()">
@@ -116,73 +115,15 @@
     </div>
   </div>
 
-  <script>document.write(renderBottomNav("calculate"));</script>
+  <div data-layout-nav="calculate"></div>
 
-  <script>
-    // Clamp all number inputs to 0+
-    document.addEventListener("input", e => {
-      if (e.target.type === "number") {
-        const v = parseFloat(e.target.value);
-        if (!isNaN(v) && v < 0) e.target.value = 0;
-      }
-    });
-
-    // On reload → go to index (unless a shift is active)
-    const _nav = performance.getEntriesByType('navigation')[0];
-    if (_nav && _nav.type === 'reload' && !localStorage.getItem('brewsShiftActive')) {
-      window.location.replace('index.html');
-    }
-    if (localStorage.getItem("brewsShiftActive")) {
-      document.getElementById("shiftNavLabel").textContent = "↩ Shift";
-    }
-
-    // Carry-over button
-    (function initCarryover() {
-      const raw = localStorage.getItem("brewsLastEndingCups");
-      if (!raw) return;
-      try {
-        const d = JSON.parse(raw);
-        const wrap = document.getElementById("carryoverWrap");
-        const meta = document.getElementById("carryoverMeta");
-        wrap.style.display = "block";
-        meta.textContent = d.date ? `from ${d.date}` : "";
-        window.useYesterdaysEnding = function() {
-          const fields = { beginM: d.endM, beginL: d.endL, beginS: d.endS, beginHC: d.endHC };
-          Object.entries(fields).forEach(([id, val]) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.value = val;
-            el.style.transition = "background .4s";
-            el.style.background = "var(--success-bg-alt)";
-            setTimeout(() => el.style.background = "", 900);
-          });
-          if (typeof saveInputs === "function") saveInputs();
-        };
-      } catch {}
-    })();
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" onerror="console.warn('Firebase CDN unavailable')"></script>
+  <script src="js/layout.js"></script>
+<script src="js/calc-page.js"></script>
+  <script src="vendor/html2canvas.min.js"></script>
+  <script src="vendor/firebase-app-compat.js"></script>
+  <script src="vendor/firebase-firestore-compat.js"></script>
   <script src="js/settings.js"></script>
-  <script>
-    if (typeof getSettings !== "function") {
-      const _D = {
-        prices:{ M:29,L:39,S:25,MC:35,LC:45,HC:45,FTM:29,FTL:39 },
-        addonPrices:{"Pearl":6,"Nata":6,"Coffee Jelly":6,"Oreo":6,"Cream Cheese":10,"Espresso Shot":6},
-        salaryBase:350,salaryBonusThreshold:3000,salaryBonusPerK:50,
-        quotaStart:3000,lowStock:5,
-        flavors:{milktea:[],fruittea:[],icedcoffee:[],hotcoffee:[]}
-      };
-      window.getSettings  = () => JSON.parse(JSON.stringify(_D));
-      window.saveSettings = () => {};
-      window.resetSettings= () => {};
-    }
-  </script>
-  <script>
-    if (typeof window.syncPush      !== "function") window.syncPush      = async () => { throw new Error("Sync unavailable"); };
-  </script>
-  <script src="js/sync.js" onerror="console.warn('sync.js not found')"></script>
+      <script src="js/sync.js"></script>
   <script src="js/InventorySystem.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/history.js"></script>

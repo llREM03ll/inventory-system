@@ -1,0 +1,20 @@
+// Firestore security rules for BREWS.CO cloud sync.
+// Paste into Firebase console → Firestore Database → Rules → Publish.
+//
+// The app has no login, so protection comes from an unguessable document name:
+// the "sync key" you set in Settings → Cloud Sync becomes the name of the shop
+// document (shops/<key>). These rules let a device read, write or update a document
+// only if it already knows the exact name, and nobody can list or delete anything.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /shops/{shopId} {
+      allow get: if true;
+      allow create, update: if request.resource.size < 900000;   // Firestore limit is 1 MiB
+      allow list, delete: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

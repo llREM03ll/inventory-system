@@ -1,0 +1,9 @@
+{
+  "name": "brews-co",
+  "version": "16.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "BREWS.CO inventory, POS and reports (static PWA)",
+  "scripts": { "test": "node tests/smoke.test.js" },
+  "devDependencies": { "jsdom": "^24.0.0" }
+}

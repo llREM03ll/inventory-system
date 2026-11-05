@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" href="icon-192.png" />
@@ -9,6 +10,7 @@
   <meta name="theme-color" content="#6b4f36" />
   <title>BREWS.CO – Settings</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <script src="js/util.js"></script>
   <script src="js/theme.js"></script>
   <script src="js/appstyle.js"></script>
   <script src="js/nav.js"></script>
@@ -16,293 +18,17 @@
 </head>
 <body class="has-bottom-nav">
   <div class="container">
-    <div id="headerRoot"></div>
-    <script>document.getElementById("headerRoot").innerHTML = renderPageHeader({ subtitle: "Settings", hideSettings: true });</script>
-
+    <div data-layout-header data-subtitle="Settings" data-hide-settings></div>
     <div id="settingsBody"></div>
-
-    <div class="settings-save-bar">
-      <button class="reset" onclick="confirmResetSettings()">↺ Reset</button>
-      <button class="save" onclick="saveSettingsPage()">Save Settings</button>
-    </div>
   </div>
   <div class="settings-toast" id="settingsToast"></div>
 
-  <script>document.write(renderBottomNav("settings"));</script>
+  <div data-layout-nav="settings"></div>
 
   <script src="js/settings.js"></script>
   <script src="js/menu.js"></script>
-  <script>
-    const CAT_LABELS = { milktea:"Milk Tea", fruittea:"Fruit Tea", icedcoffee:"Iced Coffee", hotcoffee:"Hot Coffee" };
-    let _ws = JSON.parse(JSON.stringify(getSettings()));
-
-    function toast(msg) {
-      const t = document.getElementById("settingsToast");
-      t.textContent = msg; t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 1800);
-    }
-
-    function n(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
-    function fi(id, label, val) {
-      return `<div class="smodal-field"><label class="smodal-label">${label}</label>
-        <input class="smodal-input" id="${id}" type="number" inputmode="decimal" value="${val}"></div>`;
-    }
-
-    // Reads the form into _ws (flavors are already edited in memory)
-    function collectFromUI() {
-      if (!document.getElementById("sp_salaryBase")) return;
-      _ws.addonPrices = {};
-      document.querySelectorAll(".saddon-row").forEach(r => {
-        const name = r.querySelector(".saddon-name")?.value?.trim();
-        const price = parseFloat(r.querySelector(".saddon-price")?.value) || 0;
-        if (name) _ws.addonPrices[name] = price;
-      });
-      _ws.salaryBase           = n("sp_salaryBase");
-      _ws.salaryBonusThreshold = n("sp_bonusThreshold");
-      _ws.salaryBonusPerK      = n("sp_bonusPerK");
-      _ws.quotaStart           = n("sp_quotaStart");
-      _ws.lowStock             = n("sp_lowStock");
-      _ws.soundEnabled         = document.getElementById("sp_sound").checked;
-    }
-
-    // Saves only what this page edits. Drink prices live in the menu and are never overwritten here.
-    function saveSettingsPage() {
-      collectFromUI();
-      const cur = getSettings();
-      ["addonPrices","salaryBase","salaryBonusThreshold","salaryBonusPerK","quotaStart","lowStock","soundEnabled","flavors"]
-        .forEach(k => { cur[k] = _ws[k]; });
-      saveSettings(cur);
-      toast("Settings saved ✓");
-    }
-
-    function confirmResetSettings() {
-      if (!confirm("Reset all settings (prices, salary, flavors) to defaults? This cannot be undone.")) return;
-      resetSettings(); _ws = JSON.parse(JSON.stringify(getSettings())); renderSettings(); toast("Settings reset");
-    }
-
-    function addFlavorToCategory(cat) {
-      const input = document.getElementById("sfi_" + cat);
-      const val = input?.value?.trim();
-      if (!val) return;
-      if (!_ws.flavors[cat]) _ws.flavors[cat] = [];
-      if (!_ws.flavors[cat].includes(val)) { _ws.flavors[cat].push(val); renderFlavorCat(cat); }
-      input.value = "";
-    }
-    function removeFlavorFromCategory(cat, flavor) {
-      _ws.flavors[cat] = (_ws.flavors[cat] || []).filter(f => f !== flavor);
-      renderFlavorCat(cat);
-    }
-    function renderFlavorCat(cat) {
-      const c = document.getElementById("sfcat_" + cat);
-      if (!c) return;
-      const flavors = _ws.flavors[cat] || [];
-      c.querySelector(".sflavor-pills").innerHTML = flavors.length
-        ? flavors.map(f => `<span class="sflavor-pill">${_mesc(f)}<button class="sflavor-pill-del" onclick="removeFlavorFromCategory('${cat}','${f.replace(/'/g,"\\'")}')">✕</button></span>`).join("")
-        : `<span style="font-size:0.76rem;color:var(--mochaccino);">No flavors added</span>`;
-    }
-
-    function addAddonRow() {
-      document.getElementById("saddonContainer").insertAdjacentHTML("beforeend", `
-        <div class="expense-row saddon-row">
-          <input class="smodal-input saddon-name" type="text" placeholder="Add-on name">
-          <input class="smodal-input saddon-price" type="number" inputmode="decimal" placeholder="₱0">
-          <button type="button" onclick="this.parentElement.remove();">✕</button>
-        </div>`);
-    }
-
-    function renderSettings() {
-      const s = _ws;
-      const st = window.BrewsStyle.get();
-
-      const addonRows = Object.entries(s.addonPrices).map(([name, price]) => `
-        <div class="expense-row saddon-row">
-          <input class="smodal-input saddon-name" type="text" value="${_mesc(name)}" placeholder="Add-on name">
-          <input class="smodal-input saddon-price" type="number" inputmode="decimal" value="${price}" placeholder="₱0">
-          <button type="button" onclick="this.parentElement.remove();">✕</button>
-        </div>`).join("");
-
-      const flavorHTML = Object.entries(CAT_LABELS).map(([cat, label]) => `
-        <div class="sflavor-cat" id="sfcat_${cat}">
-          <div class="sflavor-cat-title">${label}</div>
-          <div class="sflavor-pills"></div>
-          <div class="sflavor-add-row">
-            <input class="sflavor-add-input" id="sfi_${cat}" type="text" placeholder="Add flavor…"
-              onkeydown="if(event.key==='Enter'){addFlavorToCategory('${cat}');event.preventDefault();}">
-            <button class="sflavor-add-btn" onclick="addFlavorToCategory('${cat}')">+ Add</button>
-          </div>
-        </div>`).join("");
-
-      document.getElementById("settingsBody").innerHTML = `
-        <div class="smodal-section">
-          <div class="smodal-section-title">🧋 Menu &amp; Products</div>
-          <div style="font-size:0.76rem;color:var(--bark);margin-bottom:10px;line-height:1.5;">Tap a product to edit its name, price, icon, color or to delete it. Use the arrows to reorder.</div>
-          <div id="menuManager"></div>
-        </div>
-
-        <div class="smodal-section">
-          <div class="smodal-section-title">Add-on Prices (₱)</div>
-          <div id="saddonContainer">${addonRows}</div>
-          <button class="add-expense-btn" onclick="addAddonRow()">+ Add Add-on</button>
-        </div>
-
-        <div class="smodal-section">
-          <div class="smodal-section-title">Salary &amp; Bonus</div>
-          <div class="smodal-grid-3">
-            ${fi("sp_salaryBase","Base Salary (₱)",s.salaryBase)}
-            ${fi("sp_bonusThreshold","Bonus Threshold (₱)",s.salaryBonusThreshold)}
-            ${fi("sp_bonusPerK","Bonus per ₱1,000 (₱)",s.salaryBonusPerK)}
-          </div>
-          <div style="font-size:0.72rem;color:var(--dust);margin-top:8px;line-height:1.5;">Staff earns the base salary when cup sales meet or exceed it. Once sales hit the bonus threshold, the bonus kicks in, plus that same amount for every extra ₱1,000.</div>
-        </div>
-
-        <div class="smodal-section">
-          <div class="smodal-section-title">Quota, Stock &amp; Sound</div>
-          <div class="smodal-grid">
-            ${fi("sp_quotaStart","Quota Toast at (₱)",s.quotaStart)}
-            ${fi("sp_lowStock","Low Stock Warning (cups)",s.lowStock)}
-          </div>
-          <label style="display:flex;align-items:center;gap:10px;padding:12px 0 0;cursor:pointer;">
-            <input type="checkbox" id="sp_sound" ${s.soundEnabled ? "checked" : ""} style="width:18px;height:18px;accent-color:var(--caramel);">
-            <span style="font-size:0.84rem;color:var(--roast);font-weight:600;">Enable order sounds 🔔</span>
-          </label>
-        </div>
-
-        <div class="smodal-section">
-          <div class="smodal-section-title">Flavors</div>
-          ${flavorHTML}
-        </div>
-
-        <div class="smodal-section">
-          <div class="smodal-section-title">🔤 Font &amp; Text Size (this device)</div>
-          <div class="theme-label">Font</div>
-          <div class="style-opts">${Object.entries(window.BrewsStyle.FONTS).map(([k, f]) =>
-            `<button type="button" class="style-opt${st.font === k ? " active" : ""}" onclick="setAppFont('${k}')">${f.label}</button>`).join("")}</div>
-          <div class="theme-label" style="margin-top:12px;">Text Size</div>
-          <div class="style-opts">${Object.entries(window.BrewsStyle.SIZES).map(([k, l]) =>
-            `<button type="button" class="style-opt${st.size === Number(k) ? " active" : ""}" onclick="setAppSize(${k})">${l}</button>`).join("")}</div>
-        </div>
-
-        <div class="smodal-section">
-          <div class="smodal-section-title">🎨 Theme (this device)</div>
-          <div class="theme-section">
-            <div class="theme-label">Accent Color</div>
-            <div class="theme-color-row">
-              <input type="color" id="themeColorInput" value="#C4813A" oninput="onThemeColorChange(this.value)">
-              <div class="theme-swatches" id="themeSwatches"></div>
-            </div>
-            <button type="button" class="theme-text-btn" onclick="resetThemeAccent()">Reset to default caramel</button>
-          </div>
-          <div class="theme-section" style="margin-bottom:0;">
-            <div class="theme-label">Background Photo</div>
-            <input type="file" accept="image/*" id="themeBgInput" style="display:none;" onchange="onThemeBgSelected(this.files[0])">
-            <div style="display:flex;gap:8px;">
-              <button type="button" class="theme-upload-btn" onclick="document.getElementById('themeBgInput').click()">📷 Choose Photo</button>
-              <button type="button" class="theme-text-btn" id="themeBgClearBtn" style="display:none;flex-shrink:0;" onclick="clearThemeBg()">Remove</button>
-            </div>
-            <div id="themeBgPreviewWrap" style="display:none;margin-top:10px;">
-              <img id="themeBgPreview" style="width:100%;max-height:120px;object-fit:cover;border-radius:var(--radius-md);border:1.5px solid var(--latte);">
-            </div>
-          </div>
-        </div>`;
-
-      Object.keys(CAT_LABELS).forEach(renderFlavorCat);
-      renderMenuManager(document.getElementById("menuManager"));
-      renderThemeSection();
-    }
-
-    // Refresh the product list after any menu change
-    window.onMenuChanged = () => { const el = document.getElementById("menuManager"); if (el) renderMenuManager(el); };
-
-    function setAppFont(k) { collectFromUI(); window.BrewsStyle.set({ font: k }); renderSettings(); }
-    function setAppSize(v) { collectFromUI(); window.BrewsStyle.set({ size: v }); renderSettings(); }
-
-    // ── Theme (accent color + background photo) ──────────────────────────────
-    const THEME_SWATCHES = ["#C4813A","#4A90D9","#4AA88A","#D46A9E","#7C6FD4","#D45A5A","#3D3D3D","#2E8B8B"];
-
-    function renderThemeSection() {
-      document.getElementById("themeColorInput").value = window.BrewsTheme.getAccent();
-      renderThemeSwatches();
-      updateThemeBgUI();
-    }
-
-    function renderThemeSwatches() {
-      const current = window.BrewsTheme.getAccent().toLowerCase();
-      const wrap = document.getElementById("themeSwatches");
-      wrap.innerHTML = THEME_SWATCHES.map(c => `
-        <button type="button" class="theme-swatch${c.toLowerCase()===current?" active":""}"
-          style="background:${c};" onclick="onThemeColorChange('${c}')"></button>
-      `).join("");
-    }
-
-    function setAppFont(k) { window.BrewsStyle.set({ font: k }); collectFromUI(); renderSettingsModal(); }
-    function setAppSize(n) { window.BrewsStyle.set({ size: n }); collectFromUI(); renderSettingsModal(); }
-
-    function onThemeColorChange(hex) {
-      window.BrewsTheme.setAccent(hex);
-      document.getElementById("themeColorInput").value = hex;
-      renderThemeSwatches();
-    }
-
-    function resetThemeAccent() {
-      window.BrewsTheme.resetAccent();
-      document.getElementById("themeColorInput").value = window.BrewsTheme.BASE.caramel;
-      renderThemeSwatches();
-    }
-
-    function updateThemeBgUI() {
-      const bg       = window.BrewsTheme.getBackground();
-      const clearBtn = document.getElementById("themeBgClearBtn");
-      const wrap     = document.getElementById("themeBgPreviewWrap");
-      const preview  = document.getElementById("themeBgPreview");
-      if (bg) {
-        clearBtn.style.display = "block";
-        wrap.style.display     = "block";
-        preview.src            = bg;
-      } else {
-        clearBtn.style.display = "none";
-        wrap.style.display     = "none";
-        preview.src            = "";
-      }
-    }
-
-    // Resizes/compresses the chosen photo client-side before storing it
-    // (localStorage has a low size ceiling, and a phone photo straight off
-    // the camera would blow way past it).
-    function onThemeBgSelected(file) {
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const MAX = 1280;
-          let { width, height } = img;
-          if (width > MAX || height > MAX) {
-            const scale = MAX / Math.max(width, height);
-            width  = Math.round(width * scale);
-            height = Math.round(height * scale);
-          }
-          const canvas = document.createElement("canvas");
-          canvas.width = width; canvas.height = height;
-          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL("image/jpeg", 0.72);
-          try {
-            window.BrewsTheme.setBackground(dataUrl);
-            updateThemeBgUI();
-          } catch (err) {
-            alert("That photo was too large to save. Try a smaller image.");
-          }
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function clearThemeBg() {
-      window.BrewsTheme.clearBackground();
-      updateThemeBgUI();
-    }
-
-    renderSettings();
-  </script>
+  <script src="js/sync.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/settings-page.js"></script>
 </body>
 </html>

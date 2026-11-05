@@ -1,0 +1,16 @@
+Copyright (c) 2026 BREWS.CO. All rights reserved.
+
+This software and its source code are proprietary. No part of it may be copied,
+modified, distributed, sublicensed or used outside BREWS.CO without written
+permission from the copyright holder.
+
+The software is provided "as is", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement. In no event shall the
+copyright holder be liable for any claim, damages or other liability arising
+from the use of the software.
+
+Third-party components (Firebase JS SDK, html2canvas, Plus Jakarta Sans and
+Cormorant Garamond fonts) are included under their own open-source licenses.
+They are not covered by the terms above. See vendor/THIRD_PARTY_NOTICES.md and
+vendor/licenses/.

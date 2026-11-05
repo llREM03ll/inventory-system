@@ -136,17 +136,17 @@
   // Apply whatever was saved, immediately.
   const savedAccent = localStorage.getItem(ACCENT_KEY);
   const savedBg     = localStorage.getItem(BG_KEY);
-  if (savedAccent) applyAccent(savedAccent);
-  if (savedBg)     applyBackground(savedBg);
+  if (safeColor(savedAccent)) applyAccent(savedAccent);
+  if (safeImg(savedBg)) applyBackground(savedBg);
 
   // Public API used by the Theme settings UI (pos.html)
   window.BrewsTheme = {
     BASE, REF_HUE,
-    getAccent: () => localStorage.getItem(ACCENT_KEY) || BASE.caramel,
-    getBackground: () => localStorage.getItem(BG_KEY) || "",
-    setAccent(hex) { localStorage.setItem(ACCENT_KEY, hex); applyAccent(hex); },
+    getAccent: () => safeColor(localStorage.getItem(ACCENT_KEY)) || BASE.caramel,
+    getBackground: () => safeImg(localStorage.getItem(BG_KEY)) || "",
+    setAccent(hex) { if (!safeColor(hex)) return; try { localStorage.setItem(ACCENT_KEY, hex); } catch {} applyAccent(hex); },
     resetAccent() { localStorage.removeItem(ACCENT_KEY); resetAccent(); },
-    setBackground(dataUrl) { localStorage.setItem(BG_KEY, dataUrl); applyBackground(dataUrl); },
+    setBackground(dataUrl) { if (!safeImg(dataUrl)) return false; try { localStorage.setItem(BG_KEY, dataUrl); } catch { return false; } applyBackground(dataUrl); return true; },
     clearBackground() { localStorage.removeItem(BG_KEY); applyBackground(""); },
   };
 })();

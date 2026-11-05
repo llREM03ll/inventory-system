@@ -12,21 +12,21 @@ const MENU_KEY = "brewsMenuLayout";
 let menuEditing = false;
 
 const MENU_CUPS = { "": "No cup (food, snack, etc.)", S: "Small cup", M: "Medium cup", L: "Large cup", HC: "Hot coffee cup" };
-const MENU_FLAVS = { "": "No flavor list", milktea: "Milk Tea flavors", fruittea: "Fruit Tea flavors", icedcoffee: "Iced Coffee flavors", hotcoffee: "Hot Coffee flavors" };
+const FLAVOR_BUILTIN = { milktea: "Milk Tea", fruittea: "Fruit Tea", icedcoffee: "Iced Coffee", hotcoffee: "Hot Coffee" };
 
-const _mesc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const _mfmt = v => "₱" + Number(v || 0).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 function getMenuLayout() {
-  try {
-    const l = JSON.parse(localStorage.getItem(MENU_KEY) || "{}");
-    return { order: Array.isArray(l.order) ? l.order : [], items: l.items || {}, custom: Array.isArray(l.custom) ? l.custom : [] };
-  } catch { return { order: [], items: {}, custom: [] }; }
+  const l = readJSON(MENU_KEY, {});
+  return {
+    order:  Array.isArray(l.order) ? l.order.map(String) : [],
+    items:  l.items && typeof l.items === "object" ? l.items : {},
+    custom: Array.isArray(l.custom) ? l.custom.filter(c => c && c.code) : [],
+  };
 }
 
 function saveMenuLayout(l) {
-  localStorage.setItem(MENU_KEY, JSON.stringify(l));
+  writeJSON(MENU_KEY, l);
   localStorage.setItem("brewsSettingsModified", new Date().toISOString());
 }
 
@@ -48,15 +48,16 @@ function builtinDrinks() {
 function loadMenuDrinks() {
   const l = getMenuLayout();
   const list = builtinDrinks().concat(l.custom.map(c => ({
-    code: c.code, name: c.name || "New Product", icon: c.icon || "🧋", price: Number(c.price) || 0,
-    cup: c.cup || "", flav: c.flav || "", builtin: false,
+    code: String(c.code).slice(0, 12), name: String(c.name || "New Product").slice(0, 24), icon: String(c.icon || "🧋").slice(0, 4),
+    price: Number(c.price) || 0,
+    cup: ["S", "M", "L", "HC"].includes(c.cup) ? c.cup : "", flav: typeof c.flav === "string" ? c.flav : "", builtin: false,
   })));
   list.forEach(d => {
     const o = l.items[d.code] || {};
     d.defaultName = d.name; d.defaultIcon = d.icon;
-    if (o.name) d.name = o.name;
-    if (o.icon) d.icon = o.icon;
-    d.img = o.img || ""; d.color = o.color || ""; d.hidden = !!o.hidden;
+    if (o.name) d.name = String(o.name).slice(0, 24);
+    if (o.icon) d.icon = String(o.icon).slice(0, 4);
+    d.img = safeImg(o.img); d.color = safeColor(o.color); d.hidden = !!o.hidden;
   });
   const pos = c => { const i = l.order.indexOf(c); return i < 0 ? 999 : i; };
   return list.map((d, i) => ({ d, i })).sort((a, b) => (pos(a.d.code) - pos(b.d.code)) || (a.i - b.i)).map(x => x.d);
@@ -72,7 +73,7 @@ function menuTextColor(hex) {
 }
 
 function drinkIconHTML(d) {
-  return d.img ? `<img class="drink-btn-img" src="${d.img}" alt="">` : `<span class="drink-btn-icon">${_mesc(d.icon)}</span>`;
+  return d.img ? `<img class="drink-btn-img" src="${d.img}" alt="">` : `<span class="drink-btn-icon">${esc(d.icon)}</span>`;
 }
 function drinkTileStyle(d) { return d.color ? `--tile-bg:${d.color};--tile-fg:${menuTextColor(d.color)};` : ""; }
 
@@ -97,9 +98,9 @@ function renderMenuEditTiles(grid) {
     btn.innerHTML = `
       <span class="tile-edit-badge">${d.hidden ? "🚫" : "✏️"}</span>
       ${drinkIconHTML(d)}
-      <span class="drink-btn-code">${_mesc(d.code)}</span>
-      <span class="drink-btn-name">${_mesc(d.name)}</span>
-      <span class="drink-btn-price">${_mfmt(d.price)}</span>`;
+      <span class="drink-btn-code">${esc(d.code)}</span>
+      <span class="drink-btn-name">${esc(d.name)}</span>
+      <span class="drink-btn-price">${fmt(d.price)}</span>`;
     grid.appendChild(btn);
   });
   const add = document.createElement("button");
@@ -187,15 +188,31 @@ function renderMenuEditTiles(grid) {
   document.addEventListener("pointercancel", end);
 })();
 
+// ── Flavor lists ─────────────────────────────────────────────────────────────
+// Every flavor list is stored in settings.flavors. The 4 built-in lists are shared by
+// several products. A product you add can also have its OWN list (list key = product code).
+function flavorListInfo() {
+  const out = Object.entries(FLAVOR_BUILTIN).map(([key, label]) => ({ key, label }));
+  getMenuLayout().custom.forEach(c => { if (c.flav && c.flav === c.code) out.push({ key: c.code, label: (c.name || c.code) + " (own list)" }); });
+  return out;
+}
+function flavorLabel(key) { return (flavorListInfo().find(x => x.key === key) || {}).label || key; }
+
+function _splitFlavors(text) {
+  return String(text || "").split(/[,\n]/).map(x => x.trim().slice(0, 30)).filter(Boolean);
+}
+
 // ── Item editor sheet ────────────────────────────────────────────────────────
 const MENU_SWATCHES = ["#FDF5E8", "#F5E4C8", "#C4813A", "#6B3D1E", "#4A90D9", "#4AA88A", "#D46A9E", "#7C6FD4", "#D45A5A", "#F2C94C"];
-let _mi = null; // { code, isNew, builtin, name, icon, img, color, hidden, price, cup, flav }
+let _mi = null; // { code, isNew, builtin, name, icon, img, color, hidden, price, cup, flav, lists }
+let _miOpenedAt = 0;
 
 function openMenuItemEditor(code) {
   const d = loadMenuDrinks().find(x => x.code === code);
   if (!d) return;
   _mi = { code, isNew: false, builtin: d.builtin, name: d.name, icon: d.icon, img: d.img || "", color: d.color || "",
-          hidden: !!d.hidden, price: d.price, cup: d.cup, flav: d.flav, defaultName: d.defaultName, defaultIcon: d.defaultIcon };
+          hidden: !!d.hidden, price: d.price, cup: d.cup, flav: d.flav, defaultName: d.defaultName, defaultIcon: d.defaultIcon,
+          lists: JSON.parse(JSON.stringify(getSettings().flavors)) };
   showMenuSheet();
 }
 
@@ -203,7 +220,8 @@ function openNewProduct() {
   const l = getMenuLayout();
   const used = new Set(builtinDrinks().map(d => d.code).concat(l.custom.map(c => c.code)));
   let n = 1; while (used.has("P" + n)) n++;
-  _mi = { code: "P" + n, isNew: true, builtin: false, name: "", icon: "🧋", img: "", color: "", hidden: false, price: 0, cup: "", flav: "" };
+  _mi = { code: "P" + n, isNew: true, builtin: false, name: "", icon: "🧋", img: "", color: "", hidden: false, price: 0, cup: "", flav: "",
+          lists: JSON.parse(JSON.stringify(getSettings().flavors)) };
   showMenuSheet();
 }
 
@@ -213,9 +231,12 @@ function showMenuSheet() {
     sheet = document.createElement("div");
     sheet.id = "menuItemSheet";
     sheet.className = "mi-overlay";
-    sheet.addEventListener("click", e => { if (e.target === sheet) closeMenuItemEditor(); });
+    // The tap that opened this sheet can arrive as a "click" on the backdrop right after it appears.
+    // Ignoring backdrop taps for a moment stops the sheet from closing itself (top-row tiles).
+    sheet.addEventListener("click", e => { if (e.target === sheet && Date.now() - _miOpenedAt > 500) closeMenuItemEditor(); });
     document.body.appendChild(sheet);
   }
+  _miOpenedAt = Date.now();
   renderMenuItemEditor();
   sheet.classList.add("open");
 }
@@ -225,34 +246,90 @@ function closeMenuItemEditor() {
   _mi = null;
 }
 
+function _miFlavSelectValue() {
+  const m = _mi;
+  if (!m.flav) return "";
+  return m.flav === m.code ? "own" : m.flav;
+}
+
+function onMiFlavChange(v) {
+  const m = _mi;
+  if (v === "own") { m.flav = m.code; if (!Array.isArray(m.lists[m.code])) m.lists[m.code] = []; }
+  else m.flav = v;
+  renderMenuItemEditor();
+}
+
+function miAddFlavor() {
+  const input = document.getElementById("miFlavInput");
+  const names = _splitFlavors(input?.value);
+  if (!names.length || !_mi.flav) return;
+  const list = _mi.lists[_mi.flav] || (_mi.lists[_mi.flav] = []);
+  names.forEach(n => { if (!list.some(x => x.toLowerCase() === n.toLowerCase())) list.push(n); });
+  renderMenuItemEditor();
+  document.getElementById("miFlavInput")?.focus();
+}
+
+function miRemoveFlavor(i) {
+  const list = _mi.lists[_mi.flav];
+  if (list) list.splice(i, 1);
+  renderMenuItemEditor();
+}
+
+function _miFlavorSection() {
+  const m = _mi;
+  const opts = [["", "No flavor list (adds straight to order)"]]
+    .concat(Object.entries(FLAVOR_BUILTIN).map(([k, v]) => [k, v + " list (shared)"]))
+    .concat([["own", "Its own list"]]);
+  const select = m.builtin ? "" : `<select class="mi-input" onchange="onMiFlavChange(this.value)">${
+    opts.map(([k, v]) => `<option value="${k}"${k === _miFlavSelectValue() ? " selected" : ""}>${v}</option>`).join("")}</select>`;
+  if (!m.flav) return `<label class="mi-label">Flavors</label>${select}`;
+
+  const list = m.lists[m.flav] || [];
+  const sharedBy = loadMenuDrinks().filter(d => d.flav === m.flav && d.code !== m.code).map(d => d.name);
+  const title = m.flav === m.code ? "This product's own flavors" : (FLAVOR_BUILTIN[m.flav] || m.flav) + " flavors";
+  const note = m.flav !== m.code && sharedBy.length ? `<div class="mi-note">Shared with ${sharedBy.map(esc).join(", ")}. Changes apply to all of them.</div>` : "";
+  return `
+    <label class="mi-label">Flavors</label>
+    ${select}
+    <div class="mi-flavbox">
+      <div class="mi-flavtitle">${esc(title)} <small>(${list.length})</small></div>
+      <div class="mi-chips">${list.length ? list.map((f, i) => `<span class="sflavor-pill">${esc(f)}<button type="button" class="sflavor-pill-del" onclick="miRemoveFlavor(${i})" aria-label="Remove">✕</button></span>`).join("")
+        : `<span style="font-size:0.76rem;color:var(--mochaccino);">No flavors yet. Add some below.</span>`}</div>
+      <div class="sflavor-add-row">
+        <input class="sflavor-add-input" id="miFlavInput" type="text" placeholder="Add flavor (or several, separated by commas)"
+          onkeydown="if(event.key==='Enter'){miAddFlavor();event.preventDefault();}">
+        <button type="button" class="sflavor-add-btn" onclick="miAddFlavor()">+ Add</button>
+      </div>
+      ${note}
+    </div>`;
+}
+
 function renderMenuItemEditor() {
   const sheet = document.getElementById("menuItemSheet");
   const m = _mi;
-  const prev = m.img ? `<img class="mi-prev-img" src="${m.img}" alt="">` : `<span class="mi-prev-emoji">${_mesc(m.icon)}</span>`;
-  const opts = (obj, cur) => Object.entries(obj).map(([k, v]) => `<option value="${k}"${k === cur ? " selected" : ""}>${v}</option>`).join("");
-  const stockFields = m.builtin
-    ? `<div class="mi-note">Cup and flavor list are fixed for built-in products. Use "Show on menu" to remove it from the menu.</div>`
-    : `<label class="mi-label">Cup used (stock)</label>
-       <select class="mi-input" onchange="_mi.cup=this.value">${opts(MENU_CUPS, m.cup)}</select>
-       <label class="mi-label">Flavors</label>
-       <select class="mi-input" onchange="_mi.flav=this.value">${opts(MENU_FLAVS, m.flav)}</select>`;
+  const prev = m.img ? `<img class="mi-prev-img" src="${m.img}" alt="">` : `<span class="mi-prev-emoji">${esc(m.icon)}</span>`;
+  const cupOpts = Object.entries(MENU_CUPS).map(([k, v]) => `<option value="${k}"${k === m.cup ? " selected" : ""}>${v}</option>`).join("");
+  const cupField = m.builtin
+    ? `<div class="mi-note">Built-in product: the cup size is fixed. Use "Show on menu" to take it off the menu.</div>`
+    : `<label class="mi-label">Cup used (stock)</label><select class="mi-input" onchange="_mi.cup=this.value">${cupOpts}</select>`;
 
   sheet.innerHTML = `
     <div class="mi-sheet">
-      <div class="mi-title">${m.isNew ? "New Product" : "Edit " + _mesc(m.code)}</div>
+      <div class="mi-title">${m.isNew ? "New Product" : "Edit " + esc(m.name || m.code)}</div>
 
       <label class="mi-label">Name</label>
-      <input class="mi-input" type="text" value="${_mesc(m.name)}" maxlength="24" placeholder="Product name" oninput="_mi.name=this.value">
+      <input class="mi-input" type="text" value="${esc(m.name)}" maxlength="24" placeholder="Product name" oninput="_mi.name=this.value">
 
       <label class="mi-label">Price (₱)</label>
-      <input class="mi-input" type="number" inputmode="decimal" value="${m.price || ""}" placeholder="0" oninput="_mi.price=parseFloat(this.value)||0">
+      <input class="mi-input" type="number" inputmode="decimal" min="0" value="${m.price || ""}" placeholder="0" oninput="_mi.price=Math.max(0,parseFloat(this.value)||0)">
 
-      ${stockFields}
+      ${cupField}
+      ${_miFlavorSection()}
 
       <label class="mi-label">Icon</label>
       <div class="mi-row">
         <div class="mi-prev">${prev}</div>
-        <input class="mi-input" id="miIcon" type="text" value="${_mesc(m.icon)}" maxlength="4" style="width:72px;text-align:center;"
+        <input class="mi-input" id="miIcon" type="text" value="${esc(m.icon)}" maxlength="4" style="width:72px;text-align:center;"
           oninput="_mi.icon=this.value||'🧋';_mi.img='';renderMenuItemEditor();document.getElementById('miIcon').focus();">
         <input type="file" accept="image/*" id="miFile" style="display:none" onchange="onMenuImagePicked(this.files[0])">
         <button type="button" class="mi-btn" onclick="document.getElementById('miFile').click()">📷 Photo</button>
@@ -284,7 +361,7 @@ function renderMenuItemEditor() {
 
 // Crops to a small square so it stays light for storage and sync
 function onMenuImagePicked(file) {
-  if (!file) return;
+  if (!file || !/^image\//.test(file.type)) return;
   const reader = new FileReader();
   reader.onload = e => {
     const img = new Image();
@@ -306,6 +383,7 @@ function saveMenuItem() {
   const name = (m.name || "").trim();
   if (!name) { alert("Please enter a product name."); return; }
   const l = getMenuLayout();
+  const cfg = getSettings();
 
   if (m.builtin) {
     l.items[m.code] = {
@@ -313,7 +391,7 @@ function saveMenuItem() {
       icon: m.icon && m.icon !== m.defaultIcon ? m.icon : "",
       img: m.img || "", color: m.color || "", hidden: !!m.hidden,
     };
-    const s = getSettings(); s.prices[m.code] = m.price; saveSettings(s);
+    cfg.prices[m.code] = m.price;
   } else {
     const c = { code: m.code, name, icon: m.icon || "🧋", price: m.price, cup: m.cup, flav: m.flav };
     const i = l.custom.findIndex(x => x.code === m.code);
@@ -321,7 +399,11 @@ function saveMenuItem() {
     l.items[m.code] = { img: m.img || "", color: m.color || "", hidden: !!m.hidden };
     if (m.isNew && !l.order.length) l.order = loadMenuDrinks().map(x => x.code);
     if (m.isNew && !l.order.includes(m.code)) l.order.push(m.code);
+    // An own list only exists while the product uses it
+    if (m.flav !== m.code) delete m.lists[m.code];
   }
+  cfg.flavors = m.lists;
+  saveSettings(cfg);
   saveMenuLayout(l);
   closeMenuItemEditor();
   menuChanged();
@@ -343,6 +425,9 @@ function deleteMenuItem() {
   l.custom = l.custom.filter(c => c.code !== m.code);
   delete l.items[m.code];
   l.order = l.order.filter(c => c !== m.code);
+  const cfg = getSettings();
+  delete cfg.flavors[m.code];            // its own flavor list goes with it
+  saveSettings(cfg);
   saveMenuLayout(l);
   closeMenuItemEditor();
   menuChanged();
@@ -350,6 +435,10 @@ function deleteMenuItem() {
 
 function resetMenuLayout() {
   if (!confirm("Reset the whole menu to default?\n\nThis removes products you added and clears custom names, icons and colors.")) return;
+  const l = getMenuLayout();
+  const cfg = getSettings();
+  l.custom.forEach(c => { delete cfg.flavors[c.code]; });
+  saveSettings(cfg);
   localStorage.removeItem(MENU_KEY);
   localStorage.setItem("brewsSettingsModified", new Date().toISOString());
   menuChanged();
@@ -358,14 +447,15 @@ function resetMenuLayout() {
 // ── Menu manager list (used on the Settings page) ───────────────────────────
 function renderMenuManager(container) {
   const list = loadMenuDrinks();
+  const flavors = getSettings().flavors;
   container.innerHTML = list.map((d, i) => `
     <div class="mm-row${d.hidden ? " is-hidden" : ""}">
-      <button type="button" class="mm-main" onclick="openMenuItemEditor('${d.code}')">
-        <span class="mm-icon">${d.img ? `<img src="${d.img}" alt="">` : _mesc(d.icon)}</span>
-        <span class="mm-text"><b>${_mesc(d.name)}</b><small>${_mesc(d.code)} · ${_mfmt(d.price)}${d.cup ? " · " + d.cup + " cup" : ""}${d.hidden ? " · hidden" : ""}</small></span>
+      <button type="button" class="mm-main" onclick="openMenuItemEditor('${esc(d.code)}')">
+        <span class="mm-icon">${d.img ? `<img src="${d.img}" alt="">` : esc(d.icon)}</span>
+        <span class="mm-text"><b>${esc(d.name)}</b><small>${fmt(d.price)}${d.cup ? " · " + d.cup + " cup" : ""}${d.flav ? " · " + ((flavors[d.flav] || []).length) + " flavors" : ""}${d.hidden ? " · hidden" : ""}</small></span>
       </button>
-      <button type="button" class="mm-move" ${i === 0 ? "disabled" : ""} onclick="moveMenuItem('${d.code}',-1)" aria-label="Move up">▲</button>
-      <button type="button" class="mm-move" ${i === list.length - 1 ? "disabled" : ""} onclick="moveMenuItem('${d.code}',1)" aria-label="Move down">▼</button>
+      <button type="button" class="mm-move" ${i === 0 ? "disabled" : ""} onclick="moveMenuItem('${esc(d.code)}',-1)" aria-label="Move up">▲</button>
+      <button type="button" class="mm-move" ${i === list.length - 1 ? "disabled" : ""} onclick="moveMenuItem('${esc(d.code)}',1)" aria-label="Move down">▼</button>
     </div>`).join("") + `
     <button type="button" class="add-expense-btn" onclick="openNewProduct()">+ Add Product</button>
     <button type="button" class="theme-text-btn" style="margin-top:8px;" onclick="resetMenuLayout()">Reset menu to default</button>`;

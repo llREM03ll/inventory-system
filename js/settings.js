@@ -52,26 +52,31 @@ const SETTINGS_DEFAULTS = {
 };
 
 function getSettings() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-    // Deep merge saved over defaults
-    return {
-      ...SETTINGS_DEFAULTS,
-      ...saved,
-      prices:      { ...SETTINGS_DEFAULTS.prices,      ...(saved.prices      || {}) },
-      addonPrices: { ...SETTINGS_DEFAULTS.addonPrices, ...(saved.addonPrices || {}) },
-      flavors:     {
-        milktea:    (saved.flavors?.milktea    || SETTINGS_DEFAULTS.flavors.milktea),
-        fruittea:   (saved.flavors?.fruittea   || SETTINGS_DEFAULTS.flavors.fruittea),
-        icedcoffee: (saved.flavors?.icedcoffee || SETTINGS_DEFAULTS.flavors.icedcoffee),
-        hotcoffee:  (saved.flavors?.hotcoffee  || SETTINGS_DEFAULTS.flavors.hotcoffee),
-      },
-    };
-  } catch { return { ...SETTINGS_DEFAULTS }; }
+  const raw   = readJSON(SETTINGS_KEY, {});
+  const saved = raw && typeof raw === "object" ? raw : {};
+  const sf    = saved.flavors && typeof saved.flavors === "object" ? saved.flavors : {};
+
+  // Flavor lists: the 4 built-in ones fall back to defaults; any other list
+  // (for example one that belongs to a product you added) is kept as saved.
+  const flavors = {};
+  Object.keys(SETTINGS_DEFAULTS.flavors).forEach(k => {
+    flavors[k] = Array.isArray(sf[k]) ? sf[k].map(String) : [...SETTINGS_DEFAULTS.flavors[k]];
+  });
+  Object.keys(sf).forEach(k => {
+    if (!(k in flavors) && Array.isArray(sf[k])) flavors[k] = sf[k].map(String);
+  });
+
+  return {
+    ...SETTINGS_DEFAULTS,
+    ...saved,
+    prices:      { ...SETTINGS_DEFAULTS.prices,      ...(saved.prices      || {}) },
+    addonPrices: { ...SETTINGS_DEFAULTS.addonPrices, ...(saved.addonPrices || {}) },
+    flavors,
+  };
 }
 
 function saveSettings(s) {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  writeJSON(SETTINGS_KEY, s);
   localStorage.setItem("brewsSettingsModified", new Date().toISOString());
 }
 
