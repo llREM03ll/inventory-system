@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png" />
@@ -24,7 +24,7 @@
       display: inline-flex; align-items: center; gap: 5px;
       background: var(--danger-bg); border: 1.5px solid var(--danger-border); border-radius: var(--radius-md);
       padding: 8px 14px; font-weight: 700; font-size: 0.84rem;
-      color: var(--danger-soft); cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all .18s;
+      color: var(--danger-soft); cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s;
     }
     .delete-all-btn:hover { background: var(--danger-bg-hover); transform: translateY(-1px); }
 
@@ -37,7 +37,7 @@
     .month-nav button {
       background: var(--sand); border: 1.5px solid var(--sand-border); border-radius: var(--radius-md);
       padding: 7px 13px; font-weight: 700; font-size: 0.88rem;
-      cursor: pointer; color: var(--mahogany); font-family: "Plus Jakarta Sans", sans-serif; transition: all .18s;
+      cursor: pointer; color: var(--mahogany); font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s;
     }
     .month-nav button:hover { background: var(--sand-hover); transform: translateY(-1px); }
 
@@ -55,7 +55,7 @@
     .calendar th.week-col { color: var(--mochaccino); font-size: 0.64rem; text-align: right; padding-right: 4px; }
     .calendar td {
       border: 1.5px solid var(--latte); border-radius: var(--radius-md); vertical-align: top;
-      height: 66px; padding: 6px; cursor: default; background: var(--pearl); transition: all .14s;
+      height: 66px; padding: 6px; cursor: default; background: var(--pearl); transition: background-color .14s, border-color .14s, color .14s, box-shadow .14s, transform .14s, opacity .14s, filter .14s;
     }
     .calendar td.empty   { background: transparent; border-color: transparent; }
     .calendar td.has-entry {
@@ -124,7 +124,7 @@
     /* ── Calendar modal ── */
     .modal-overlay {
       position: fixed; inset: 0;
-      background: rgba(60,38,20,0.42); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+      background: rgba(60,38,20,0.5);
       display: flex; align-items: center; justify-content: center;
       z-index: 1000; padding: 20px;
       opacity: 0; pointer-events: none; transition: opacity .2s;
@@ -146,13 +146,13 @@
     .modal-delete-btn {
       background: var(--danger-bg); border: 1.5px solid var(--danger-border); border-radius: var(--radius-md);
       padding: 8px 13px; font-weight: 700; font-size: 0.84rem; color: var(--danger-soft);
-      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all .16s;
+      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .16s, border-color .16s, color .16s, box-shadow .16s, transform .16s, opacity .16s, filter .16s;
     }
     .modal-delete-btn:hover { background: var(--danger-bg-hover); }
     .modal-close {
       background: var(--sand); border: 1.5px solid var(--sand-border); border-radius: var(--radius-md);
       padding: 8px 13px; font-weight: 700; font-size: 0.84rem;
-      color: var(--mahogany); cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all .16s;
+      color: var(--mahogany); cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .16s, border-color .16s, color .16s, box-shadow .16s, transform .16s, opacity .16s, filter .16s;
     }
     .modal-close:hover { background: var(--sand-hover); }
     .modal-body table { font-size: 0.84rem; }
@@ -163,7 +163,7 @@
     .retention-pill {
       background: var(--sand); border: 1.5px solid var(--sand-border); border-radius: var(--radius-pill);
       padding: 8px 16px; font-size: 0.84rem; font-weight: 700; color: var(--mahogany);
-      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all .16s;
+      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .16s, border-color .16s, color .16s, box-shadow .16s, transform .16s, opacity .16s, filter .16s;
     }
     .retention-pill:hover { background: var(--sand-hover); }
     .retention-pill.active {
@@ -213,7 +213,7 @@
     .log-delete-btn {
       background: var(--danger-bg); border: 1.5px solid var(--danger-border); border-radius: 8px;
       padding: 5px 10px; font-size: 0.7rem; font-weight: 700; color: var(--danger-soft);
-      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all .14s; flex-shrink: 0;
+      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .14s, border-color .14s, color .14s, box-shadow .14s, transform .14s, opacity .14s, filter .14s; flex-shrink: 0;
     }
     .log-delete-btn:hover { background: var(--danger-bg-hover); }
 
@@ -229,7 +229,7 @@
       background: var(--parchment); border: 1.5px solid var(--latte);
       border-radius: var(--radius-md); padding: 8px 14px; font-weight: 700;
       font-size: 0.84rem; color: var(--mahogany); cursor: pointer;
-      font-family: "Plus Jakarta Sans", sans-serif; transition: all .18s;
+      font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s;
     }
     .export-csv-btn:hover { background: var(--latte); transform: translateY(-1px); }
 
@@ -249,7 +249,7 @@
       display: inline-flex; align-items: center; gap: 5px;
       background: var(--success-bg); border: 1.5px solid var(--success-border); border-radius: var(--radius-md);
       padding: 8px 14px; font-weight: 700; font-size: 0.84rem;
-      color: var(--success-dark); cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all .18s;
+      color: var(--success-dark); cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s;
     }
     .pull-cloud-btn:hover { background: var(--success-bg-soft); transform: translateY(-1px); }
     .pull-cloud-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
@@ -261,6 +261,7 @@
       pointer-events: none; background: var(--roast);
     }
   </style>
+  <link rel="stylesheet" href="css/polish.css" />
 </head>
 <body class="has-bottom-nav">
 <div class="container">

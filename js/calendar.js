@@ -527,15 +527,9 @@ const today    = new Date();
     });
 
     const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href     = url;
-    a.download = "BREWSCO_history_all_" + localDate() + ".csv";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    _showCalToast("✓ CSV downloaded", "var(--success-dark)", true);
+    saveFile("history_all_" + localDate() + ".csv", blob)
+      .then(() => _showCalToast("✓ CSV ready", "var(--success-dark)", true))
+      .catch(() => _showCalToast("Could not save the CSV", "var(--danger-soft)", true));
   }
 
   function _showCalToast(msg, color, autoDismiss) {

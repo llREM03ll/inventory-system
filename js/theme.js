@@ -120,17 +120,12 @@
     }
     return tag;
   }
-  const NOISE_URL = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E\")";
-
+  // The photo lives on a fixed layer (body::after in styles.css) that reads --bg-photo.
+  // This is much smoother than background-attachment: fixed on the body.
   function applyBackground(dataUrl) {
-    const tag = bgStyleTag();
-    if (!dataUrl) { tag.textContent = ""; return; }
-    tag.textContent = `body {
-      background-image: ${NOISE_URL}, url("${dataUrl}") !important;
-      background-size: 200px 200px, cover !important;
-      background-attachment: local, fixed !important;
-      background-position: 0 0, center center !important;
-    }`;
+    const root = document.documentElement.style;
+    if (!dataUrl) root.removeProperty("--bg-photo");
+    else root.setProperty("--bg-photo", `url("${dataUrl}")`);
   }
 
   // Apply whatever was saved, immediately.

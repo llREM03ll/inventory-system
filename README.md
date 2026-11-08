@@ -3,6 +3,8 @@
 Inventory, point of sale and daily reports for a milk tea and coffee shop. Static web app
 (HTML, CSS, vanilla JS), installable as a PWA, works offline.
 
+Android app: see [ANDROID.md](ANDROID.md).
+
 ## Pages
 
 | Page | File | Purpose |

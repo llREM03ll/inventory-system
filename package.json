@@ -1,9 +1,26 @@
 {
   "name": "brews-co",
-  "version": "16.0.0",
+  "version": "19.0.0",
   "private": true,
   "license": "UNLICENSED",
-  "description": "BREWS.CO inventory, POS and reports (static PWA)",
-  "scripts": { "test": "node tests/smoke.test.js" },
-  "devDependencies": { "jsdom": "^24.0.0" }
+  "author": "Reynaldo Mirandila Benedito Jr.",
+  "description": "BREWS.CO inventory, POS and reports (static PWA + Android app)",
+  "scripts": {
+    "test": "node tests/smoke.test.js",
+    "build:web": "node scripts/build-web.js",
+    "android:add": "npx cap add android && node scripts/android-patch.js && npx capacitor-assets generate --android",
+    "android:sync": "npm run build:web && npx cap sync android",
+    "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/filesystem": "^6.0.4",
+    "@capacitor/share": "^6.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^6.2.0",
+    "jsdom": "^24.0.0"
+  }
 }

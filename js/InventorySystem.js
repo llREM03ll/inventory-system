@@ -43,14 +43,27 @@ class InventorySystem {
 
   // list: [{ name, cup, qty, total }]. Their cups come out of the matching cup count,
   // and their sales are added on their own rows.
+  // A product that uses a cup AND sells at the same price as an existing row of that cup size
+  // (M, or Iced Coffee M for the medium cup; L, or Iced Coffee L for the large cup; S; HC) is counted
+  // on that row. A product with its own price gets its own line.
   setExtras(list) {
     this.extras = [];
+    const same = (a, b) => Math.abs(a - b) < 0.005;
     (list || []).forEach(e => {
       if (!e.qty) return;
-      const it = new Item(e.name, e.total / e.qty);
-      it.usedCups = e.qty;
-      this.extras.push(it);
-      if (e.cup && this[e.cup]) this[e.cup].usedCups -= e.qty;
+      const unit = e.unitPrice != null ? e.unitPrice : e.total / e.qty;
+      let merged = false;
+      if (e.cup && this[e.cup]) {
+        this[e.cup].usedCups -= e.qty;               // these cups were counted in begin - end
+        const rows = [e.cup, e.cup === "M" ? "MC" : e.cup === "L" ? "LC" : null].filter(Boolean);
+        const target = rows.find(k => this[k] && same(this[k].price, unit));
+        if (target) { this[target].usedCups += e.qty; merged = true; }
+      }
+      if (!merged) {
+        const it = new Item(e.name, unit);
+        it.usedCups = e.qty;
+        this.extras.push(it);
+      }
     });
   }
 

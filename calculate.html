@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png" />
@@ -33,7 +33,7 @@
       display: flex; align-items: center; gap: 7px; width: 100%;
       background: var(--success-bg); border: 1.5px solid var(--success-border); border-radius: var(--radius-md);
       padding: 11px 14px; font-size: 0.84rem; font-weight: 700; color: var(--success-dark);
-      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; margin-bottom: 10px; transition: all .18s;
+      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; margin-bottom: 10px; transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s;
     }
     .carryover-btn:hover { background: var(--success-bg-soft); border-color: var(--success-hover-border); transform: translateY(-1px); }
     .carryover-meta { font-size: 0.7rem; color: var(--success-mid); font-weight: 500; margin-left: auto; }
@@ -41,6 +41,7 @@
       .del-dmg-header { display: none; }
     }
   </style>
+  <link rel="stylesheet" href="css/polish.css" />
 </head>
 <body class="has-bottom-nav">
   <div class="container">

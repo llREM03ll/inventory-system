@@ -23,7 +23,7 @@ applyBottomNavRole();
       {e:"🎉",msg:"Another chance to be great",sub:"Don't waste it."},
       {e:"🏅",msg:"Champions show up every day",sub:"Even on slow days."},
       {e:"💰",msg:"Every peso counts",sub:"Track it carefully today."},
-      {e:"☕",msg:"BREWS.CO is open for business",sub:"Have an amazing shift!"},
+      {e:"☕",msg:shopName()+" is open for business",sub:"Have an amazing shift!"},
       {e:"👑",msg:"You're the barista and the boss",sub:"Act like it."},
       {e:"🌻",msg:"Bloom where you're brewed",sub:"You're exactly where you need to be."},
       {e:"⭐",msg:"Be someone's favorite part of the day",sub:"Start with their order."},
@@ -130,4 +130,5 @@ applyBottomNavRole();
     window.addEventListener("offline", () => _setOffline(true));
     if (!navigator.onLine) _setOffline(true);
 
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js");
+    // The Android app ships its files inside the APK, so it needs no service worker
+    if ("serviceWorker" in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) navigator.serviceWorker.register("service-worker.js");

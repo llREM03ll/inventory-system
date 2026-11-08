@@ -33,6 +33,45 @@ function savePay() {
   });
 }
 
+function saveShop() {
+  updateSettings(c => {
+    c.shopName = (document.getElementById("sp_shopName").value || "").trim().slice(0, 24) || "BREWS.CO";
+    c.cupLabels = {};
+    ["S", "M", "L", "HC"].forEach(k => {
+      const v = (document.getElementById("sp_cup" + k).value || "").trim().slice(0, 24);
+      if (v) c.cupLabels[k] = v;
+    });
+  });
+  document.querySelectorAll("[data-shop-name]").forEach(el => { el.textContent = shopName(); });
+  renderMenuList();
+}
+
+function renameFlavorList(key, val) {
+  updateSettings(c => {
+    c.flavorLabels = c.flavorLabels || {};
+    const v = String(val || "").trim().slice(0, 24);
+    if (FLAVOR_BUILTIN[key]) { if (v && v !== FLAVOR_BUILTIN[key]) c.flavorLabels[key] = v; else delete c.flavorLabels[key]; }
+    else if (v) c.flavorLabels[key] = v;   // a named list always keeps a name
+  });
+  renderFlavors(); renderMenuList();
+}
+
+// A named list any product can pick (for example one list for Frappe M and Frappe L)
+function newFlavorList() {
+  const input = document.getElementById("newListName");
+  const name = (input?.value || "").trim().slice(0, 24);
+  if (!name) { input?.focus(); return; }
+  const key = "fl" + Date.now().toString(36);
+  updateSettings(c => { c.flavors[key] = []; c.flavorLabels = c.flavorLabels || {}; c.flavorLabels[key] = name; });
+  renderFlavors();
+}
+function deleteFlavorList(key) {
+  if (loadMenuDrinks().some(d => d.flav === key)) { alert("A product still uses this list. Change that product's flavors first."); return; }
+  if (!confirm("Delete this flavor list?")) return;
+  updateSettings(c => { delete c.flavors[key]; if (c.flavorLabels) delete c.flavorLabels[key]; });
+  renderFlavors();
+}
+
 function saveAddons() {
   updateSettings(c => {
     c.addonPrices = {};
@@ -72,11 +111,24 @@ function renderFlavors() {
   const box = document.getElementById("flavorLists");
   if (!box) return;
   const flavors = getSettings().flavors;
-  box.innerHTML = flavorListInfo().map(({ key, label }) => {
+  const usedBy = key => loadMenuDrinks().filter(d => d.flav === key).map(d => d.name);
+  const newRow = `<div class="sflavor-cat"><div class="sflavor-cat-title">New flavor list</div>
+      <div class="sflavor-add-row">
+        <input class="sflavor-add-input" id="newListName" type="text" maxlength="24" placeholder="List name, e.g. Frappe"
+          onkeydown="if(event.key==='Enter'){newFlavorList();event.preventDefault();}">
+        <button type="button" class="sflavor-add-btn" onclick="newFlavorList()">+ Create</button>
+      </div>
+      <div style="font-size:0.72rem;color:var(--bark);margin-top:6px;line-height:1.45;">Any product can pick this list, so different sizes share the same flavors.</div></div>`;
+  box.innerHTML = flavorListInfo().map(({ key, label, builtin, custom }) => {
     const list = flavors[key] || [];
+    const users = usedBy(key);
+    const rename = (builtin || custom) ? `<input class="sflavor-add-input" type="text" maxlength="24" value="${esc(label)}" placeholder="List name" aria-label="List name"
+        style="width:100%;margin:6px 0 8px;" onchange="renameFlavorList('${esc(key)}',this.value)">` : "";
     return `
     <div class="sflavor-cat">
       <div class="sflavor-cat-title">${esc(label)} <small style="color:var(--bark);font-weight:600;">(${list.length})</small></div>
+      ${rename}
+      ${users.length ? `<div style="font-size:0.7rem;color:var(--bark);margin-bottom:6px;">Used by ${users.map(esc).join(", ")}</div>` : ""}
       <div class="sflavor-pills">${list.length
         ? list.map((f, i) => `<span class="sflavor-pill">${esc(f)}<button type="button" class="sflavor-pill-del" onclick="flavorRemove('${esc(key)}',${i})" aria-label="Remove">✕</button></span>`).join("")
         : `<span style="font-size:0.76rem;color:var(--mochaccino);">No flavors yet</span>`}</div>
@@ -85,8 +137,9 @@ function renderFlavors() {
           onkeydown="if(event.key==='Enter'){flavorAdd('${esc(key)}');event.preventDefault();}">
         <button type="button" class="sflavor-add-btn" onclick="flavorAdd('${esc(key)}')">+ Add</button>
       </div>
+      ${custom && !users.length ? `<button type="button" class="theme-text-btn" style="margin-top:8px;" onclick="deleteFlavorList('${esc(key)}')">Delete this list</button>` : ""}
     </div>`;
-  }).join("");
+  }).join("") + newRow;
 }
 
 // ── Products ─────────────────────────────────────────────────────────────────
@@ -143,11 +196,7 @@ function exportBackup() {
     if (isBackupKey(k)) data[k] = localStorage.getItem(k);
   }
   const blob = new Blob([JSON.stringify({ app: "brews-co", exportedAt: new Date().toISOString(), data })], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "brews-backup-" + localDate() + ".json";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  saveFile("brews-backup-" + localDate() + ".json", blob).catch(() => alert("Could not save the backup."));
 }
 
 function importBackup(file) {
@@ -169,7 +218,7 @@ function importBackup(file) {
 }
 
 function confirmResetSettings() {
-  if (!confirm("Reset prices, salary, add-ons and flavors to defaults?\n\nYour menu layout and history are not touched. This cannot be undone.")) return;
+  if (!confirm("Reset prices, salary, add-ons, flavors, shop name and cup names to defaults?\n\nYour menu layout and history are not touched. This cannot be undone.")) return;
   resetSettings(); renderAll(); toast("Settings reset");
 }
 
@@ -193,18 +242,31 @@ function renderAll() {
       <button type="button" onclick="this.parentElement.remove();saveAddons();">✕</button>
     </div>`).join("");
 
+  const cl = s.cupLabels;
+  const cupInput = (k, label) => `<div class="smodal-field"><label class="smodal-label" for="sp_cup${k}">${label}</label>
+    <input class="smodal-input" id="sp_cup${k}" type="text" maxlength="24" value="${esc(cl[k])}" onchange="saveShop()"></div>`;
+
   document.getElementById("settingsBody").innerHTML =
     fold("products", "🧋 Products", `
-      <div style="font-size:0.76rem;color:var(--bark);margin-bottom:10px;line-height:1.5;">Tap a product to change its name, price, cup, flavors, icon or color. New products can have their own flavor list. Use the arrows to reorder.</div>
+      <div style="font-size:0.76rem;color:var(--bark);margin-bottom:10px;line-height:1.5;">Tap a product to change its name, price, flavors, icon or color, or to delete it. Every product, including the original ones, can be edited or deleted. Deleted originals can be restored. Use the arrows to reorder.</div>
       <div id="menuManager"></div>`, openSet.has("products")) +
 
     fold("flavors", "🏷️ Flavors", `
-      <div style="font-size:0.76rem;color:var(--bark);margin-bottom:10px;line-height:1.5;">Every flavor list in one place. A product that has its own list gets its own line here.</div>
+      <div style="font-size:0.76rem;color:var(--bark);margin-bottom:10px;line-height:1.5;">Every flavor list in one place. Create a list once, then let several products (like M and L sizes) use it.</div>
       <div id="flavorLists"></div>`, openSet.has("flavors")) +
 
     fold("addons", "➕ Add-ons", `
       <div id="saddonContainer">${addonRows}</div>
       <button class="add-expense-btn" onclick="addAddonRow()">+ Add Add-on</button>`, openSet.has("addons")) +
+
+    fold("shop", "🏪 Shop &amp; Cups", `
+      <div style="font-size:0.76rem;color:var(--bark);margin-bottom:10px;line-height:1.5;">The shop name shows in the header, receipts and reports. Cup names show when you pick a cup for a product.</div>
+      <div class="smodal-field"><label class="smodal-label" for="sp_shopName">Shop name</label>
+        <input class="smodal-input" id="sp_shopName" type="text" maxlength="24" value="${esc(s.shopName)}" onchange="saveShop()"></div>
+      <div class="smodal-grid">
+        ${cupInput("S", "Small cup")}${cupInput("M", "Medium cup")}
+        ${cupInput("L", "Large cup")}${cupInput("HC", "Hot cup")}
+      </div>`, openSet.has("shop")) +
 
     fold("pay", "💰 Pay &amp; Alerts", `
       <div class="smodal-grid-3">
@@ -264,7 +326,7 @@ function renderAll() {
         <button class="fold-btn" onclick="document.getElementById('backupFile').click()">⬆️ Restore from Backup</button>
         <button class="fold-btn danger" onclick="confirmResetSettings()">↺ Reset Settings to Default</button>
       </div>
-      <div style="font-size:0.68rem;color:var(--dust);margin-top:14px;text-align:center;">BREWS.CO · version 16 · <a href="LICENSE" style="color:var(--bark);">License</a> · <a href="vendor/THIRD_PARTY_NOTICES.md" style="color:var(--bark);">Open-source notices</a></div>`, openSet.has("data"));
+      <div style="font-size:0.68rem;color:var(--dust);margin-top:14px;text-align:center;">BREWS.CO · version 19 · <a href="LICENSE" style="color:var(--bark);">License</a> · <a href="vendor/THIRD_PARTY_NOTICES.md" style="color:var(--bark);">Open-source notices</a></div>`, openSet.has("data"));
 
   // remember which sections are open
   document.querySelectorAll("details.fold").forEach(d => d.addEventListener("toggle", () => {

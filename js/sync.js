@@ -12,12 +12,13 @@
  */
 
 const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyC7mrSF39Z95nkZUb1ZJ_Cz_c0rf_lz1-Y",
-  authDomain:        "brews-co.firebaseapp.com",
-  projectId:         "brews-co",
-  storageBucket:     "brews-co.firebasestorage.app",
-  messagingSenderId: "616181567630",
-  appId:             "1:616181567630:web:bd1d78bf8ced49f29f39df",
+  apiKey:            "AIzaSyDDakHFVyX6q9ypbUtAaBzyGU4eEV1MT7o",
+  authDomain:        "brews-co-e96b1.firebaseapp.com",
+  projectId:         "brews-co-e96b1",
+  storageBucket:     "brews-co-e96b1.firebasestorage.app",
+  messagingSenderId: "130546126742",
+  appId:             "1:130546126742:web:aa636bdf20ed79032917b7",
+  measurementId:     "G-SY35CVWLG3",
 };
 
 // The shop's cloud document. With a sync key (Settings → Cloud Sync) the document name is that

@@ -48,3 +48,50 @@ function cleanHTML(html) {
   });
   return doc.body.innerHTML;
 }
+
+// Shop name (editable in Settings). Read straight from storage so it works on every page.
+const DEFAULT_SHOP_NAME = "BREWS.CO";
+function shopName() {
+  const s = readJSON("brewsSettings", {});
+  const n = s && typeof s.shopName === "string" ? s.shopName.trim() : "";
+  return (n || DEFAULT_SHOP_NAME).slice(0, 24);
+}
+// Fills every [data-shop-name] element and the page title once the page is ready.
+document.addEventListener("DOMContentLoaded", () => {
+  const name = shopName();
+  document.querySelectorAll("[data-shop-name]").forEach(el => { el.textContent = name; });
+  if (document.title.includes(DEFAULT_SHOP_NAME)) document.title = document.title.replace(DEFAULT_SHOP_NAME, name);
+});
+
+// ── Saving files (backup, CSV, receipt image) ────────────────────────────────
+// In a browser this is a normal download. Inside the Android app, downloads from a blob do
+// not work, so the file is written to the app cache and the Android share sheet opens
+// (Save to Files, Drive, WhatsApp, etc.).
+const isNativeApp = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+
+function _blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(",")[1] || "");
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+
+async function saveFile(filename, blob) {
+  if (isNativeApp()) {
+    const P = window.Capacitor.Plugins || {};
+    if (P.Filesystem && P.Share) {
+      const data = await _blobToBase64(blob);
+      const out = await P.Filesystem.writeFile({ path: filename, data, directory: "CACHE" });
+      await P.Share.share({ title: filename, url: out.uri, dialogTitle: "Save or share" });
+      return true;
+    }
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  return true;
+}

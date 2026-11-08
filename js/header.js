@@ -25,7 +25,7 @@
     </div>
   </div>
   <a href="index.html" style="text-decoration:none;display:block;text-align:center;">
-    <div class="brand">BREWS.CO</div>
+    <div class="brand" data-shop-name>${esc(shopName())}</div>
     <div class="brand-sub">${opts.subtitle || ""}</div>
   </a>`;
   };

@@ -1,0 +1,8 @@
+{
+  "appId": "com.brewsco.inventory",
+  "appName": "BREWS.CO",
+  "webDir": "www",
+  "backgroundColor": "#FDF5E8",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false }
+}

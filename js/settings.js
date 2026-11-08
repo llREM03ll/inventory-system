@@ -29,6 +29,9 @@ const SETTINGS_DEFAULTS = {
   lowStock:             5,     // cups remaining before yellow warning
   // ── Sound ────────────────────────────────────────
   soundEnabled:         true,
+  // ── Shop ─────────────────────────────────────────
+  shopName:             "BREWS.CO",
+  cupLabels: { S: "Small cup", M: "Medium cup", L: "Large cup", HC: "Hot coffee cup" },
   // ── Flavors ──────────────────────────────────────
   flavors: {
     milktea: [
@@ -51,7 +54,18 @@ const SETTINGS_DEFAULTS = {
   },
 };
 
+// Parsing + merging settings is repeated for every tile, so the result is cached until the
+// stored text changes. A fresh copy is returned each time because callers edit it.
+let _gsRaw = null, _gsJSON = null;
 function getSettings() {
+  const stored = localStorage.getItem(SETTINGS_KEY);
+  if (_gsJSON !== null && stored === _gsRaw) return JSON.parse(_gsJSON);
+  const s = _buildSettings();
+  _gsRaw = stored; _gsJSON = JSON.stringify(s);
+  return s;
+}
+
+function _buildSettings() {
   const raw   = readJSON(SETTINGS_KEY, {});
   const saved = raw && typeof raw === "object" ? raw : {};
   const sf    = saved.flavors && typeof saved.flavors === "object" ? saved.flavors : {};
@@ -71,6 +85,8 @@ function getSettings() {
     ...saved,
     prices:      { ...SETTINGS_DEFAULTS.prices,      ...(saved.prices      || {}) },
     addonPrices: { ...SETTINGS_DEFAULTS.addonPrices, ...(saved.addonPrices || {}) },
+    cupLabels:   { ...SETTINGS_DEFAULTS.cupLabels,   ...(saved.cupLabels   || {}) },
+    flavorLabels: saved.flavorLabels && typeof saved.flavorLabels === "object" ? saved.flavorLabels : {},
     flavors,
   };
 }

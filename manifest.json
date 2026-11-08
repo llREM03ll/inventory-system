@@ -17,6 +17,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "id": "./",
@@ -26,5 +32,22 @@
   "categories": [
     "business",
     "productivity"
+  ],
+  "shortcuts": [
+    {
+      "name": "Shift",
+      "short_name": "Shift",
+      "url": "pos.html"
+    },
+    {
+      "name": "Calculate",
+      "short_name": "Calculate",
+      "url": "calculate.html"
+    },
+    {
+      "name": "History",
+      "short_name": "History",
+      "url": "calendar.html"
+    }
   ]
 }

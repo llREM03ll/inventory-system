@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
@@ -73,7 +73,7 @@
       display:none; box-shadow:0 2px 8px rgba(180,60,0,0.30);
     }
     .home-offline-pill.visible { display:block; }
-    .sync-btn { flex:1; padding:9px 10px; border-radius:var(--radius-md); font-size:0.82rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; border:none; transition:all .18s; text-align:center; }
+    .sync-btn { flex:1; padding:9px 10px; border-radius:var(--radius-md); font-size:0.82rem; font-weight:700; font-family:"Plus Jakarta Sans",sans-serif; cursor:pointer; border:none; transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s; text-align:center; }
     .sync-btn-push { background:var(--grad-cta); color:var(--white); box-shadow:var(--shadow-btn); }
     .sync-btn-push:hover { filter:brightness(1.08); transform:translateY(-1px); }
     .sync-btn-pull { background:var(--parchment); color:var(--mahogany); border:1.5px solid var(--latte); }
@@ -81,11 +81,12 @@
     .sync-btn:disabled { opacity:0.5; cursor:default; transform:none; }
 
   </style>
+  <link rel="stylesheet" href="css/polish.css" />
 </head>
 <body class="has-bottom-nav">
   <div class="home-view">
     <a href="index.html" class="home-logo">
-      <div class="brand">BREWS.CO</div>
+      <div class="brand" data-shop-name>BREWS.CO</div>
       <div class="brand-sub">Inventory System</div>
     </a>
 

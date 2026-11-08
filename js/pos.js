@@ -409,12 +409,17 @@ function renderDrinkButtons() {
   grid.innerHTML = "";
   if (menuEditing) { renderMenuEditTiles(grid); return; }
 
-  DRINKS.filter(d => !d.hidden).forEach(d => {
+  const lowLimit = getLowStock();
+  const frag = document.createDocumentFragment();
+  const firstPaint = !renderDrinkButtons._done;
+  renderDrinkButtons._done = true;
+  DRINKS.filter(d => !d.hidden).forEach((d, n) => {
     const qty  = getQtyForCode(d.code);
     const left = d.cup ? (rem[d.cup] ?? 999) : 999;
-    const low  = d.cup && left > 0 && left <= getLowStock();
+    const low  = d.cup && left > 0 && left <= lowLimit;
     const out  = d.cup && left <= 0;
     const cls  = ["drink-btn",
+      firstPaint ? "tile-in" : "",
       qty > 0 ? "has-qty"   : "",
       low      ? "low-stock" : "",
       out      ? "out-stock" : "",
@@ -422,11 +427,10 @@ function renderDrinkButtons() {
 
     const btn = document.createElement("button");
     btn.className = cls + (d.color ? " custom" : "");
-    if (d.color) btn.style.cssText = drinkTileStyle(d);
+    btn.style.cssText = (d.color ? drinkTileStyle(d) : "") + (firstPaint ? `--i:${Math.min(n, 14)};` : "");
     btn.innerHTML = `
       <span class="qty-badge" id="badge-${d.code}">${qty}</span>
       ${drinkIconHTML(d)}
-      <span class="drink-btn-code">${d.code}</span>
       <span class="drink-btn-name">${esc(d.name)}</span>
       <span class="drink-btn-price">${fmt(d.price)}</span>
       ${d.cup ? `<span class="stock-pill">${out ? "OUT" : low ? `${left} left` : left}</span>` : ""}
@@ -434,8 +438,9 @@ function renderDrinkButtons() {
     attachHold(btn,
       () => { if (out) { vibe("error"); return; } if (d.flav) openFlavorModal(d); else addItemToOrder(d, ""); },
       () => { removeOneCup(d.code); });
-    grid.appendChild(btn);
+    frag.appendChild(btn);
   });
+  grid.appendChild(frag);
 }
 
 // ════════════════════════════════════════════════════
@@ -1372,7 +1377,8 @@ function computeExtras() {
   const map = {};
   state.orders.forEach(o => o.items.forEach(i => {
     if (core.has(i.code)) return;
-    const e = map[i.code] || (map[i.code] = { code: i.code, name: i.name, cup: itemCup(i), qty: 0, total: 0 });
+    const mk = i.code + "|" + i.unitPrice;           // same product at another price = another line
+    const e = map[mk] || (map[mk] = { code: i.code, name: i.name, cup: itemCup(i), unitPrice: i.unitPrice, qty: 0, total: 0 });
     e.qty += i.qty; e.total += i.unitPrice * i.qty;
   }));
   return Object.values(map);

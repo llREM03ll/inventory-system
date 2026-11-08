@@ -11,17 +11,43 @@
 const MENU_KEY = "brewsMenuLayout";
 let menuEditing = false;
 
-const MENU_CUPS = { "": "No cup (food, snack, etc.)", S: "Small cup", M: "Medium cup", L: "Large cup", HC: "Hot coffee cup" };
+// Default values. Everything here can be edited, hidden or deleted from the menu screens;
+// "Reset" and "Restore" bring these defaults back.
 const FLAVOR_BUILTIN = { milktea: "Milk Tea", fruittea: "Fruit Tea", icedcoffee: "Iced Coffee", hotcoffee: "Hot Coffee" };
+const DEFAULT_MENU = [
+  { code: "M",   name: "Milktea M",     icon: "🧋", price: 29, cup: "M",  flav: "milktea" },
+  { code: "L",   name: "Milktea L",     icon: "🧋", price: 39, cup: "L",  flav: "milktea" },
+  { code: "MC",  name: "Iced Coffee M", icon: "☕", price: 35, cup: "M",  flav: "icedcoffee" },
+  { code: "LC",  name: "Iced Coffee L", icon: "☕", price: 45, cup: "L",  flav: "icedcoffee" },
+  { code: "HC",  name: "Hot Coffee",    icon: "☕", price: 45, cup: "HC", flav: "hotcoffee" },
+  { code: "S",   name: "Milktea S",     icon: "🧋", price: 25, cup: "S",  flav: "milktea" },
+  { code: "FTM", name: "Fruit Tea M",   icon: "🍵", price: 29, cup: "M",  flav: "fruittea" },
+  { code: "FTL", name: "Fruit Tea L",   icon: "🍵", price: 39, cup: "L",  flav: "fruittea" },
+];
+// These six feed the Calculate page formula, so their cup size stays fixed.
+const CORE_CODES = ["M", "L", "S", "HC", "MC", "LC"];
+
+// Cup names are editable in Settings
+function menuCups() {
+  const c = (typeof getSettings === "function" ? getSettings().cupLabels : null) || {};
+  return { "": "No cup (food, snack, etc.)", S: c.S || "Small cup", M: c.M || "Medium cup", L: c.L || "Large cup", HC: c.HC || "Hot coffee cup" };
+}
 
 
 // ── Data ─────────────────────────────────────────────────────────────────────
+let _mlRaw = null, _mlVal = null;
 function getMenuLayout() {
+  const stored = localStorage.getItem(MENU_KEY);
+  if (_mlVal === null || stored !== _mlRaw) { _mlVal = _readMenuLayout(); _mlRaw = stored; }
+  return JSON.parse(JSON.stringify(_mlVal));
+}
+function _readMenuLayout() {
   const l = readJSON(MENU_KEY, {});
   return {
     order:  Array.isArray(l.order) ? l.order.map(String) : [],
     items:  l.items && typeof l.items === "object" ? l.items : {},
     custom: Array.isArray(l.custom) ? l.custom.filter(c => c && c.code) : [],
+    deleted: Array.isArray(l.deleted) ? l.deleted.map(String) : [],
   };
 }
 
@@ -32,16 +58,9 @@ function saveMenuLayout(l) {
 
 function builtinDrinks() {
   const p = (typeof getSettings === "function" ? getSettings().prices : null) || {};
-  return [
-    { code: "M",   name: "Milktea M",     icon: "🧋", price: p.M   ?? 29, cup: "M",  flav: "milktea" },
-    { code: "L",   name: "Milktea L",     icon: "🧋", price: p.L   ?? 39, cup: "L",  flav: "milktea" },
-    { code: "MC",  name: "Iced Coffee M", icon: "☕", price: p.MC  ?? 35, cup: "M",  flav: "icedcoffee" },
-    { code: "LC",  name: "Iced Coffee L", icon: "☕", price: p.LC  ?? 45, cup: "L",  flav: "icedcoffee" },
-    { code: "HC",  name: "Hot Coffee",    icon: "☕", price: p.HC  ?? 45, cup: "HC", flav: "hotcoffee" },
-    { code: "S",   name: "Milktea S",     icon: "🧋", price: p.S   ?? 25, cup: "S",  flav: "milktea" },
-    { code: "FTM", name: "Fruit Tea M",   icon: "🍵", price: p.FTM ?? 29, cup: "M",  flav: "fruittea" },
-    { code: "FTL", name: "Fruit Tea L",   icon: "🍵", price: p.FTL ?? 39, cup: "L",  flav: "fruittea" },
-  ].map(d => Object.assign(d, { builtin: true }));
+  const gone = new Set(getMenuLayout().deleted);
+  return DEFAULT_MENU.filter(d => !gone.has(d.code))
+    .map(d => Object.assign({}, d, { price: p[d.code] ?? d.price, builtin: true, core: CORE_CODES.includes(d.code) }));
 }
 
 // Full, ordered product list with all overrides applied.
@@ -55,6 +74,10 @@ function loadMenuDrinks() {
   list.forEach(d => {
     const o = l.items[d.code] || {};
     d.defaultName = d.name; d.defaultIcon = d.icon;
+    if (d.builtin) {
+      if (typeof o.flav === "string") d.flav = o.flav;
+      if (!d.core && typeof o.cup === "string" && ["", "S", "M", "L", "HC"].includes(o.cup)) d.cup = o.cup;
+    }
     if (o.name) d.name = String(o.name).slice(0, 24);
     if (o.icon) d.icon = String(o.icon).slice(0, 4);
     d.img = safeImg(o.img); d.color = safeColor(o.color); d.hidden = !!o.hidden;
@@ -98,7 +121,6 @@ function renderMenuEditTiles(grid) {
     btn.innerHTML = `
       <span class="tile-edit-badge">${d.hidden ? "🚫" : "✏️"}</span>
       ${drinkIconHTML(d)}
-      <span class="drink-btn-code">${esc(d.code)}</span>
       <span class="drink-btn-name">${esc(d.name)}</span>
       <span class="drink-btn-price">${fmt(d.price)}</span>`;
     grid.appendChild(btn);
@@ -191,11 +213,33 @@ function renderMenuEditTiles(grid) {
 // ── Flavor lists ─────────────────────────────────────────────────────────────
 // Every flavor list is stored in settings.flavors. The 4 built-in lists are shared by
 // several products. A product you add can also have its OWN list (list key = product code).
+function flavorBuiltinLabel(key) {
+  const o = (typeof getSettings === "function" ? getSettings().flavorLabels : null) || {};
+  return (typeof o[key] === "string" && o[key].trim()) || FLAVOR_BUILTIN[key];
+}
 function flavorListInfo() {
-  const out = Object.entries(FLAVOR_BUILTIN).map(([key, label]) => ({ key, label }));
-  getMenuLayout().custom.forEach(c => { if (c.flav && c.flav === c.code) out.push({ key: c.code, label: (c.name || c.code) + " (own list)" }); });
+  const cfg = getSettings(), labels = cfg.flavorLabels || {};
+  const out = Object.keys(FLAVOR_BUILTIN).map(key => ({ key, label: flavorBuiltinLabel(key), title: flavorBuiltinLabel(key), builtin: true }));
+  const seen = new Set(out.map(x => x.key));
+  const own = (key, name) => { if (seen.has(key)) return; seen.add(key); out.push({ key, label: name + " (own list)", title: name + " flavors", own: true }); };
+  const l = getMenuLayout();
+  l.custom.forEach(c => { if (c.flav && c.flav === c.code) own(c.code, c.name || c.code); });
+  // a default product that was given its own list
+  DEFAULT_MENU.forEach(d => {
+    const o = l.items[d.code] || {};
+    if (!l.deleted.includes(d.code) && o.flav && o.flav === d.code) own(d.code, o.name || d.name);
+  });
+  // named lists made on their own (or kept when the product that started them was deleted)
+  Object.keys(cfg.flavors).forEach(k => {
+    if (seen.has(k) || !Array.isArray(cfg.flavors[k])) return;
+    const name = (typeof labels[k] === "string" && labels[k].trim()) || k;
+    seen.add(k); out.push({ key: k, label: name, title: name, custom: true });
+  });
   return out;
 }
+function flavorTitle(key) { return (flavorListInfo().find(x => x.key === key) || {}).title || key; }
+// true when some other product still uses this list
+function _flavorUsedByOthers(code, key) { return loadMenuDrinks().some(d => d.code !== code && d.flav === key); }
 function flavorLabel(key) { return (flavorListInfo().find(x => x.key === key) || {}).label || key; }
 
 function _splitFlavors(text) {
@@ -210,7 +254,7 @@ let _miOpenedAt = 0;
 function openMenuItemEditor(code) {
   const d = loadMenuDrinks().find(x => x.code === code);
   if (!d) return;
-  _mi = { code, isNew: false, builtin: d.builtin, name: d.name, icon: d.icon, img: d.img || "", color: d.color || "",
+  _mi = { code, isNew: false, builtin: d.builtin, core: !!d.core, name: d.name, icon: d.icon, img: d.img || "", color: d.color || "",
           hidden: !!d.hidden, price: d.price, cup: d.cup, flav: d.flav, defaultName: d.defaultName, defaultIcon: d.defaultIcon,
           lists: JSON.parse(JSON.stringify(getSettings().flavors)) };
   showMenuSheet();
@@ -218,7 +262,7 @@ function openMenuItemEditor(code) {
 
 function openNewProduct() {
   const l = getMenuLayout();
-  const used = new Set(builtinDrinks().map(d => d.code).concat(l.custom.map(c => c.code)));
+  const used = new Set(DEFAULT_MENU.map(d => d.code).concat(l.custom.map(c => c.code)));
   let n = 1; while (used.has("P" + n)) n++;
   _mi = { code: "P" + n, isNew: true, builtin: false, name: "", icon: "🧋", img: "", color: "", hidden: false, price: 0, cup: "", flav: "",
           lists: JSON.parse(JSON.stringify(getSettings().flavors)) };
@@ -277,17 +321,18 @@ function miRemoveFlavor(i) {
 
 function _miFlavorSection() {
   const m = _mi;
+  const lists = flavorListInfo().filter(x => x.key !== m.code);
   const opts = [["", "No flavor list (adds straight to order)"]]
-    .concat(Object.entries(FLAVOR_BUILTIN).map(([k, v]) => [k, v + " list (shared)"]))
-    .concat([["own", "Its own list"]]);
-  const select = m.builtin ? "" : `<select class="mi-input" onchange="onMiFlavChange(this.value)">${
+    .concat(lists.map(x => [x.key, x.title + " list (shared)"]))
+    .concat([["own", "Its own list (new)"]]);
+  const select = `<select class="mi-input" onchange="onMiFlavChange(this.value)">${
     opts.map(([k, v]) => `<option value="${k}"${k === _miFlavSelectValue() ? " selected" : ""}>${v}</option>`).join("")}</select>`;
   if (!m.flav) return `<label class="mi-label">Flavors</label>${select}`;
 
   const list = m.lists[m.flav] || [];
   const sharedBy = loadMenuDrinks().filter(d => d.flav === m.flav && d.code !== m.code).map(d => d.name);
-  const title = m.flav === m.code ? "This product's own flavors" : (FLAVOR_BUILTIN[m.flav] || m.flav) + " flavors";
-  const note = m.flav !== m.code && sharedBy.length ? `<div class="mi-note">Shared with ${sharedBy.map(esc).join(", ")}. Changes apply to all of them.</div>` : "";
+  const title = m.flav === m.code ? "This product's own flavors" : flavorTitle(m.flav);
+  const note = m.flav !== m.code && sharedBy.length ? `<div class="mi-note">Also used by ${sharedBy.map(esc).join(", ")}. Changes apply to all of them.</div>` : "";
   return `
     <label class="mi-label">Flavors</label>
     ${select}
@@ -308,9 +353,9 @@ function renderMenuItemEditor() {
   const sheet = document.getElementById("menuItemSheet");
   const m = _mi;
   const prev = m.img ? `<img class="mi-prev-img" src="${m.img}" alt="">` : `<span class="mi-prev-emoji">${esc(m.icon)}</span>`;
-  const cupOpts = Object.entries(MENU_CUPS).map(([k, v]) => `<option value="${k}"${k === m.cup ? " selected" : ""}>${v}</option>`).join("");
-  const cupField = m.builtin
-    ? `<div class="mi-note">Built-in product: the cup size is fixed. Use "Show on menu" to take it off the menu.</div>`
+  const cupOpts = Object.entries(menuCups()).map(([k, v]) => `<option value="${k}"${k === m.cup ? " selected" : ""}>${v}</option>`).join("");
+  const cupField = m.core
+    ? `<div class="mi-note">Cup size: ${esc(menuCups()[m.cup] || "none")}. This product feeds the Calculate formula, so its cup stays fixed.</div>`
     : `<label class="mi-label">Cup used (stock)</label><select class="mi-input" onchange="_mi.cup=this.value">${cupOpts}</select>`;
 
   sheet.innerHTML = `
@@ -349,9 +394,7 @@ function renderMenuItemEditor() {
       </label>
 
       <div class="mi-actions">
-        ${m.isNew ? "" : m.builtin
-          ? `<button type="button" class="mi-btn" onclick="resetMenuItem()">Reset</button>`
-          : `<button type="button" class="mi-btn danger" onclick="deleteMenuItem()">🗑 Delete</button>`}
+        ${m.isNew ? "" : `${m.builtin ? `<button type="button" class="mi-btn" onclick="resetMenuItem()">Reset</button>` : ""}<button type="button" class="mi-btn danger" onclick="deleteMenuItem()">🗑 Delete</button>`}
         <span style="flex:1"></span>
         <button type="button" class="mi-btn" onclick="closeMenuItemEditor()">Cancel</button>
         <button type="button" class="mi-btn primary" onclick="saveMenuItem()">Save</button>
@@ -390,7 +433,10 @@ function saveMenuItem() {
       name: name !== m.defaultName ? name : "",
       icon: m.icon && m.icon !== m.defaultIcon ? m.icon : "",
       img: m.img || "", color: m.color || "", hidden: !!m.hidden,
+      flav: m.flav || "",
     };
+    if (!m.core) l.items[m.code].cup = m.cup || "";
+    if (m.flav !== m.code && !_flavorUsedByOthers(m.code, m.code)) delete m.lists[m.code];
     cfg.prices[m.code] = m.price;
   } else {
     const c = { code: m.code, name, icon: m.icon || "🧋", price: m.price, cup: m.cup, flav: m.flav };
@@ -399,8 +445,8 @@ function saveMenuItem() {
     l.items[m.code] = { img: m.img || "", color: m.color || "", hidden: !!m.hidden };
     if (m.isNew && !l.order.length) l.order = loadMenuDrinks().map(x => x.code);
     if (m.isNew && !l.order.includes(m.code)) l.order.push(m.code);
-    // An own list only exists while the product uses it
-    if (m.flav !== m.code) delete m.lists[m.code];
+    // An own list goes when the product stops using it, unless another product still shares it
+    if (m.flav !== m.code && !_flavorUsedByOthers(m.code, m.code)) delete m.lists[m.code];
   }
   cfg.flavors = m.lists;
   saveSettings(cfg);
@@ -414,22 +460,38 @@ function resetMenuItem() {
   const l = getMenuLayout();
   delete l.items[m.code];
   saveMenuLayout(l);
+  const cfg = getSettings();
+  if (cfg.flavors[m.code] && !_flavorUsedByOthers(m.code, m.code)) { delete cfg.flavors[m.code]; delete cfg.prices[m.code]; saveSettings(cfg); }
+  else if (cfg.prices[m.code] !== undefined) { delete cfg.prices[m.code]; saveSettings(cfg); }
   closeMenuItemEditor();
   menuChanged();
 }
 
 function deleteMenuItem() {
   const m = _mi; if (!m) return;
-  if (!confirm(`Delete "${m.name || m.code}" from the menu?\n\nPast orders and reports keep their records.`)) return;
+  if (!confirm(`Delete "${m.name || m.code}" from the menu?\n\nPast orders and reports keep their records.${m.builtin ? "\nYou can bring it back with Restore in Settings." : ""}`)) return;
   const l = getMenuLayout();
+  if (m.builtin && !l.deleted.includes(m.code)) l.deleted.push(m.code);
   l.custom = l.custom.filter(c => c.code !== m.code);
   delete l.items[m.code];
   l.order = l.order.filter(c => c !== m.code);
   const cfg = getSettings();
-  delete cfg.flavors[m.code];            // its own flavor list goes with it
+  if (_flavorUsedByOthers(m.code, m.code)) {
+    // another product shares this list, so it stays as a named list
+    cfg.flavorLabels = cfg.flavorLabels || {};
+    cfg.flavorLabels[m.code] = (m.name || m.code).slice(0, 24) + " flavors";
+  } else delete cfg.flavors[m.code];     // otherwise its own flavor list goes with it
   saveSettings(cfg);
   saveMenuLayout(l);
   closeMenuItemEditor();
+  menuChanged();
+}
+
+function restoreDeletedMenu() {
+  const l = getMenuLayout();
+  if (!l.deleted.length) return;
+  l.deleted = [];
+  saveMenuLayout(l);
   menuChanged();
 }
 
@@ -438,6 +500,7 @@ function resetMenuLayout() {
   const l = getMenuLayout();
   const cfg = getSettings();
   l.custom.forEach(c => { delete cfg.flavors[c.code]; });
+  DEFAULT_MENU.forEach(d => { delete cfg.flavors[d.code]; });
   saveSettings(cfg);
   localStorage.removeItem(MENU_KEY);
   localStorage.setItem("brewsSettingsModified", new Date().toISOString());
@@ -458,6 +521,7 @@ function renderMenuManager(container) {
       <button type="button" class="mm-move" ${i === list.length - 1 ? "disabled" : ""} onclick="moveMenuItem('${esc(d.code)}',1)" aria-label="Move down">▼</button>
     </div>`).join("") + `
     <button type="button" class="add-expense-btn" onclick="openNewProduct()">+ Add Product</button>
+    ${getMenuLayout().deleted.length ? `<button type="button" class="theme-text-btn" style="margin-top:8px;" onclick="restoreDeletedMenu()">↩ Restore ${getMenuLayout().deleted.length} deleted default product${getMenuLayout().deleted.length > 1 ? "s" : ""}</button>` : ""}
     <button type="button" class="theme-text-btn" style="margin-top:8px;" onclick="resetMenuLayout()">Reset menu to default</button>`;
 }
 

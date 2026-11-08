@@ -104,24 +104,30 @@ body {
   color: var(--roast);
   font-size: 0.88rem;
   line-height: 1.55;
-  background-color: var(--dusk);
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
-    url('../Image1.jpg');
-  background-size: 200px 200px, cover;
-  background-attachment: local, fixed;
-  background-position: 0 0, center center;
+  background: transparent;
   display: flex;
   align-items: flex-start;
   justify-content: center;
 }
 
+html { background: var(--dusk); }
+
+/* Photo and wash live on two fixed layers, so scrolling never repaints them. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--bg-photo, url("../Image1.jpg")) center center / cover no-repeat;
+  z-index: -2;
+  transform: translateZ(0);
+}
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   background: linear-gradient(160deg, var(--tint-1) 0%, var(--tint-2) 50%, var(--tint-3) 100%);
   z-index: -1;
+  transform: translateZ(0);
 }
 
 /* ── Container ── */
@@ -240,7 +246,7 @@ input.placeholder, input[disabled] {
 }
 
 /* ── Button base ── */
-button { font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: all .2s ease; font-weight: 700; }
+button { font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: background-color .2s, border-color .2s, color .2s, box-shadow .2s, transform .2s, opacity .2s, filter .2s; font-weight: 700; }
 
 /* ── Button Group ── */
 .button-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 20px 0; }
@@ -256,7 +262,7 @@ button { font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transiti
 .expense-row input { flex: 1; }
 .expense-row button { background: var(--parchment); color: var(--bark); border: 1.5px solid var(--latte); border-radius: var(--radius-md); padding: 8px 12px; font-size: 0.84rem; flex-shrink: 0; }
 .expense-row button:hover { background: var(--latte); color: var(--mahogany); }
-.add-expense-btn { display: block; width: 100%; margin: 10px 0 0; padding: 11px; border: 1.5px dashed var(--mochaccino); border-radius: var(--radius-lg); font-weight: 600; font-size: 0.84rem; background: transparent; color: var(--bark); letter-spacing: 0.03em; transition: all .2s; }
+.add-expense-btn { display: block; width: 100%; margin: 10px 0 0; padding: 11px; border: 1.5px dashed var(--mochaccino); border-radius: var(--radius-lg); font-weight: 600; font-size: 0.84rem; background: transparent; color: var(--bark); letter-spacing: 0.03em; transition: background-color .2s, border-color .2s, color .2s, box-shadow .2s, transform .2s, opacity .2s, filter .2s; }
 .add-expense-btn:hover { background: rgba(196,129,58,0.06); border-color: var(--caramel); color: var(--mahogany); }
 
 /* ── Table ── */
@@ -286,10 +292,10 @@ tbody tr:hover td { background: rgba(253,245,232,0.7); }
 .output-actions .secondary:hover { background: var(--latte); transform: translateY(-1px); }
 
 /* ── Back button ── */
-.back-btn { display: inline-flex; align-items: center; gap: 5px; background: var(--parchment); border: 1.5px solid var(--latte); border-radius: var(--radius-md); padding: 8px 14px; font-weight: 600; font-size: 0.83rem; color: var(--mahogany); cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; text-decoration: none; transition: all .18s; }
+.back-btn { display: inline-flex; align-items: center; gap: 5px; background: var(--parchment); border: 1.5px solid var(--latte); border-radius: var(--radius-md); padding: 8px 14px; font-weight: 600; font-size: 0.83rem; color: var(--mahogany); cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; text-decoration: none; transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s; }
 .back-btn:hover { background: var(--latte); transform: translateY(-1px); }
 .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-.header-settings-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: var(--parchment); border: 1.5px solid var(--latte); border-radius: var(--radius-md); font-size: 1rem; cursor: pointer; transition: all .18s; }
+.header-settings-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: var(--parchment); border: 1.5px solid var(--latte); border-radius: var(--radius-md); font-size: 1rem; cursor: pointer; transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s; }
 .header-settings-btn:hover { background: var(--latte); transform: translateY(-1px); }
 
 /* ── History List ── */
@@ -346,7 +352,7 @@ tbody tr:hover td { background: rgba(253,245,232,0.7); }
   width: 48px; height: 30px; border-radius: var(--radius-pill);
   background: rgba(255,255,255,0.09); border: 1.5px solid rgba(255,255,255,0.20);
   display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.20); transition: all .2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.20); transition: background-color .2s, border-color .2s, color .2s, box-shadow .2s, transform .2s, opacity .2s, filter .2s;
 }
 
 .bottom-nav-item.bottom-nav-shift { color: rgba(255,255,255,0.40); }
@@ -425,7 +431,7 @@ body.has-bottom-nav .pos-body { padding-bottom: 92px; }
   flex-shrink: 0; background: var(--grad-cta); color: #fff;
   border: none; border-radius: var(--radius-md); padding: 10px 16px;
   font-weight: 700; font-size: 0.82rem; font-family: "Plus Jakarta Sans", sans-serif;
-  cursor: pointer; text-decoration: none; transition: all .18s; white-space: nowrap;
+  cursor: pointer; text-decoration: none; transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s; white-space: nowrap;
   box-shadow: var(--shadow-btn);
 }
 
@@ -454,7 +460,7 @@ body.has-bottom-nav .pos-body { padding-bottom: 92px; }
 .menu-edit-bar span { flex: 1; }
 .menu-edit-bar .done { background: var(--grad-cta); color: #fff; border: none; }
 
-.drink-btn { height: auto; min-height: 116px; }
+.drink-btn { height: auto; min-height: 116px; overflow: visible; }
 .drink-btn-img { width: 36px; height: 36px; border-radius: 9px; object-fit: cover; display: block; }
 .drink-btn.custom { background: var(--tile-bg) !important; }
 .drink-btn.custom .drink-btn-code, .drink-btn.custom .drink-btn-name, .drink-btn.custom .drink-btn-price { color: var(--tile-fg); }

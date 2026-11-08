@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'self'; form-action 'self'" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png" />
@@ -24,7 +24,7 @@
       display: flex; align-items: center; gap: 7px; width: 100%;
       background: var(--success-bg); border: 1.5px solid var(--success-border); border-radius: var(--radius-md);
       padding: 11px 14px; font-size: 0.84rem; font-weight: 700; color: var(--success-dark);
-      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; margin-bottom: 12px; transition: all .18s;
+      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; margin-bottom: 12px; transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s;
     }
     .carryover-btn:hover { background: var(--success-bg-soft); border-color: var(--success-hover-border); transform: translateY(-1px); }
     .carryover-meta { font-size: 0.7rem; color: var(--success-mid); font-weight: 500; margin-left: auto; }
@@ -61,7 +61,7 @@
       background: var(--grad-cta);
       color: var(--white); border: none; border-radius: var(--radius-lg); font-size: 0.92rem;
       font-weight: 700; font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer;
-      box-shadow: 0 3px 12px rgba(107,61,30,0.28); transition: all .18s;
+      box-shadow: 0 3px 12px rgba(107,61,30,0.28); transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s;
     }
     .start-btn:hover  { background: var(--grad-cta); transform: translateY(-1px); }
     .start-btn:active { transform: scale(0.98); }
@@ -91,7 +91,7 @@
     .end-shift-btn {
       background: rgba(210,70,70,0.24); border: 1.5px solid rgba(255,120,120,0.5);
       border-radius: var(--radius-md); padding: 8px 16px; color: var(--white); font-weight: 700;
-      font-size: 0.82rem; font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: all .2s;
+      font-size: 0.82rem; font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: background-color .2s, border-color .2s, color .2s, box-shadow .2s, transform .2s, opacity .2s, filter .2s;
       white-space: nowrap;
     }
     .end-shift-btn:hover { background: rgba(210,70,70,0.42); }
@@ -113,10 +113,10 @@
       position: relative; background: var(--cream); border: 2px solid var(--latte);
       border-radius: var(--radius-lg); padding: 10px 6px 8px; display: flex;
       flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer;
-      font-family: "Plus Jakarta Sans", sans-serif; transition: all .14s;
+      font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .14s, border-color .14s, color .14s, box-shadow .14s, transform .14s, opacity .14s, filter .14s;
       box-shadow: 0 2px 5px rgba(107,61,30,0.06);
       -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
-      height: 116px; overflow: hidden;
+      height: 116px; overflow: visible;
     }
     .drink-btn:active { transform: scale(0.92); }
     .drink-btn.has-qty { border-color: var(--clay); background: var(--sand-alt); box-shadow: 0 3px 10px rgba(107,61,30,0.13); }
@@ -128,7 +128,7 @@
     .drink-btn-icon  { font-size: 1.4rem; line-height: 1; }
     .drink-btn-code  { font-size: 0.76rem; font-weight: 800; color: var(--mahogany); letter-spacing: 0.05em; }
     .drink-btn-name  {
-      font-size: 0.62rem; color: var(--bark); text-align: center; line-height: 1.2;
+      font-size: 0.76rem; font-weight: 800; color: var(--mahogany); letter-spacing: 0.02em; text-align: center; line-height: 1.2; max-width: 100%;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
     .drink-btn-price { font-size: 0.7rem; font-weight: 700; color: var(--roast); margin-top: 1px; }
@@ -139,13 +139,13 @@
     .drink-btn.low-stock .stock-pill { background: #fde8c8; color: #b06820; }
     .drink-btn.out-stock .stock-pill { background: #fdd8d8; color: #b04040; }
     .qty-badge {
-      position: absolute; top: -7px; right: -7px;
+      position: absolute; top: 7px; right: 8px;
       background: var(--grad-cta);
       color: var(--white); font-size: 0.68rem; font-weight: 800;
       width: 20px; height: 20px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 2px 6px rgba(107,61,30,0.35);
-      opacity: 0; transform: scale(0.4); transition: all .16s;
+      opacity: 0; transform: scale(0.4); transition: background-color .16s, border-color .16s, color .16s, box-shadow .16s, transform .16s, opacity .16s, filter .16s;
     }
     .drink-btn.has-qty .qty-badge { opacity: 1; transform: scale(1); }
     @keyframes popBadge { 0%{transform:scale(1)} 40%{transform:scale(1.4)} 100%{transform:scale(1)} }
@@ -196,7 +196,7 @@
       width: 26px; height: 26px; border-radius: 8px; border: 1.5px solid var(--sand-border);
       background: var(--parchment); color: var(--mahogany); font-weight: 800; font-size: 0.95rem;
       font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; display: flex; align-items: center;
-      justify-content: center; transition: all .12s; -webkit-tap-highlight-color: transparent;
+      justify-content: center; transition: background-color .12s, border-color .12s, color .12s, box-shadow .12s, transform .12s, opacity .12s, filter .12s; -webkit-tap-highlight-color: transparent;
     }
     .qty-btn:hover  { background: var(--sand-hover); }
     .qty-btn:active { transform: scale(0.88); }
@@ -209,7 +209,7 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
       background: var(--pearl); border: 1.5px solid var(--latte); border-radius: var(--radius-md);
       padding: 6px 5px; font-size: 0.76rem; font-weight: 600; color: var(--mahogany);
-      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all .14s;
+      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .14s, border-color .14s, color .14s, box-shadow .14s, transform .14s, opacity .14s, filter .14s;
       -webkit-tap-highlight-color: transparent; text-align: center; overflow: hidden;
       aspect-ratio: 4 / 3;
     }
@@ -238,7 +238,7 @@
     .paid-online-btn {
       background: var(--parchment); border: 1.5px solid var(--sand-border); border-radius: var(--radius-md);
       padding: 7px 12px; font-size: 0.78rem; font-weight: 700; color: var(--mahogany);
-      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all .15s;
+      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .15s, border-color .15s, color .15s, box-shadow .15s, transform .15s, opacity .15s, filter .15s;
       -webkit-tap-highlight-color: transparent; width: 100%;
     }
     .paid-online-btn.active { background: var(--info-bg); border-color: var(--info-border); color: var(--info); }
@@ -286,7 +286,7 @@
       background: var(--grad-cta);
       color: var(--white); border: none; border-radius: var(--radius-lg); font-size: 0.95rem;
       font-weight: 700; font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer;
-      box-shadow: var(--shadow-btn); transition: all .18s;
+      box-shadow: var(--shadow-btn); transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s;
     }
     .place-order-btn:hover    { background: var(--grad-cta); transform: translateY(-1px); }
     .place-order-btn:active   { transform: scale(0.98); }
@@ -322,7 +322,7 @@
     .order-log-item {
       background: var(--cream); border: 1.5px solid var(--latte); border-radius: var(--radius-lg);
       overflow: hidden; box-shadow: 0 1px 4px rgba(107,61,30,0.05);
-      cursor: pointer; transition: all .15s; animation: slideIn .2s ease;
+      cursor: pointer; transition: background-color .15s, border-color .15s, color .15s, box-shadow .15s, transform .15s, opacity .15s, filter .15s; animation: slideIn .2s ease;
     }
     .order-log-item:hover { border-color: var(--mochaccino); box-shadow: 0 3px 8px rgba(107,61,30,0.1); }
     .order-log-summary { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; }
@@ -342,7 +342,7 @@
     /* ═══════════════════════ FLAVOR MODAL ═══════════════════════ */
     .modal-overlay {
       position: fixed; inset: 0;
-      background: rgba(50,30,12,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      background: rgba(50,30,12,0.5);
       display: flex; align-items: flex-end; justify-content: center;
       z-index: 1000; padding: 0 0 70px;          /* 70px lifts sheet above bottom nav */
       opacity: 0; pointer-events: none; transition: opacity .2s;
@@ -390,7 +390,7 @@
       background: var(--pearl); border: 1.5px solid var(--latte); border-radius: var(--radius-md);
       font-size: 0.76rem; font-weight: 600; color: var(--roast);
       text-align: center; cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif;
-      transition: all .14s; line-height: 1.25;
+      transition: background-color .14s, border-color .14s, color .14s, box-shadow .14s, transform .14s, opacity .14s, filter .14s; line-height: 1.25;
       -webkit-tap-highlight-color: transparent;
       aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center;
       padding: 6px 5px; overflow: hidden;
@@ -452,7 +452,7 @@
     .modal-close-btn {
       width: 100%; padding: 12px; background: var(--grad-cta);
       color: var(--white); border: none; border-radius: var(--radius-lg); font-size: 0.9rem; font-weight: 700;
-      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: all .18s;
+      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: background-color .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s, opacity .18s, filter .18s;
     }
     .modal-close-btn:hover { background: var(--grad-cta); }
 
@@ -464,7 +464,7 @@
     .end-shift-row.section-head { font-weight: 700; color: var(--mahogany); font-size: 0.76rem; letter-spacing: 0.07em; text-transform: uppercase; border-top: 1.5px solid var(--mochaccino); margin-top: 4px; padding-top: 9px; }
     .end-shift-row.bold { font-weight: 700; color: var(--roast); }
     .end-shift-actions { display: flex; gap: 10px; margin-top: 12px; }
-    .end-shift-actions button { flex: 1; padding: 12px; border-radius: var(--radius-lg); font-weight: 700; font-size: 0.88rem; font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; border: none; transition: all .2s; }
+    .end-shift-actions button { flex: 1; padding: 12px; border-radius: var(--radius-lg); font-weight: 700; font-size: 0.88rem; font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; border: none; transition: background-color .2s, border-color .2s, color .2s, box-shadow .2s, transform .2s, opacity .2s, filter .2s; }
     .btn-cancel-shift  { background: var(--sand); color: var(--mahogany); border: 1.5px solid var(--sand-border) !important; }
     .btn-cancel-shift:hover  { background: var(--sand-hover); }
     .btn-confirm-shift { background: var(--grad-cta); color: var(--white); box-shadow: 0 3px 10px rgba(107,61,30,0.25); }
@@ -499,7 +499,7 @@
     .order-done-btn {
       background: var(--sand); border: 1.5px solid var(--sand-border); border-radius: 8px;
       padding: 4px 10px; font-size: 0.7rem; font-weight: 700; color: var(--mahogany);
-      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all .15s; flex-shrink: 0;
+      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .15s, border-color .15s, color .15s, box-shadow .15s, transform .15s, opacity .15s, filter .15s; flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
     }
     .order-done-btn.done { background: var(--success-bg-alt); border-color: #90c890; color: var(--success-dark); }
@@ -512,7 +512,7 @@
       flex: 1; background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.22);
       border-radius: var(--radius-md); padding: 8px 4px; color: rgba(255,255,255,0.7);
       font-size: 0.72rem; font-weight: 700; font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer;
-      transition: all .16s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      transition: background-color .16s, border-color .16s, color .16s, box-shadow .16s, transform .16s, opacity .16s, filter .16s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       text-align: center;
     }
     .flavor-settings-btn:hover { background: rgba(255,255,255,0.22); color: var(--white); }
@@ -529,7 +529,7 @@
       display: flex; align-items: center; justify-content: space-between;
       background: var(--parchment); border: 1.5px solid var(--sand-border); border-radius: var(--radius-md);
       padding: 8px 10px; font-size: 0.76rem; font-weight: 600; color: var(--roast);
-      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: all .14s; gap: 6px;
+      cursor: pointer; font-family: "Plus Jakarta Sans", sans-serif; transition: background-color .14s, border-color .14s, color .14s, box-shadow .14s, transform .14s, opacity .14s, filter .14s; gap: 6px;
     }
     .fsettings-pill:active { transform: scale(0.95); }
     .fsettings-pill.oos {
@@ -644,7 +644,7 @@
       background: var(--parchment); color: var(--mahogany); font-weight: 800; font-size: 0.95rem;
       font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: all .12s; -webkit-tap-highlight-color: transparent;
+      transition: background-color .12s, border-color .12s, color .12s, box-shadow .12s, transform .12s, opacity .12s, filter .12s; -webkit-tap-highlight-color: transparent;
     }
     .order-edit-btn:hover  { background: var(--latte); }
     .order-edit-btn:active { transform: scale(0.88); }
@@ -695,7 +695,7 @@
     .note-chip {
       background: var(--pearl); border: 1.5px solid var(--latte); border-radius: var(--radius-pill);
       padding: 8px 13px; font-size: 0.78rem; font-weight: 600; color: var(--mahogany);
-      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: all .14s;
+      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: background-color .14s, border-color .14s, color .14s, box-shadow .14s, transform .14s, opacity .14s, filter .14s;
       -webkit-tap-highlight-color: transparent;
     }
     .note-chip:active { transform: scale(0.95); }
@@ -719,7 +719,7 @@
     .tool-btn {
       background: var(--cream); border: 1.5px solid var(--latte); border-radius: var(--radius-lg);
       padding: 11px 6px; font-size: 0.74rem; font-weight: 700; color: var(--mahogany);
-      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: all .14s;
+      font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer; transition: background-color .14s, border-color .14s, color .14s, box-shadow .14s, transform .14s, opacity .14s, filter .14s;
       display: flex; flex-direction: column; align-items: center; gap: 3px; -webkit-tap-highlight-color: transparent;
     }
     .tool-btn:hover { background: var(--parchment); border-color: var(--clay); }
@@ -741,13 +741,14 @@
       background: var(--pearl); border: 1.5px solid var(--latte); border-radius: var(--radius-md);
       padding: 12px 14px; font-family: "Plus Jakarta Sans", sans-serif; cursor: pointer;
       color: var(--roast); font-size: 0.86rem; font-weight: 700; text-align: left;
-      transition: all .14s; -webkit-tap-highlight-color: transparent;
+      transition: background-color .14s, border-color .14s, color .14s, box-shadow .14s, transform .14s, opacity .14s, filter .14s; -webkit-tap-highlight-color: transparent;
     }
     .cup-pick-btn:hover { background: var(--parchment); border-color: var(--clay); }
     .cup-pick-btn:active { transform: scale(0.98); }
     .cup-pick-sub  { display: block; font-size: 0.72rem; font-weight: 500; color: var(--bark); margin-top: 2px; }
     .cup-pick-go   { font-size: 0.74rem; font-weight: 700; color: var(--mahogany); white-space: nowrap; }
   </style>
+  <link rel="stylesheet" href="css/polish.css" />
 </head>
 <body class="has-bottom-nav">
 
@@ -807,7 +808,7 @@
     <!-- Row 1: Brand + End Shift (always fully visible) -->
     <div class="pos-header-row1">
       <div class="pos-header-left">
-        <span class="pos-header-brand">BREWS.CO</span>
+        <span class="pos-header-brand" data-shop-name>BREWS.CO</span>
         <div class="pos-header-meta">
           <span>Active Shift</span><span>·</span>
           <span class="pos-clock" id="posClock"></span>
@@ -1040,7 +1041,7 @@
 <div class="modal-overlay centered receipt-modal" id="receiptModal">
   <div class="modal">
     <div class="receipt-header">
-      <div class="receipt-brand">BREWS.CO</div>
+      <div class="receipt-brand" data-shop-name>BREWS.CO</div>
       <div class="receipt-meta">Order Receipt</div>
       <div class="receipt-ordernum" id="receiptOrderNum"></div>
     </div>

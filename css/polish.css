@@ -1,0 +1,82 @@
+/* ══════════════════════════════════════════════════════
+   polish.css: motion, touch feel and accessibility.
+   Loaded last on every page. All motion switches off for people who ask
+   their device to reduce motion.
+══════════════════════════════════════════════════════ */
+
+html { -webkit-text-size-adjust: 100%; touch-action: manipulation; }
+body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
+button, a, summary, label { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2.5px solid var(--caramel); outline-offset: 2px; border-radius: 6px; }
+input:focus-visible, select:focus-visible { outline: none; }
+
+/* Keep content clear of the phone's notch and gesture bar */
+.container { padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); }
+
+/* Page to page: soft cross-fade, bottom bar stays put (Chrome and Android WebView) */
+@view-transition { navigation: auto; }
+.bottom-nav { view-transition-name: bottom-nav; }
+::view-transition-old(root) { animation: pvOut .14s ease both; }
+::view-transition-new(root) { animation: pvIn .22s ease both; }
+@keyframes pvOut { to { opacity: 0; } }
+@keyframes pvIn  { from { opacity: 0; } }
+
+/* ── Entrances ── */
+@keyframes riseIn  { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes popIn   { from { opacity: 0; transform: scale(.86); }       to { opacity: 1; transform: none; } }
+@keyframes sheetUp { from { transform: translateY(40px); opacity: .4; } to { transform: none; opacity: 1; } }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes navPop  { 0% { transform: scale(1); } 45% { transform: scale(1.28) translateY(-2px); } 100% { transform: scale(1); } }
+
+.container, .home-view > * { animation: riseIn .42s cubic-bezier(.2,.8,.2,1) backwards; }
+.container > *:nth-child(2) { animation: riseIn .42s .05s cubic-bezier(.2,.8,.2,1) backwards; }
+.container > *:nth-child(3) { animation: riseIn .42s .10s cubic-bezier(.2,.8,.2,1) backwards; }
+.container > *:nth-child(4) { animation: riseIn .42s .15s cubic-bezier(.2,.8,.2,1) backwards; }
+.container > *:nth-child(5) { animation: riseIn .42s .20s cubic-bezier(.2,.8,.2,1) backwards; }
+.container > *:nth-child(n+6) { animation: riseIn .42s .25s cubic-bezier(.2,.8,.2,1) backwards; }
+.home-view > *:nth-child(2) { animation-delay: .06s; }
+.home-view > *:nth-child(3) { animation-delay: .12s; }
+.home-view > *:nth-child(4) { animation-delay: .18s; }
+.home-view > *:nth-child(n+5) { animation-delay: .24s; }
+
+/* Menu tiles pop in one after another, only the first time the screen opens */
+.drink-btn.tile-in { animation: popIn .34s calc(var(--i, 0) * 35ms) cubic-bezier(.2,.9,.3,1.2) backwards; }
+
+/* Sheets and dialogs */
+.mi-overlay.open { animation: fadeIn .2s ease; }
+.mi-overlay.open .mi-sheet { animation: sheetUp .3s cubic-bezier(.2,.8,.2,1); }
+.modal-overlay.open .modal { animation: sheetUp .3s cubic-bezier(.2,.8,.2,1); }
+.modal-overlay.centered.open .modal { animation: popIn .26s cubic-bezier(.2,.9,.3,1.1); }
+
+/* Settings sections open smoothly */
+.fold[open] > .fold-body { animation: riseIn .26s ease; }
+.fold { transition: box-shadow .2s, border-color .2s; }
+.fold[open] { box-shadow: var(--shadow-card); border-color: var(--mochaccino); }
+
+/* Bottom bar */
+.bottom-nav-item.active .bottom-nav-icon,
+.bottom-nav-item.active .bottom-nav-shift-pill { animation: navPop .42s ease; }
+.bottom-nav-item:active { transform: scale(.94); }
+
+/* Press feel on every kind of button */
+.fold-btn:active, .mi-btn:active, .back-btn:active, .header-settings-btn:active,
+.add-expense-btn:active, .mm-main:active, .style-opt:active, .sflavor-add-btn:active { transform: scale(.96); }
+
+/* Rows in the product manager slide in */
+.mm-row { animation: riseIn .3s ease backwards; }
+.mm-row:nth-child(2) { animation-delay: .03s; } .mm-row:nth-child(3) { animation-delay: .06s; }
+.mm-row:nth-child(4) { animation-delay: .09s; } .mm-row:nth-child(5) { animation-delay: .12s; }
+.mm-row:nth-child(n+6) { animation-delay: .15s; }
+
+/* Toasts glide up */
+.settings-toast { transform: translate(-50%, 10px); transition: opacity .25s, transform .25s; }
+.settings-toast.show { transform: translate(-50%, 0); }
+
+/* Smooth scrolling where it helps, and no stray highlight when long-pressing tiles */
+html { scroll-behavior: smooth; }
+.drink-btn { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
+}
